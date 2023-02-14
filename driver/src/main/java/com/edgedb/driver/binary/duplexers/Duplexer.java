@@ -20,6 +20,6 @@ public abstract class Duplexer {
 
     public abstract CompletableFuture<Void> disconnectAsync();
     public abstract CompletableFuture<Receiable> readNextAsync();
-    abstract CompletableFuture<Void> sendAsync(Sendable packet);
+    public abstract CompletableFuture<Void> sendAsync(Sendable packet);
 
 }

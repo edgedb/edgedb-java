@@ -1,90 +1,65 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.binary.duplexers.StreamDuplexer;
+import com.edgedb.driver.TLSSecurityMode;
+import com.edgedb.driver.async.CompletableHandlerFuture;
+import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
+import com.edgedb.driver.ssl.SSLAsynchronousChannelGroup;
+import com.edgedb.driver.ssl.SSLAsynchronousSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.security.GeneralSecurityException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient {
-    private SSLEngine engine;
-    private SSLSocket socket;
-    private AsynchronousSocketChannel channel;
+    // placeholders
+    private static final long WRITE_TIMEOUT = 5000;
+    private static final long READ_TIMEOUT = 5000;
+    private static final long CONNECTION_TIMEOUT = 5000;
 
-    private SSLSession session;
-    private ByteBuffer clientPacketBuffer;
-    private ByteBuffer sslClientPacketBuffer;
-    private ByteBuffer serverPacketBuffer;
-    private ByteBuffer sslServerPacketBuffer;
 
-    public EdgeDBTCPClient(EdgeDBConnection connection) {
+    private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
+
+    private SSLAsynchronousSocketChannel channel;
+    private final ExecutorService executor;
+
+    private static SSLAsynchronousChannelGroup channelGroup;
+
+    public EdgeDBTCPClient(EdgeDBConnection connection) throws IOException {
         super(connection);
-        setDuplexer(new StreamDuplexer(this));
+
+        this.executor = Executors.newFixedThreadPool(3); // TODO: config option here
+
+        setDuplexer(new ChannelDuplexer(this));
+
+        // TODO: config this
+        if(channelGroup == null) {
+            channelGroup = new SSLAsynchronousChannelGroup(executor);
+        }
     }
 
     @Override
-    public CompletionStage<Void> openConnection() {
-        // TODO: https://github.com/marianobarrios/tls-channel
+    public CompletionStage<Void> openConnection() throws IOException {
         var connection = getConnection();
 
-        return CompletableFuture
-                .supplyAsync(() -> {
-                    // construct our SSL engine
-                    SSLEngine engine = null;
+        this.channel = SSLAsynchronousSocketChannel.open(channelGroup, connection.getTLSSecurity() != TLSSecurityMode.INSECURE);
 
-                    try {
-                        engine = connection
-                                .getSSLContext()
-                                .createSSLEngine(connection.getHostname(), connection.getPort());
-                    } catch (GeneralSecurityException | IOException e) {
-                        return CompletableFuture.failedFuture(e);
-                    }
+        var result = new CompletableHandlerFuture<Void, Void>();
 
-                    engine.setUseClientMode(true);
-                    this.engine = engine;
+        this.channel.connect(new InetSocketAddress(connection.getHostname(), connection.getPort()), null, result);
 
-                    // create an asynchronous channel
-                    AsynchronousSocketChannel channel = null;
-                    try {
-                        channel = AsynchronousSocketChannel.open();
-                    } catch (IOException e) {
-                        return CompletableFuture.failedFuture(e);
-                    }
-
-                    this.channel = channel;
-
-                    return channel.connect(new InetSocketAddress(connection.getHostname(), connection.getPort()));
-                })
-                .thenAccept(future -> {
-                    // wait for connection
-                    try {
-                        future.wait(1000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .thenRun(() -> {
-                    // alloc buffers
-                    this.session = this.engine.getSession();
-                    this.clientPacketBuffer = ByteBuffer.allocate(this.session.getApplicationBufferSize());
-                    this.sslClientPacketBuffer = ByteBuffer.allocate(this.session.getPacketBufferSize());
-                    this.serverPacketBuffer = ByteBuffer.allocate(this.session.getApplicationBufferSize());
-                    this.sslServerPacketBuffer = ByteBuffer.allocate(this.session.getPacketBufferSize());
-
-                    engine.han
-                });
+        return result;
     }
 
     @Override
     public CompletionStage<Void> closeConnection() {
-        return null;
+        var result = new CompletableHandlerFuture<Void, Void>();
+
+        this.channel.shutdown(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS, null, result);
+
+        return result;
     }
+
 }
