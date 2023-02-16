@@ -24,7 +24,7 @@ public class AuthenticationSASLInitialResponse extends Sendable {
     }
 
     @Override
-    public int getSize() {
+    public int getDataSize() {
         return BinaryProtocolUtils.sizeOf(this.method) + BinaryProtocolUtils.sizeOf(this.payload);
     }
 }

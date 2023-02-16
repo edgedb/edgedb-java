@@ -25,6 +25,7 @@ public abstract class BaseEdgeDBClient {
         return this.connection;
     }
 
+
     public abstract CompletionStage<Void> executeAsync(String query, Hashtable<String, Object> args);
     public CompletionStage<Void> executeAsync(String query){
         return executeAsync(query, null);
@@ -43,5 +44,12 @@ public abstract class BaseEdgeDBClient {
     public abstract <T> CompletionStage<T> queryRequiredSingleAsync(String query, Hashtable<String, Object> args);
     public <T> CompletionStage<T> queryRequiredSingleAsync(String query) {
         return queryRequiredSingleAsync(query, null);
+    }
+
+    public abstract CompletionStage<Void> connectAsync();
+    public abstract CompletionStage<Void> disconnectAsync();
+
+    public CompletionStage<Void> reconnectAsync() {
+        return disconnectAsync().thenCompose((v) -> connectAsync());
     }
 }

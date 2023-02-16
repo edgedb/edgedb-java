@@ -8,11 +8,25 @@ import java.security.GeneralSecurityException;
 import java.util.concurrent.ExecutionException;
 
 public class Main {
+
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException, ExecutionException {
         //var pool = Executors.newCachedThreadPool();
         var conn = EdgeDBConnection.resolveEdgeDBTOML();
 
         var client = new EdgeDBTCPClient(conn);
+
+        var cls = Integer.class;
+
+        Long v = 0x00_00_FF_FF_CDL;
+        Integer target = 0x00FFFFCD;
+
+        //var c2 = Math.toIntExact(v);
+        int c = v.intValue();
+
+        var a = cls.cast(v);
+
+        System.out.println(a);
+
 
 //        var cert = CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(conn.getTLSCertificateAuthority().getBytes(StandardCharsets.US_ASCII)));
 //

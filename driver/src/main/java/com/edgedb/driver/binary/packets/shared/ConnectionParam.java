@@ -1,7 +1,7 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.PacketWriter;
-import com.edgedb.driver.binary.packets.SerializableData;
+import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 
 import javax.naming.OperationNotSupportedException;

@@ -1,7 +1,8 @@
 package com.edgedb.driver.binary.packets.shared;
 
+import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
-import com.edgedb.driver.binary.packets.SerializableData;
+import com.edgedb.driver.binary.SerializableData;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -12,6 +13,11 @@ public class ProtocolExtension implements SerializableData {
     public ProtocolExtension(String name, Annotation[] annotations) {
         this.name = name;
         this.annotations = annotations;
+    }
+
+    public ProtocolExtension(PacketReader reader) {
+        this.name = reader.readString();
+        this.annotations = reader.readAnnotations();
     }
 
     @Override

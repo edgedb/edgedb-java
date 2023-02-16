@@ -1,5 +1,8 @@
 package com.edgedb.driver.binary.packets;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum ServerMessageType {
     AUTHENTICATION (0x52),
     COMMAND_COMPLETE (0x43),
@@ -17,9 +20,20 @@ public enum ServerMessageType {
     SERVER_KEY_DATA (0x4b);
 
     private final byte code;
+    private final static Map<Byte, ServerMessageType> map = new HashMap<>();
 
     ServerMessageType(int code) {
         this.code = (byte)code;
+    }
+
+    static {
+        for (ServerMessageType v : ServerMessageType.values()) {
+            map.put(v.code, v);
+        }
+    }
+
+    public static ServerMessageType valueOf(Byte raw) {
+        return map.get(raw);
     }
 
     public byte getCode() {

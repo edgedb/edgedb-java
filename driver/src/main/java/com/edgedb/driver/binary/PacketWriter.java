@@ -1,12 +1,15 @@
 package com.edgedb.driver.binary;
 
-import com.edgedb.driver.binary.packets.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 
 import javax.naming.OperationNotSupportedException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.*;
@@ -16,10 +19,48 @@ public class PacketWriter implements AutoCloseable {
     private final boolean isDynamic;
     private boolean canWrite;
 
+    private static final Map<Class<?>, BiConsumer<PacketWriter, Number>> primitiveNumberWriters;
+
     public PacketWriter(int size, boolean isDynamic) {
         this.isDynamic = isDynamic;
         this.canWrite = true;
         this.buffer = ByteBuffer.allocateDirect(size);
+    }
+
+    static {
+        primitiveNumberWriters = new HashMap<>();
+
+        primitiveNumberWriters.put(Byte.class, (p, v) -> {
+            try {
+                p.write((byte)v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(Short.class, (p, v) -> {
+            try {
+                p.write((short)v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(Integer.class, (p, v) -> {
+            try {
+                p.write((int) v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(Long.class, (p, v) -> {
+            try {
+                p.write((long) v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public PacketWriter() {
@@ -119,6 +160,7 @@ public class PacketWriter implements AutoCloseable {
 
         ensureCanWrite(buffer.limit() + 4); // 4 is arr length (i32)
 
+        write(buffer.limit());
         this.buffer.put(buffer);
     }
 
@@ -154,6 +196,32 @@ public class PacketWriter implements AutoCloseable {
         for (T serializable : serializableArray) {
             write(serializable);
         }
+    }
+
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> void writeEnumSet(EnumSet<T> enumSet, Class<U> primitive) throws OperationNotSupportedException {
+        long flags = 0L;
+
+        for (T v: enumSet) {
+            flags |= v.getValue().longValue();
+        }
+
+        // convert back to U
+        U actualFlags;
+        Object temp;
+        if(primitive.equals(Long.class)) {
+            temp = flags;
+        } else if (primitive.equals(Integer.class)) {
+            temp = (int) flags;
+        } else if (primitive.equals(Short.class)) {
+            temp = (short) flags;
+        } else if (primitive.equals(Byte.class)) {
+            temp = (byte) flags;
+        } else {
+            throw new OperationNotSupportedException("Cannot use enum with primitive type " + primitive.getName());
+        }
+
+        actualFlags = primitive.cast(temp);
+        primitiveNumberWriters.get(primitive).accept(this, actualFlags);
     }
 
     private void ensureCanWrite(int size) throws OperationNotSupportedException {

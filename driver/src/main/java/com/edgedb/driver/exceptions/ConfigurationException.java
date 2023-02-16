@@ -1,6 +1,6 @@
 package com.edgedb.driver.exceptions;
 
-public class ConfigurationException extends Exception {
+public class ConfigurationException extends EdgeDBException {
     public ConfigurationException(String message) {
         super(message);
     }

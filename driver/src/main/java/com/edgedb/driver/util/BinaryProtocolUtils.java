@@ -1,6 +1,6 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.binary.packets.SerializableData;
+import com.edgedb.driver.binary.SerializableData;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +15,7 @@ public class BinaryProtocolUtils {
     public static final int BYTE_SIZE = 1;
     public static final int CHAR_SIZE = 2;
     public static final int BOOL_SIZE = 1;
+    public static final int UUID_SIZE = 16;
 
     public static int sizeOf(String s) {
         int size = 4;

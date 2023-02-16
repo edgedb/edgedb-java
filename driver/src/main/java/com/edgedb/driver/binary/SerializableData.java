@@ -1,6 +1,4 @@
-package com.edgedb.driver.binary.packets;
-
-import com.edgedb.driver.binary.PacketWriter;
+package com.edgedb.driver.binary;
 
 import javax.naming.OperationNotSupportedException;
 

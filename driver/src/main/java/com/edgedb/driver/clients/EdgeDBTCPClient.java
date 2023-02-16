@@ -19,11 +19,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     private static final long READ_TIMEOUT = 5000;
     private static final long CONNECTION_TIMEOUT = 5000;
 
-
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
 
     private SSLAsynchronousSocketChannel channel;
     private final ExecutorService executor;
+
+    private final ChannelDuplexer channelDuplexer;
 
     private static SSLAsynchronousChannelGroup channelGroup;
 
@@ -32,7 +33,8 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
         this.executor = Executors.newFixedThreadPool(3); // TODO: config option here
 
-        setDuplexer(new ChannelDuplexer(this));
+        channelDuplexer = new ChannelDuplexer(this);
+        setDuplexer(channelDuplexer);
 
         // TODO: config this
         if(channelGroup == null) {
@@ -41,7 +43,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     }
 
     @Override
-    public CompletionStage<Void> openConnection() throws IOException {
+    protected CompletionStage<Void> openConnectionAsync() throws IOException {
         var connection = getConnection();
 
         this.channel = SSLAsynchronousSocketChannel.open(channelGroup, connection.getTLSSecurity() != TLSSecurityMode.INSECURE);
@@ -50,16 +52,16 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
         this.channel.connect(new InetSocketAddress(connection.getHostname(), connection.getPort()), null, result);
 
-        return result;
+        return result.flatten().thenAccept((v) -> this.channelDuplexer.init(this.channel));
     }
 
     @Override
-    public CompletionStage<Void> closeConnection() {
+    protected CompletionStage<Void> closeConnectionAsync() {
         var result = new CompletableHandlerFuture<Void, Void>();
 
         this.channel.shutdown(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS, null, result);
 
-        return result;
+        return result.flatten();
     }
 
 }

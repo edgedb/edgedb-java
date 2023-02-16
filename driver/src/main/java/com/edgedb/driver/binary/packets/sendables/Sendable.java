@@ -1,10 +1,13 @@
 package com.edgedb.driver.binary.packets.sendables;
 
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.binary.packets.ClientMessageType;
-import com.edgedb.driver.binary.packets.SerializableData;
 
 import javax.naming.OperationNotSupportedException;
+
+import static com.edgedb.driver.util.BinaryProtocolUtils.BYTE_SIZE;
+import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public abstract class Sendable implements SerializableData {
     public final ClientMessageType type;
@@ -20,4 +23,12 @@ public abstract class Sendable implements SerializableData {
         writer.write(getSize() + 4);
         buildPacket(writer);
     }
+
+    @Override
+    public int getSize() {
+        return getDataSize() + BYTE_SIZE + INT_SIZE;
+    }
+
+    protected abstract int getDataSize();
+
 }

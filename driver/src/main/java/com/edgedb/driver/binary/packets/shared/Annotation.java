@@ -1,7 +1,8 @@
 package com.edgedb.driver.binary.packets.shared;
 
+import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
-import com.edgedb.driver.binary.packets.SerializableData;
+import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 
 import javax.naming.OperationNotSupportedException;
@@ -9,6 +10,11 @@ import javax.naming.OperationNotSupportedException;
 public class Annotation implements SerializableData {
     private final String name;
     private final String value;
+
+    public Annotation(PacketReader reader) {
+        name = reader.readString();
+        value = reader.readString();
+    }
 
     public Annotation(String name, String value) {
         this.name = name;

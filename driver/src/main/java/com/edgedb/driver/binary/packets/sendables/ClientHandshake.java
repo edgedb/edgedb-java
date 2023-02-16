@@ -15,7 +15,7 @@ public class ClientHandshake extends Sendable {
     private final ConnectionParam[] connectionParams;
     private final ProtocolExtension[] extensions;
 
-    protected ClientHandshake(
+    public ClientHandshake(
             short majorVersion,
             short minorVersion,
             ConnectionParam[] connectionParams,
@@ -37,7 +37,7 @@ public class ClientHandshake extends Sendable {
     }
 
     @Override
-    public int getSize() {
+    public int getDataSize() {
         return
                 SHORT_SIZE +
                 SHORT_SIZE +
