@@ -20,6 +20,10 @@ public class LogMessage implements Receivable {
         annotations = reader.readAnnotations();
     }
 
+    public String format() {
+        return String.format("%s: %s", severity, content);
+    }
+
     @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.LOG_MESSAGE;

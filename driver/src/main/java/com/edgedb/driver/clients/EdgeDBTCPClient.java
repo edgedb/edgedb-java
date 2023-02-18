@@ -1,16 +1,14 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.TLSSecurityMode;
-import com.edgedb.driver.async.CompletableHandlerFuture;
-import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
-import com.edgedb.driver.ssl.SSLAsynchronousChannelGroup;
-import com.edgedb.driver.ssl.SSLAsynchronousSocketChannel;
+import com.edgedb.driver.binary.duplexers.SocketDuplexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.*;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient {
@@ -21,47 +19,61 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
 
-    private SSLAsynchronousSocketChannel channel;
-    private final ExecutorService executor;
-
-    private final ChannelDuplexer channelDuplexer;
-
-    private static SSLAsynchronousChannelGroup channelGroup;
+    private final SocketDuplexer socketDuplexer;
+    private SSLSocket socket;
 
     public EdgeDBTCPClient(EdgeDBConnection connection) throws IOException {
         super(connection);
 
-        this.executor = Executors.newFixedThreadPool(3); // TODO: config option here
+        ExecutorService executor = Executors.newFixedThreadPool(5); // TODO: config option here
 
-        channelDuplexer = new ChannelDuplexer(this);
-        setDuplexer(channelDuplexer);
+        socketDuplexer = new SocketDuplexer(this);
+        setDuplexer(socketDuplexer);
 
-        // TODO: config this
-        if(channelGroup == null) {
-            channelGroup = new SSLAsynchronousChannelGroup(executor);
-        }
     }
 
     @Override
-    protected CompletionStage<Void> openConnectionAsync() throws IOException {
-        var connection = getConnection();
+    protected CompletionStage<Void> openConnectionAsync() {
+        return CompletableFuture
+                .supplyAsync(() -> {
+                    try {
+                        var connection = getConnection();
 
-        this.channel = SSLAsynchronousSocketChannel.open(channelGroup, connection.getTLSSecurity() != TLSSecurityMode.INSECURE);
+                        var context = connection.getSSLContext();
 
-        var result = new CompletableHandlerFuture<Void, Void>();
+                        SSLSocketFactory factory = (SSLSocketFactory) context.getSocketFactory();
 
-        this.channel.connect(new InetSocketAddress(connection.getHostname(), connection.getPort()), null, result);
+                        SSLSocket sslSocket = (SSLSocket) factory.createSocket("localhost", 10708);
+                        SSLParameters sslp = sslSocket.getSSLParameters();
 
-        return result.flatten().thenAccept((v) -> this.channelDuplexer.init(this.channel));
+                        sslp.setApplicationProtocols(new String[] { "edgedb-binary" });
+
+                        sslSocket.setSSLParameters(sslp);
+
+                        sslSocket.startHandshake();
+
+                        String ap = sslSocket.getApplicationProtocol();
+
+                        return sslSocket;
+                    }
+                    catch (Exception x) {
+                        throw new CompletionException(x);
+                    }
+                })
+                .thenAccept((v) -> {
+                    try {
+                        this.socket = v;
+                        this.socketDuplexer.init(v);
+                    } catch (IOException e) {
+                        throw new CompletionException(e);
+                    }
+                });
+
     }
 
     @Override
     protected CompletionStage<Void> closeConnectionAsync() {
-        var result = new CompletableHandlerFuture<Void, Void>();
-
-        this.channel.shutdown(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS, null, result);
-
-        return result.flatten();
+        return this.duplexer.disconnectAsync();
     }
 
 }

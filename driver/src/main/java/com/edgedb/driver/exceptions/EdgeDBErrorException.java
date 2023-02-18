@@ -4,7 +4,7 @@ import com.edgedb.driver.ErrorCode;
 import com.edgedb.driver.annotations.ShouldReconnect;
 import com.edgedb.driver.annotations.ShouldRetry;
 import com.edgedb.driver.binary.packets.receivable.ErrorResponse;
-import org.jetbrains.annotations.NotNull;
+import com.edgedb.driver.util.StringsUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -27,25 +27,33 @@ public class EdgeDBErrorException extends EdgeDBException {
     private final ErrorCode errorCode;
     private final String message;
 
-    private @Nullable String query;
+    private final @Nullable String query;
+
+    public static EdgeDBErrorException fromError(ErrorResponse err) {
+        return fromError(err, null);
+    }
+    public static EdgeDBErrorException fromError(ErrorResponse error, String query) {
+        boolean shouldRetry, shouldReconnect;
+        try {
+            shouldRetry = ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldRetry.class);
+            shouldReconnect = ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldReconnect.class);
+        }
+        catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
+        return new EdgeDBErrorException(error, query, shouldRetry, shouldReconnect);
+    }
 
 
-    public EdgeDBErrorException(ErrorResponse error) throws NoSuchFieldException {
-        super(
-                ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldRetry.class),
-                ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldReconnect.class)
-        );
+    private EdgeDBErrorException(ErrorResponse error, String query, boolean shouldRetry, boolean shouldReconnect) {
+        super(shouldRetry, shouldReconnect);
 
         this.attributes = Arrays.stream(error.attributes)
                 .collect(Collectors.toMap((v) -> v.code, (v) -> v.value.array()));
 
         this.errorCode = error.errorCode;
         this.message = error.message;
-    }
-
-    public EdgeDBErrorException(ErrorResponse error, @NotNull String query) throws NoSuchFieldException {
-        this(error);
-
         this.query = query;
     }
 
@@ -97,22 +105,43 @@ public class EdgeDBErrorException extends EdgeDBException {
     }
 
     private String prettify() {
-        String lineStart, lineEnd, columnStart, columnEnd;
+        String lineStartStr, lineEndStr, columnStartStr, columnEndStr;
         
         if(
                 this.query == null ||
-                (lineStart = getAttributeString(ERROR_LINE_START)) == null ||
-                (lineEnd = getAttributeString(ERROR_LINE_END)) == null ||
-                (columnStart = getAttributeString(ERROR_COLUMN_START)) == null ||
-                (columnEnd = getAttributeString(ERROR_COLUMN_END)) == null
+                (lineStartStr = getAttributeString(ERROR_LINE_START)) == null ||
+                (lineEndStr = getAttributeString(ERROR_LINE_END)) == null ||
+                (columnStartStr = getAttributeString(ERROR_COLUMN_START)) == null ||
+                (columnEndStr = getAttributeString(ERROR_COLUMN_END)) == null
         ) {
             return null;
         }
 
         var lines = this.query.split("\n");
-        var lineNoWidth = lineEnd.length();
+        var lineNoWidth = lineEndStr.length();
 
-        var errorMessage = String.format("%s: %s", this.errorCode, this.message);
-        errorMessage += "|".
+        var errorMessage = new StringBuilder(String.format("%s: %s", this.errorCode, this.message));
+        errorMessage.append(StringsUtil.padLeft("|", lineNoWidth + 3)).append("\n");
+
+        int
+                lineStart = Integer.parseInt(lineStartStr),
+                lineEnd   = Integer.parseInt(lineEndStr),
+                colStart  = Integer.parseInt(columnStartStr),
+                colEnd    = Integer.parseInt(columnEndStr);
+
+        for(int i = lineStart; i < lineEnd + 1; i++) {
+            var line = lines[i - 1];
+            var start = i == lineStart ? colStart : 0;
+            var end = i == lineEnd ? colEnd : line.length();
+
+            errorMessage.append(" ").append(StringsUtil.padLeft(Integer.toString(i), lineNoWidth)).append(" | ").append(line).append("\n");
+            errorMessage.append(StringsUtil.padLeft("|", lineNoWidth + 3)).append(" ").append(StringsUtil.padLeft(StringsUtil.padLeft("", '^', end - start), end)).append("\n");
+        }
+
+        if(getHint() != null) {
+            errorMessage.append("Hint: ").append(getHint());
+        }
+
+        return errorMessage.toString();
     }
 }

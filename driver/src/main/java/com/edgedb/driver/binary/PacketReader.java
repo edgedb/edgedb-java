@@ -15,6 +15,7 @@ public class PacketReader {
     private static final Map<Class<?>, Function<PacketReader, ?>> numberReaderMap;
 
     public PacketReader(ByteBuffer buffer) {
+        buffer.flip();
         this.buffer = buffer;
     }
 

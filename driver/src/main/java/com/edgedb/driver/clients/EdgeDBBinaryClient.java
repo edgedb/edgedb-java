@@ -3,13 +3,12 @@ package com.edgedb.driver.clients;
 import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.binary.duplexers.Duplexer;
 import com.edgedb.driver.binary.packets.ServerMessageType;
-import com.edgedb.driver.binary.packets.receivable.AuthenticationStatus;
-import com.edgedb.driver.binary.packets.receivable.ErrorResponse;
-import com.edgedb.driver.binary.packets.receivable.Receivable;
-import com.edgedb.driver.binary.packets.receivable.ServerHandshake;
+import com.edgedb.driver.binary.packets.receivable.*;
 import com.edgedb.driver.binary.packets.sendables.ClientHandshake;
+import com.edgedb.driver.binary.packets.shared.AuthStatus;
 import com.edgedb.driver.binary.packets.shared.ConnectionParam;
 import com.edgedb.driver.binary.packets.shared.ProtocolExtension;
+import com.edgedb.driver.exceptions.EdgeDBErrorException;
 import com.edgedb.driver.exceptions.InvalidSignatureException;
 import com.edgedb.driver.exceptions.ScramException;
 import com.edgedb.driver.exceptions.UnexpectedMessageException;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -29,10 +27,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("ClassEscapesDefinedScope")
 public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
-    private static Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
 
     private static final short PROTOCOL_MAJOR_VERSION = 1;
     private static final short PROTOCOL_MINOR_VERSION = 0;
+
+    private byte[] serverKey;
 
     protected Duplexer duplexer;
     private boolean isIdle;
@@ -77,7 +77,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         return null;
     }
 
-    private CompletionStage<Void> handlePacketAsync(Receivable packet) {
+    private CompletionStage<Void> handlePacketAsync(Receivable packet) throws SSLException, ScramException, UnexpectedMessageException {
         switch (packet.getMessageType()) {
             case SERVER_HANDSHAKE:
                 var handshake = (ServerHandshake)packet;
@@ -101,12 +101,45 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 var error = (ErrorResponse)packet;
 
                 logger.error("{} - {}: {}", error.severity, error.errorCode, error.message);
+                var exc = EdgeDBErrorException.fromError(error);
+
                 if(!readyPromise.isDone()) {
-                    readyPromise.cancel(true); // TODO: complete with error?
+                    readyPromise.completeExceptionally(exc);
+                }
+                return CompletableFuture.failedFuture(exc);
+            case AUTHENTICATION:
+                var auth = (AuthenticationStatus)packet;
+                if(auth.authStatus == AuthStatus.AUTHENTICATION_REQUIRED_SASL_MESSAGE) {
+                    return startSASLAuthenticationAsync(auth);
+                } else if (auth.authStatus != AuthStatus.AUTHENTICATION_OK) {
+                    throw new UnexpectedMessageException("Expected AuthenticationRequiredSASLMessage, got " + auth.authStatus);
                 }
                 break;
-            case AUTHENTICATION:
-
+            case SERVER_KEY_DATA:
+                this.serverKey = ((ServerKeyData)packet).keyData.array();
+                break;
+            case STATE_DATA_DESCRIPTION:
+                // TODO: state
+                break;
+            case PARAMETER_STATUS:
+                // TODO: parameters
+                break;
+            case LOG_MESSAGE:
+                var msg = (LogMessage)packet;
+                var formatted = msg.format();
+                switch (msg.severity) {
+                    case INFO:
+                    case NOTICE:
+                        logger.info(formatted);
+                        break;
+                    case DEBUG:
+                        logger.debug(formatted);
+                        break;
+                    case WARNING:
+                        logger.warn(formatted);
+                        break;
+                }
+                break;
         }
 
         return CompletableFuture.completedFuture(null);
@@ -152,20 +185,21 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                 break;
                             case AUTHENTICATION_OK:
                                 state.finishDuplexing();
+                                this.isIdle = false;
                                 break;
                             default:
                                 throw new UnexpectedMessageException("Expected continue or final but got " + auth.authStatus);
                         }
                         break;
                     case ERROR_RESPONSE:
-
-                        break;
+                        throw EdgeDBErrorException.fromError((ErrorResponse)state.packet);
                     default:
                         logger.error("Unexpected message. expected: {} actual: {}", ServerMessageType.AUTHENTICATION, state.packet.getMessageType());
                         throw new CompletionException(new UnexpectedMessageException(ServerMessageType.AUTHENTICATION, state.packet.getMessageType()));
                 }
-            }
+            } // TODO: should reconnect & should retry exceptions
             catch (Exception err) {
+                this.isIdle = false;
                 state.finishExceptionally(err);
             }
 
@@ -190,19 +224,26 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         throw new CompletionException(e);
                     }
                 })
-                .thenRunAsync(() -> {
-                    while(!this.readyPromise.isDone()) {
-                        ;
-                    }
-                })
+                .thenRunAsync(this::doClientHandshake)
                 .thenCompose((v) -> this.readyPromise);
     }
 
     private CompletionStage<Void> doClientHandshake() {
-        this.duplexer.readNextAsync()
-                .thenCompose((result) -> {
-
+        return this.duplexer.readNextAsync()
+                .thenCompose(packet -> {
+                    try {
+                        return handlePacketAsync(packet);
+                    } catch (SSLException|ScramException|UnexpectedMessageException e) {
+                        throw new CompletionException(e);
+                    }
                 })
+                .thenCompose((v) -> {
+                    if(!this.readyPromise.isDone()) {
+                        return doClientHandshake();
+                    }
+
+                    return CompletableFuture.completedFuture(null);
+                });
     }
 
     @Override

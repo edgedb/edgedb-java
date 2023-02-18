@@ -321,7 +321,10 @@ public class EdgeDBConnection {
     }
 
     public SSLContext getSSLContext() throws GeneralSecurityException, IOException {
-        SSLContext sc = SSLContext.getInstance("SSL");
+        return getSSLContext("TLSv1.2");
+    }
+    public SSLContext getSSLContext(String instanceName) throws GeneralSecurityException, IOException {
+        SSLContext sc = SSLContext.getInstance(instanceName);
         TrustManager[] trustManagers;
 
         if(this.tlsSecurity == TLSSecurityMode.INSECURE) {
