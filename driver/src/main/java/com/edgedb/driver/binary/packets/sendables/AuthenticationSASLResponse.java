@@ -3,14 +3,14 @@ package com.edgedb.driver.binary.packets.sendables;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import io.netty.buffer.ByteBuf;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
 
 public class AuthenticationSASLResponse extends Sendable {
-    private final ByteBuffer payload;
+    private final ByteBuf payload;
 
-    public AuthenticationSASLResponse(ByteBuffer payload) {
+    public AuthenticationSASLResponse(ByteBuf payload) {
         super(ClientMessageType.AUTHENTICATION_SASL_RESPONSE);
         this.payload = payload;
     }

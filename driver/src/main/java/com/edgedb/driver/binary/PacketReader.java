@@ -2,20 +2,19 @@ package com.edgedb.driver.binary;
 
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
+import io.netty.buffer.ByteBuf;
 
 import java.lang.reflect.Array;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PacketReader {
-    private final ByteBuffer buffer;
+    private final ByteBuf buffer;
     private static final Map<Class<?>, Function<PacketReader, ?>> numberReaderMap;
 
-    public PacketReader(ByteBuffer buffer) {
-        buffer.flip();
+    public PacketReader(ByteBuf buffer) {
         this.buffer = buffer;
     }
 
@@ -30,56 +29,62 @@ public class PacketReader {
     }
 
     public void skip(int count) {
-        this.buffer.position(this.buffer.position() + count);
+        this.buffer.skipBytes(count);
     }
 
     public boolean isEmpty() {
-        return !this.buffer.hasRemaining();
+        return this.buffer.readableBytes() == 0; // TODO: this doesn't look right?
     }
 
     public UUID readUUID() {
-        return new UUID(buffer.getLong(), buffer.getLong());
+        return new UUID(buffer.readLong(), buffer.readLong());
     }
 
     public String readString() {
         var len = readInt32();
         var buffer = new byte[len];
-        this.buffer.get(buffer);
+        this.buffer.readBytes(buffer);
         return new String(buffer, StandardCharsets.UTF_8);
     }
 
 
 
     public boolean readBoolean() {
-        return buffer.get() > 0;
+        return buffer.readBoolean();
     }
 
     public Byte readByte() {
-        return buffer.get();
+        return buffer.readByte();
     }
 
     public char readChar() {
-        return buffer.getChar();
+        return buffer.readChar();
     }
 
     public double readDouble() {
-        return buffer.getDouble();
+        return buffer.readDouble();
     }
 
     public float readFloat() {
-        return buffer.getFloat();
+        return buffer.readFloat();
     }
 
     public long readInt64() {
-        return buffer.getLong();
+        return buffer.readLong();
     }
 
     public int readInt32() {
-        return buffer.getInt();
+        return buffer.readInt();
+    }
+    public long readUInt32() {
+        return buffer.readUnsignedInt();
     }
 
     public short readInt16() {
-        return buffer.getShort();
+        return buffer.readShort();
+    }
+    public int readUInt16() {
+        return buffer.readUnsignedShort();
     }
 
     public String[] readStringArray() {
@@ -94,16 +99,13 @@ public class PacketReader {
         return arr;
     }
 
-    public ByteBuffer readByteArray() {
+    public ByteBuf readByteArray() {
         var len = readInt32();
        return readBytes(len);
     }
 
-    public ByteBuffer readBytes(int length) {
-        var buff = this.buffer.slice();
-        buff.compact();
-        buff.limit(length);
-        return buff;
+    public ByteBuf readBytes(int length) {
+        return this.buffer.readSlice(length);
     }
 
     public Annotation[] readAnnotations() {
@@ -116,7 +118,7 @@ public class PacketReader {
 
     @SuppressWarnings("unchecked")
     public <U extends Number, T> T[] readArrayOf(Class<T> cls, Function<PacketReader, T> mapper, Class<U> lengthPrimitive) {
-        int len = lengthPrimitive.cast(numberReaderMap.get(lengthPrimitive).apply(this)).intValue();
+        var len = ((U)numberReaderMap.get(lengthPrimitive).apply(this)).intValue();
 
         // can only use 32 bit, so cast to that
         var arr = (T[]) Array.newInstance(cls, len);

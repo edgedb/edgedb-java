@@ -3,19 +3,21 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.receivable.*;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Function;
 
 public class PacketSerializer {
     private static final Logger logger = LoggerFactory.getLogger(PacketSerializer.class);
-
     private static final Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
 
     static {
@@ -37,12 +39,37 @@ public class PacketSerializer {
         deserializerMap.put(ServerMessageType.STATE_DATA_DESCRIPTION, StateDataDescription::new);
     }
 
-    public static Receivable deserialize(ServerMessageType messageType, int length, ByteBuffer buffer) {
+    public static final MessageToMessageDecoder<ByteBuf> PACKET_DECODER = new MessageToMessageDecoder<ByteBuf>() {
+        @Override
+        protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+            // TODO: packet contract should be implemented if the 'msg' is partial due to async IO.
+            // packet contracts act as pub-sub in the sense that theres a queue of buffers, successfully
+            // read packets, and completion sources for said packets. consumers pop out either A: a completed
+            // packet contract; B: a packet contract which is partial and awaiting more data from IO; or C:
+            // a completion stage that represents a unfulfilled contract that is completed on the next read.
+
+            var type = ServerMessageType.valueOf(msg.readByte());
+            var length = msg.readUnsignedInt() - 4; // remove length of self.
+            var packet = PacketSerializer.deserialize(type, length, msg);
+            out.add(packet);
+        }
+    };
+
+    public static final MessageToMessageEncoder<Sendable> PACKET_ENCODER = new MessageToMessageEncoder<Sendable>() {
+
+        @Override
+        protected void encode(ChannelHandlerContext ctx, Sendable msg, List<Object> out) throws Exception {
+
+            out.add(PacketSerializer.serialize(msg));
+        }
+    };
+
+    public static Receivable deserialize(ServerMessageType messageType, long length, ByteBuf buffer) {
         var reader = new PacketReader(buffer);
 
         if(!deserializerMap.containsKey(messageType)) {
             logger.error("Unknown packet type {}", messageType);
-            reader.skip(length);
+            reader.skip((int)length);
             return null;
         }
 
@@ -61,7 +88,7 @@ public class PacketSerializer {
         }
     }
 
-    public static ByteBuffer serialize(@NotNull Sendable packet, @Nullable Sendable... packets) throws OperationNotSupportedException {
+    public static ByteBuf serialize(@NotNull Sendable packet, @Nullable Sendable... packets) throws OperationNotSupportedException {
         int size = packet.getSize();
 
         if(packets != null && packets.length > 0) {

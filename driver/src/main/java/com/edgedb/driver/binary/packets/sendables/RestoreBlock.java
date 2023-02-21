@@ -3,14 +3,14 @@ package com.edgedb.driver.binary.packets.sendables;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import io.netty.buffer.ByteBuf;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
 
 public class RestoreBlock extends Sendable {
-    private final ByteBuffer blockData;
+    private final ByteBuf blockData;
 
-    public RestoreBlock(ByteBuffer blockData) {
+    public RestoreBlock(ByteBuf blockData) {
         super(ClientMessageType.RESTORE_BLOCK);
         this.blockData = blockData;
     }

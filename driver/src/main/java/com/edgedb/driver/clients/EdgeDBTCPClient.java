@@ -1,13 +1,25 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.async.ChannelCompletableFuture;
+import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
-import com.edgedb.driver.ssl.AsyncSSLChannel;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     // placeholders
@@ -17,49 +29,70 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
 
-    private final ChannelDuplexer channelDuplexer;
-    private AsyncSSLChannel channel;
+    private final ChannelDuplexer duplexer;
 
     public EdgeDBTCPClient(EdgeDBConnection connection) throws IOException {
         super(connection);
 
-        ExecutorService executor = Executors.newFixedThreadPool(5); // TODO: config option here
-
-        channelDuplexer = new ChannelDuplexer(this);
-        setDuplexer(channelDuplexer);
-
+        this.duplexer = new ChannelDuplexer(this);
+        setDuplexer(this.duplexer);
     }
 
     @Override
     protected CompletionStage<Void> openConnectionAsync() {
         final var connection = getConnection();
+        EventLoopGroup group = new NioEventLoopGroup();
 
-        return CompletableFuture
-                .supplyAsync(() -> {
-                    try {
-                        var engine = connection.getSSLContext().createSSLEngine(connection.getHostname(), connection.getPort());
+        try {
+            var bootstrap = new Bootstrap()
+                    .group(group)
+                    .channel(NioSocketChannel.class)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(@NotNull SocketChannel ch) throws Exception {
+                            var pipeline = ch.pipeline();
 
-                        // TODO: config the pool.
-                        return new AsyncSSLChannel(engine, ForkJoinPool.commonPool());
-                    }
-                    catch (Exception x) {
-                        throw new CompletionException(x);
-                    }
-                })
-                .thenCompose((asyncSSLChannel) -> {
-                    try {
-                        this.channel = asyncSSLChannel;
+                            // SSL
+//                            var engine = connection.getSSLContext().createSSLEngine(connection.getHostname(), connection.getPort());
+//                            engine.setUseClientMode(true);
+//
+//                            var params = engine.getSSLParameters();
+//                            params.setApplicationProtocols(new String[] {"edgedb-binary"});
+//                            engine.setSSLParameters(params);
 
-                        this.channel.setALPNProtocols("edgedb-binary");
 
-                        return this.channel.connectAsync(connection.getHostname(), connection.getPort());
-                    } catch (IOException e) {
-                        throw new CompletionException(e);
-                    }
-                })
-                .thenAccept((v) -> {
-                    this.channelDuplexer.init(this.channel);
-                });
+                            var builder = SslContextBuilder.forClient()
+                                    .sslProvider(SslProvider.OPENSSL)
+                                    //.protocols("TLSv1.2")
+                                    .applicationProtocolConfig(new ApplicationProtocolConfig(
+                                            ApplicationProtocolConfig.Protocol.ALPN,
+                                            ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT,
+                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
+                                            "edgedb-binary"
+                                    ));
+
+                            connection.applyTrustManager(builder);
+
+                            pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
+
+                            // edgedb-binary protocol and duplexer
+                            pipeline.addLast(
+                                    PacketSerializer.PACKET_DECODER,
+                                    PacketSerializer.PACKET_ENCODER
+                            );
+
+                            pipeline.addLast(duplexer.channelHandler);
+
+                            duplexer.init(ch);
+                        }
+                    });
+
+            return ChannelCompletableFuture.completeFrom(bootstrap.connect(connection.getHostname(), connection.getPort()));
+        }
+        catch (Exception err) {
+            logger.error("Failed to open connection", err);
+            return CompletableFuture.failedFuture(err);
+        }
     }
 
     @Override

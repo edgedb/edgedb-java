@@ -1,10 +1,10 @@
 package com.edgedb.driver.binary;
 
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import static com.edgedb.driver.util.BinaryProtocolUtils.*;
 
 public class PacketWriter implements AutoCloseable {
-    private ByteBuffer buffer;
+    private ByteBuf buffer;
     private final boolean isDynamic;
     private boolean canWrite;
 
@@ -25,8 +25,7 @@ public class PacketWriter implements AutoCloseable {
     public PacketWriter(int size, boolean isDynamic) {
         this.isDynamic = isDynamic;
         this.canWrite = true;
-        this.buffer = ByteBuffer.allocateDirect(size);
-        this.buffer.order(ByteOrder.BIG_ENDIAN);
+        this.buffer = ByteBufAllocator.DEFAULT.directBuffer(size);
     }
 
     static {
@@ -74,15 +73,15 @@ public class PacketWriter implements AutoCloseable {
     }
 
     public int getPosition() {
-        return this.buffer.position();
+        return this.buffer.writerIndex();
     }
 
     public synchronized void advance(int count) {
-        this.seek(this.buffer.position() + count);
+        this.buffer.writerIndex(this.buffer.writerIndex() + count);
     }
 
     public synchronized void seek(int position) {
-        this.buffer.position(position);
+        this.buffer.writerIndex(position);
     }
 
     private synchronized void resize(int target) throws OperationNotSupportedException {
@@ -92,23 +91,21 @@ public class PacketWriter implements AutoCloseable {
             throw new IndexOutOfBoundsException(String.format("Cannot write %d bytes as it would overflow the buffer", target));
         }
 
-        var newSize = target + buffer.position() > 2048
+        var newSize = target + buffer.writerIndex() > 2048
                 ? buffer.capacity() + target + 512
                 : buffer.capacity() > 2048
                     ? buffer.capacity() + 2048
                     : (buffer.capacity() << 1) + target;
 
-        var newBuffer = ByteBuffer.allocateDirect(newSize);
+        var newBuffer = ByteBufAllocator.DEFAULT.directBuffer(newSize);
 
-        var position = this.buffer.position();
+        var position = this.buffer.writerIndex();
 
-        this.buffer.rewind();
-        newBuffer.put(this.buffer);
-        newBuffer.flip();
+        newBuffer.writeBytes(this.buffer);
 
         this.buffer = newBuffer;
 
-        this.buffer.position(position);
+        this.buffer.writerIndex(position);
     }
 
     private <T> void write(T value, int size, Consumer<T> writer) throws OperationNotSupportedException {
@@ -117,35 +114,35 @@ public class PacketWriter implements AutoCloseable {
     }
 
     public void write(double value) throws OperationNotSupportedException {
-        write(value, DOUBLE_SIZE, this.buffer::putDouble);
+        write(value, DOUBLE_SIZE, this.buffer::writeDouble);
     }
 
     public void write(float value) throws OperationNotSupportedException {
-        write(value, FLOAT_SIZE, this.buffer::putFloat);
+        write(value, FLOAT_SIZE, this.buffer::writeFloat);
     }
 
     public void write(long value) throws OperationNotSupportedException {
-        write(value, LONG_SIZE, this.buffer::putLong);
+        write(value, LONG_SIZE, this.buffer::writeLong);
     }
 
     public void write(int value) throws OperationNotSupportedException {
-        write(value, INT_SIZE, this.buffer::putInt);
+        write(value, INT_SIZE, this.buffer::writeInt);
     }
 
     public void write(short value) throws OperationNotSupportedException {
-        write(value, SHORT_SIZE, this.buffer::putShort);
+        write((int)value, SHORT_SIZE, this.buffer::writeShort);
     }
 
     public void write(byte value) throws OperationNotSupportedException {
-        write(value, BYTE_SIZE, this.buffer::put);
+        write((int)value, BYTE_SIZE, this.buffer::writeByte);
     }
 
     public void write(char value) throws OperationNotSupportedException {
-        write(value, CHAR_SIZE, this.buffer::putChar);
+        write((int)value, CHAR_SIZE, this.buffer::writeChar);
     }
 
     public void write(boolean value) throws OperationNotSupportedException {
-        write(value ? (byte)0xFF : (byte)0x00, BOOL_SIZE, this.buffer::put);
+        write(value, BOOL_SIZE, this.buffer::writeBoolean);
     }
 
     public void write(UUID uuid) throws OperationNotSupportedException {
@@ -157,13 +154,13 @@ public class PacketWriter implements AutoCloseable {
         writeArray(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    public void writeArray(ByteBuffer buffer) throws OperationNotSupportedException {
-        buffer.flip();
+    public void writeArray(ByteBuf buffer) throws OperationNotSupportedException {
+        // TODO: ensure that this is the correct way to write a buff to this one
 
-        ensureCanWrite(buffer.limit() + 4); // 4 is arr length (i32)
+        ensureCanWrite(buffer.writerIndex() + INT_SIZE); // arr length (i32)
 
-        write(buffer.limit());
-        this.buffer.put(buffer);
+        write(buffer.writerIndex());
+        this.buffer.writeBytes(buffer);
     }
 
     public void writeArray(byte[] array) throws OperationNotSupportedException {
@@ -172,7 +169,7 @@ public class PacketWriter implements AutoCloseable {
             return;
         }
 
-        ensureCanWrite(array.length + 4); // 4 is arr length (i32)
+        ensureCanWrite(array.length + INT_SIZE); // arr length (i32)
         write(array.length);
         writeArrayWithoutLength(array);
     }
@@ -183,7 +180,7 @@ public class PacketWriter implements AutoCloseable {
         }
 
         ensureCanWrite(array.length);
-        this.buffer.put(array);
+        this.buffer.writeBytes(array);
     }
 
     public <T extends SerializableData> void write(T serializable) throws OperationNotSupportedException {
@@ -232,7 +229,7 @@ public class PacketWriter implements AutoCloseable {
     private void ensureCanWrite(int size) throws OperationNotSupportedException {
         ensureCanWrite();
 
-        if((this.buffer.capacity() - this.buffer.position()) < size) {
+        if((this.buffer.capacity() - this.buffer.writerIndex()) < size) {
             resize(size);
         }
     }
@@ -242,7 +239,7 @@ public class PacketWriter implements AutoCloseable {
         }
     }
 
-    public ByteBuffer getBuffer() {
+    public ByteBuf getBuffer() {
         close();
         return this.buffer;
     }

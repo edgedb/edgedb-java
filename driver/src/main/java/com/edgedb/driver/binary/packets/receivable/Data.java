@@ -2,11 +2,10 @@ package com.edgedb.driver.binary.packets.receivable;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
-
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 public class Data implements Receivable {
-    public final ByteBuffer payloadBuffer;
+    public final ByteBuf payloadBuffer;
 
     public Data(PacketReader reader) {
         var numElements = reader.readInt16();

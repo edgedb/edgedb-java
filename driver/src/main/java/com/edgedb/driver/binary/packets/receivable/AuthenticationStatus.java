@@ -3,16 +3,15 @@ package com.edgedb.driver.binary.packets.receivable;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.AuthStatus;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.ByteBuffer;
 
 public class AuthenticationStatus implements Receivable {
     public final AuthStatus authStatus;
     @Nullable
     public final String[] authenticationMethods;
     @Nullable
-    public final ByteBuffer saslData;
+    public final ByteBuf saslData;
 
     public AuthenticationStatus(PacketReader reader) {
         this.authStatus = AuthStatus.valueOf(reader.readInt32());

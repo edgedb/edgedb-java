@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -26,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -321,7 +323,7 @@ public class EdgeDBConnection {
     }
 
     public SSLContext getSSLContext() throws GeneralSecurityException, IOException {
-        return getSSLContext("TLSv1.3");
+        return getSSLContext("SSL");
     }
     public SSLContext getSSLContext(String instanceName) throws GeneralSecurityException, IOException {
         SSLContext sc = SSLContext.getInstance(instanceName);
@@ -341,31 +343,53 @@ public class EdgeDBConnection {
             }};
         }
         else {
-            var authority = getTLSCertificateAuthority();
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-
-            if (StringsUtil.isNullOrEmpty(authority)) {
-                // use default trust store
-                trustManagerFactory.init((KeyStore)null);
-                //throw new ConfigurationException("TLSCertificateAuthority cannot be null when TLSSecurity is STRICT");
-            }
-            else {
-                var cert = CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(getTLSCertificateAuthority().getBytes(StandardCharsets.US_ASCII)));
-
-                var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-
-                keyStore.load(null, null);
-                keyStore.setCertificateEntry("server", cert);
-
-                trustManagerFactory.init(keyStore);
-
-            }
-
-            trustManagers = trustManagerFactory.getTrustManagers();
+            trustManagers = getTrustManagerFactory().getTrustManagers();
         }
 
         sc.init(null, trustManagers , new SecureRandom());
         return sc;
+    }
+
+    public void applyTrustManager(SslContextBuilder builder) throws GeneralSecurityException, IOException {
+        if(this.tlsSecurity == TLSSecurityMode.INSECURE) {
+            builder.trustManager(new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+                public void checkClientTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+                public void checkServerTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+            });
+        }
+        else {
+            builder.trustManager(getTrustManagerFactory());
+        }
+    }
+
+    private TrustManagerFactory getTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
+        var authority = getTLSCertificateAuthority();
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+        if (StringsUtil.isNullOrEmpty(authority)) {
+            // use default trust store
+            trustManagerFactory.init((KeyStore)null);
+            //throw new ConfigurationException("TLSCertificateAuthority cannot be null when TLSSecurity is STRICT");
+        }
+        else {
+            var cert = CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(getTLSCertificateAuthority().getBytes(StandardCharsets.US_ASCII)));
+
+            var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("server", cert);
+
+            trustManagerFactory.init(keyStore);
+        }
+
+        return trustManagerFactory;
     }
 
     private static EdgeDBConnection fromJSON(String json) throws JsonProcessingException {

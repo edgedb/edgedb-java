@@ -4,8 +4,8 @@ import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.Annotation;
+import io.netty.buffer.ByteBuf;
 
-import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -13,7 +13,7 @@ public class CommandComplete implements Receivable {
     public final EnumSet<Capabilities> capabilities;
     public final UUID stateTypeDescriptorId;
     public final String status;
-    public final ByteBuffer stateData;
+    public final ByteBuf stateData;
     public final Annotation[] annotations;
 
     public CommandComplete(PacketReader reader) {

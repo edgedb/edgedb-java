@@ -1,13 +1,13 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.PacketReader;
+import io.netty.buffer.ByteBuf;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class DumpObjectDescriptor {
     public final UUID objectId;
-    public final ByteBuffer description;
+    public final ByteBuf description;
     public final UUID[] dependencies;
 
     public DumpObjectDescriptor(PacketReader reader) {

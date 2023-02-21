@@ -6,9 +6,9 @@ import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.binary.packets.shared.CompilationFlags;
 import com.edgedb.driver.binary.packets.shared.IOFormat;
+import io.netty.buffer.ByteBuf;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -22,10 +22,10 @@ public class Execute extends Sendable {
     private final Cardinality cardinality;
     private final String query;
     private final UUID stateTypeDescriptorId;
-    private final ByteBuffer stateData;
+    private final ByteBuf stateData;
     private final UUID inputTypeDescriptorId;
     private final UUID outputTypeDescriptorId;
-    private final ByteBuffer parameterData;
+    private final ByteBuf parameterData;
 
     public Execute(
             EnumSet<Capabilities> capabilities,
@@ -35,10 +35,10 @@ public class Execute extends Sendable {
             Cardinality cardinality,
             String query,
             UUID stateTypeDescriptorId,
-            ByteBuffer stateData,
+            ByteBuf stateData,
             UUID inputTypeDescriptorId,
             UUID outputTypeDescriptorId,
-            ByteBuffer parameterData
+            ByteBuf parameterData
     ) {
         super(ClientMessageType.EXECUTE);
         this.capabilities = capabilities;

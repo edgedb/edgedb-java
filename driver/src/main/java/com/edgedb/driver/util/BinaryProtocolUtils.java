@@ -1,6 +1,7 @@
 package com.edgedb.driver.util;
 
 import com.edgedb.driver.binary.SerializableData;
+import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +58,16 @@ public class BinaryProtocolUtils {
 
         if(arr != null) {
             size += arr.position();
+        }
+
+        return size;
+    }
+
+    public static int sizeOf(ByteBuf buffer) {
+        int size = 4;
+
+        if(buffer != null) {
+            size += buffer.writerIndex();
         }
 
         return size;

@@ -5,8 +5,8 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
+import io.netty.buffer.ByteBuf;
 
-import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -16,8 +16,8 @@ public class CommandDataDescription implements Receivable {
     public final Cardinality cardinality;
     public final UUID inputTypeDescriptorId;
     public final UUID outputTypeDescriptorId;
-    public final ByteBuffer inputTypeDescriptorBuffer;
-    public final ByteBuffer outputTypeDescriptorBuffer;
+    public final ByteBuf inputTypeDescriptorBuffer;
+    public final ByteBuf outputTypeDescriptorBuffer;
 
     public CommandDataDescription(PacketReader reader) {
         annotations = reader.readAnnotations();

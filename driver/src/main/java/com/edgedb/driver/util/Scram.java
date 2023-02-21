@@ -4,12 +4,13 @@ import com.edgedb.driver.binary.packets.receivable.AuthenticationStatus;
 import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLInitialResponse;
 import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLResponse;
 import com.edgedb.driver.exceptions.ScramException;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -44,19 +45,19 @@ public class Scram {
         return bytes;
     }
 
-    private static ByteBuffer encodeString(String s) {
-        var buffer = ByteBuffer.allocateDirect(BinaryProtocolUtils.sizeOf(s));
+    private static ByteBuf encodeString(String s) {
+        var buffer = ByteBufAllocator.DEFAULT.buffer(BinaryProtocolUtils.sizeOf(s));
         var encoded = s.getBytes(StandardCharsets.UTF_8);
-        buffer.putInt(encoded.length);
-        buffer.put(encoded);
+        buffer.writeInt(encoded.length);
+        buffer.writeBytes(encoded);
         return buffer;
     }
 
-    private static String decodeString(ByteBuffer buffer) {
-        var len = buffer.getInt();
+    private static String decodeString(ByteBuf buffer) {
+        var len = buffer.readInt();
         byte[] strBytes = new byte[len];
 
-        buffer.get(strBytes);
+        buffer.readBytes(strBytes);
 
         return new String(strBytes, StandardCharsets.UTF_8);
     }

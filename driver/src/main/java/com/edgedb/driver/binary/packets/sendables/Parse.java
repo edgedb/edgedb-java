@@ -6,9 +6,9 @@ import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.binary.packets.shared.CompilationFlags;
 import com.edgedb.driver.binary.packets.shared.IOFormat;
+import io.netty.buffer.ByteBuf;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -22,7 +22,7 @@ public class Parse extends Sendable {
     private final String query;
     private final long implicitLimit;
     private final UUID stateTypeDescriptorId;
-    private final ByteBuffer stateData;
+    private final ByteBuf stateData;
 
     public Parse(
             EnumSet<Capabilities> capabilities,
@@ -32,7 +32,7 @@ public class Parse extends Sendable {
             String query,
             long implicitLimit,
             UUID stateTypeDescriptorId,
-            ByteBuffer stateData
+            ByteBuf stateData
     ) {
         super(ClientMessageType.PARSE);
         this.capabilities = capabilities;

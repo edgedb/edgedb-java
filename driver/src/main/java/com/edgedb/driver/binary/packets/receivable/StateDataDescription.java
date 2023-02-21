@@ -2,13 +2,13 @@ package com.edgedb.driver.binary.packets.receivable;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
+import io.netty.buffer.ByteBuf;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class StateDataDescription implements Receivable {
     public final UUID typeDescriptorId;
-    public final ByteBuffer typeDescriptorBuffer;
+    public final ByteBuf typeDescriptorBuffer;
 
     public StateDataDescription(PacketReader reader) {
         typeDescriptorId = reader.readUUID();
