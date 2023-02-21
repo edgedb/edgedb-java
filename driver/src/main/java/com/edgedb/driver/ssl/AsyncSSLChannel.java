@@ -11,6 +11,7 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.ReadPendingException;
@@ -25,12 +26,13 @@ public class AsyncSSLChannel {
     protected final SSLEngine engine;
     protected AsynchronousSocketChannel channel;
 
-    private final ByteBuffer myNetData;
-    private ByteBuffer peerNetData;
+    //private final ByteBuffer myNetData;
+    //private ByteBuffer peerNetData;
 
     // read buffers
     private final Queue<ByteBuffer> appDataQueue;
-    private final Queue<ByteBuffer> allocCache;
+    private final Queue<ByteBuffer> netAllocCache;
+    private final Queue<ByteBuffer> appAllocCache;
 
     private final Executor sslPool;
 
@@ -41,14 +43,9 @@ public class AsyncSSLChannel {
 
         this.sslPool = sslPool == null ? ForkJoinPool.commonPool() : sslPool;
 
-        var session = this.engine.getSession();
-
-        this.myNetData = ByteBuffer.allocate(session.getPacketBufferSize());
-        this.peerNetData = ByteBuffer.allocate(session.getPacketBufferSize());
-
-
         this.appDataQueue = new ArrayDeque<>();
-        this.allocCache = new ArrayDeque<>();
+        this.appAllocCache = new ArrayDeque<>();
+        this.netAllocCache = new ArrayDeque<>();
     }
 
     public void setALPNProtocols(String... protocols) {
@@ -57,7 +54,7 @@ public class AsyncSSLChannel {
         this.engine.setSSLParameters(params);
     }
 
-    public CompletionStage<Void> connect(String host, int port) throws IOException {
+    public CompletionStage<Void> connectAsync(String host, int port) throws IOException {
         var result = new CompletableHandlerFuture<Void, Void>();
 
         channel = AsynchronousSocketChannel.open();
@@ -65,15 +62,14 @@ public class AsyncSSLChannel {
 
         this.engine.beginHandshake();
 
-        return result
-                .thenCompose((v) -> doHandshake());
+        return result.thenCompose((v) -> doHandshake());
     }
 
     public CompletionStage<Integer> readAsync(ByteBuffer buffer, long timeout, TimeUnit timeUnit) {
         logger.debug("Starting read...");
 
 
-        if(this.tryReadFromQueue(buffer, this.appDataQueue)) {
+        if(this.tryReadFromAppDataQueue(buffer, this.appDataQueue)) {
             return CompletableFuture.completedFuture(buffer.position());
         }
 
@@ -87,35 +83,40 @@ public class AsyncSSLChannel {
                 .thenCompose((v) -> {
                     // copy out data to the external buffer
                     // if the target buffer is still not filled after we dump the buffers in
-                    // context to it, re-run a read NOTE: timeout delta time isn't calculated here,
+                    // context to it, re-run a read. NOTE: timeout delta time isn't calculated here,
                     // do we need that?
 
                     // puts data into the buffer if possible, note even if we return false
                     // here the buffer *can* contain data we've read
-                    if (!tryReadFromQueue(buffer, context.serverAppDataBuffers)) {
+                    if (!tryReadFromAppDataQueue(buffer, context.serverAppDataBuffers)) {
                         return readAsync(buffer, timeout, timeUnit);
                     }
 
+                    // make sure to queue up the data in our contexts buffers
+                    appDataQueue.addAll(context.serverAppDataBuffers);
+
                     return CompletableFuture.completedFuture(buffer.position() - preReadPosition);
+                }).whenComplete((v, e) -> {
+                    context.close();
                 });
     }
 
-    public CompletionStage<Void> write(ByteBuffer buffer, long timeout, TimeUnit timeUnit) {
+    public CompletionStage<Void> writeAsync(ByteBuffer buffer, long timeout, TimeUnit timeUnit) {
         var context = new ChannelContext(this, buffer, ChannelOperation.WRITE, timeout, timeUnit);
 
         return processHandshakePart(SSLEngineResult.HandshakeStatus.NEED_WRAP, context)
-                .thenCompose(this::runHandshakeLoop);
+                .thenCompose(this::runHandshakeLoop)
+                .whenComplete((v, e) -> {
+                    context.close();
+                });
     }
 
-    public CompletionStage<Void> disconnect() {
+    public CompletionStage<Void> disconnectAsync() {
         return CompletableFuture.completedFuture(null);
     }
 
     private CompletionStage<Void> doHandshake() {
         logger.debug("starting handshake");
-
-        this.peerNetData.clear();
-        this.myNetData.clear();
 
         var context = new ChannelContext(this, ChannelOperation.HANDSHAKE, HANDSHAKE_TIMEOUT, TimeUnit.MILLISECONDS);
 
@@ -125,12 +126,14 @@ public class AsyncSSLChannel {
                     // restore data buffers (if any)
                     for(var buffer : context.serverAppDataBuffers) {
                         if(buffer.position() == 0) { // empty
-                            this.cacheBuffer(buffer);
+                            this.cacheAppBuffer(buffer);
                         } else {
                             // buffer has data, add to app data queue
                             this.appDataQueue.add(buffer);
                         }
                     }
+
+                    context.close();
                 });
     }
 
@@ -161,22 +164,45 @@ public class AsyncSSLChannel {
             switch (result.processStatus) {
                 case OK:
                     if(result.operation == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
-                        if(result.context.getState() == ChannelState.CONTINUE_UNWRAP) {
+                        if(result.context.getState() == ChannelState.CONTINUE_WRAP) {
                             logger.debug("Skipping flush as more data needs to be wrapped");
                             break;
                         }
 
-                        logger.debug("Flushing {} net bytes", this.myNetData.position());
-                        this.myNetData.flip();
+                        logger.debug("Flushing {} net bytes", result.context.clientNetData.position());
+                        result.context.clientNetData.flip();
+
                         return this.flushMyNetData(result.context)
-                                .thenCompose((v) -> processHandshakePart(result.handshakeStatus, result.context))
-                                .thenCompose(this::runHandshakeLoop);
+                                .thenCompose((v) -> {
+                                    if(result.context.operation == ChannelOperation.WRITE) {
+                                        // check if all data has been written, this is the complete state for a write operation
+                                        var remainingData = result.context.clientAppData.remaining();
+
+                                        if(remainingData == 0) {
+                                            // this state is NEED_WRAP -> OK with 0 remaining bytes. return completed future
+                                            return CompletableFuture.completedFuture(null);
+                                        }
+                                    }
+
+                                    return processHandshakePart(result.handshakeStatus, result.context).thenCompose(this::runHandshakeLoop);
+                                });
+
+                    } else if (result.operation == SSLEngineResult.HandshakeStatus.NEED_UNWRAP && result.context.operation == ChannelOperation.READ) {
+                        // check for app data
+                        if(result.context.getState() == ChannelState.HAS_APP_DATA) {
+                            // completion state, the read method will be responsible for transferring data between our buffers and the external buffer.
+                            return CompletableFuture.completedFuture(null);
+                        }
                     }
                     break;
                 case BUFFER_OVERFLOW:
                     switch (result.operation) {
                         case NEED_UNWRAP:
                         {
+                            // inject a new buffer into context
+                            var buffer = allocBuffer(engine.getSession().getApplicationBufferSize());
+                            result.context.setPriorityAppDataBuffer(buffer);
+
                             // should be handled by the unwrap logic.
                             logger.debug("Illegal access to BUFFER_OVERFLOW on NEED_UNWRAP");
                             return CompletableFuture.failedFuture(new IllegalStateException("Illegal access to BUFFER_OVERFLOW on NEED_UNWRAP"));
@@ -185,31 +211,48 @@ public class AsyncSSLChannel {
                         {
                             logger.debug("Scaling up peers net data buffer");
                             var sz = engine.getSession().getPacketBufferSize();
-                            this.peerNetData = sz > this.peerNetData.capacity()
+                            var buffer = sz > result.context.clientNetData.capacity()
                                     ? ByteBuffer.allocate(sz)
-                                    : ByteBuffer.allocate(this.peerNetData.capacity() * 2);
+                                    : ByteBuffer.allocate(result.context.clientNetData.capacity() * 2);
+
+                            result.context.clientNetData.flip();
+
+                            buffer.put(result.context.clientNetData);
+
+                            result.context.clientNetData.clear();
+                            this.cacheNetBuffer(result.context.clientNetData);
+
+                            result.context.clientNetData = buffer;
                         }
                         break;
                     }
                     break;
                 case BUFFER_UNDERFLOW:
+                    if(result.context.getState() == ChannelState.CONTINUE) {
+                        break;
+                    }
+
                     logger.debug("Scaling up peers net data");
                     if(result.operation != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                         return CompletableFuture.failedFuture(new SSLException("Buffer underflow occurred after a wrap. I don't think we should ever get here."));
                     }
 
                     var sz = engine.getSession().getPacketBufferSize();
-                    if(sz < this.peerNetData.limit()) {
+                    if(sz < result.context.peerNetData.limit()) {
                         break;
                     }
 
-                    var buffer = sz > this.peerNetData.capacity()
+                    var buffer = sz > result.context.peerNetData.capacity()
                             ? ByteBuffer.allocate(sz)
-                            : ByteBuffer.allocate(this.peerNetData.capacity() * 2);
+                            : ByteBuffer.allocate(result.context.peerNetData.capacity() * 2);
 
-                    this.peerNetData.flip();
-                    buffer.put(this.peerNetData);
-                    this.peerNetData = buffer;
+                    result.context.peerNetData.flip();
+                    buffer.put(result.context.peerNetData);
+
+                    result.context.peerNetData.clear();
+                    this.cacheNetBuffer(result.context.peerNetData);
+
+                    result.context.peerNetData = buffer;
                     break;
             }
         }
@@ -218,14 +261,15 @@ public class AsyncSSLChannel {
     }
 
     private CompletionStage<Void> flushMyNetData(ChannelContext context) {
-        if(this.myNetData.hasRemaining())
+        if(context.clientNetData.hasRemaining())
         {
             var result = new CompletableHandlerFuture<Integer, Void>();
-            this.channel.write(this.myNetData, context.timeout, context.units,null, result);
+            this.channel.write(context.clientNetData, context.timeout, context.units,null, result);
             return result.thenCompose((v) -> flushMyNetData(context));
         }
 
         logger.debug("Flush complete, net data buffer empty");
+        context.clientNetData.clear();
         return CompletableFuture.completedFuture(null);
     }
 
@@ -240,7 +284,7 @@ public class AsyncSSLChannel {
 
                     logger.debug("Beginning read for unwrap");
                     try {
-                        this.channel.read(this.peerNetData, context.timeout, context.units, null, result);
+                        this.channel.read(context.peerNetData, context.timeout, context.units, null, result);
                     }
                     catch (ReadPendingException r) {
                         logger.debug("Got read pending error", r);
@@ -249,23 +293,37 @@ public class AsyncSSLChannel {
 
                     return result.flatten().thenApply((v) -> {
                         logger.debug("Read complete");
+                        //this.peerNetData.flip();
                         return handleUnwrap(v, handshakeStatus, context);
                     });
                 }
                 else {
-                    return CompletableFuture.supplyAsync(() -> handleUnwrap(this.peerNetData.remaining(), handshakeStatus, context));
+                    return CompletableFuture.supplyAsync(() -> {
+                        //this.peerNetData.flip();
+                        return handleUnwrap(context.peerNetData.remaining(), handshakeStatus, context);
+                    });
                 }
             case NEED_WRAP:
-                this.myNetData.clear();
+                // TODO: should we clear here?
+                //context.clientNetData.clear();
 
                 try {
                     logger.debug("Starting to wrap net data...");
 
                     // TODO: just like wrap, we need to continue wrapping and handling engine tasks that need to be run
 
-                    var engineResult = engine.wrap(context.clientAppData, this.myNetData);
+                    var engineResult = engine.wrap(context.clientAppData, context.clientNetData);
                     var hsStatus = engineResult.getHandshakeStatus();
                     var status = engineResult.getStatus();
+
+                    if(status == SSLEngineResult.Status.OK && engineResult.bytesProduced() == 0) {
+                        context.setState(ChannelState.CONTINUE);
+                    } else  {
+                        // pitfall: if the engine needs to unwrap data, flush the current net data then perform the read
+                        context.setState(hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP || hsStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING
+                                ? ChannelState.CONTINUE_WRAP
+                                : ChannelState.CONTINUE);
+                    }
 
                     logger.debug("Wrapping result {}. wrapped {} bytes with {} remaining", status, engineResult.bytesConsumed(), context.clientAppData.remaining());
 
@@ -322,7 +380,8 @@ public class AsyncSSLChannel {
     }
 
     private HandshakeProcessResult handleUnwrap(Integer count, SSLEngineResult.HandshakeStatus handshakeStatus, ChannelContext context)  {
-        logger.debug("unwrapping {} remaining bytes", count);
+        context.peerNetData.flip();
+        logger.debug("unwrapping {} remaining bytes", context.peerNetData.remaining());
 
         if(count < 0) {
             if(engine.isInboundDone() && engine.isOutboundDone()) {
@@ -350,28 +409,39 @@ public class AsyncSSLChannel {
             return HandshakeProcessResult.fromSuccess(handshakeStatus, engine.getHandshakeStatus(), null, context);
         }
 
-        peerNetData.flip();
-
         try {
             logger.debug("Unwrapping data...");
 
-            var buffer = getDataBuffer();
+            var buffer = context.getAppDataBuffer();
 
-            var engineResult = engine.unwrap(this.peerNetData, buffer);
+            var engineResult = engine.unwrap(context.peerNetData, buffer);
             var hsStatus = engineResult.getHandshakeStatus();
             var resultStatus = engineResult.getStatus();
             int bytesProduced = engineResult.bytesProduced();
-
+            
             // store the buffer
-            context.serverAppDataBuffers.add(buffer);
+            if(bytesProduced > 0) {
+                buffer.flip();
+                context.serverAppDataBuffers.add(buffer);
+            } else {
+                context.returnAppBuffer(buffer);
+            }
 
-            logger.debug("Unwrap status: {} with {} bytes unwrapped", resultStatus, bytesProduced);
+            logger.debug(
+                    "Unwrap status: {} with {} bytes produced, {} bytes consumed with {} remaining.",
+                    resultStatus, bytesProduced, engineResult.bytesConsumed(), context.peerNetData.remaining()
+            );
 
-            peerNetData.compact();
+            context.peerNetData.compact();
 
-            context.setState(bytesProduced > 0
-                    ? ChannelState.HAS_APP_DATA
-                    : ChannelState.CONTINUE_UNWRAP);
+            // buffer_underflow requires another read
+            if(resultStatus == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                context.setState(ChannelState.CONTINUE);
+            } else {
+                context.setState(bytesProduced > 0
+                        ? ChannelState.HAS_APP_DATA
+                        : ChannelState.CONTINUE_UNWRAP);
+            }
 
             return HandshakeProcessResult.fromSuccess(
                     handshakeStatus,
@@ -384,7 +454,7 @@ public class AsyncSSLChannel {
         }
     };
 
-    private boolean tryReadFromQueue(ByteBuffer buffer, Queue<ByteBuffer> queue) {
+    private boolean tryReadFromAppDataQueue(ByteBuffer buffer, Queue<ByteBuffer> queue) {
         if(queue.isEmpty()) {
             return false;
         }
@@ -395,9 +465,21 @@ public class AsyncSSLChannel {
             if(queue.peek().remaining() > buffer.remaining()) {
                 var stackBuffer = queue.peek();
 
-                var target = stackBuffer.slice().limit(stackBuffer.position() + buffer.remaining());
-                stackBuffer.position(stackBuffer.position() + target.position()); // increment position manually
+                var target = stackBuffer.slice().limit(buffer.remaining());
+                stackBuffer.position(stackBuffer.position() + buffer.remaining()); // increment position manually
                 buffer.put(target);
+
+                // this *should* fill the buffer
+                if(buffer.hasRemaining()) {
+                    logger.error("Failed to fill buffer, reading from size {} to size {} caused the dest buffer to not be filled",
+                            stackBuffer.limit() - (stackBuffer.position() - buffer.position()),
+                            buffer.limit()
+                    );
+
+                    throw new BufferUnderflowException();
+                }
+
+                return true;
             }
             else {
                 // the stack buffer is smaller or equal to our buffer, we can safely put it into
@@ -405,7 +487,7 @@ public class AsyncSSLChannel {
                 buffer.put(stackBuffer); // will increment pos of stackBuffer
 
                 // reuse this buffer for later reads
-                cacheBuffer(stackBuffer);
+                cacheAppBuffer(stackBuffer);
             }
         }
         while (!queue.isEmpty());
@@ -413,16 +495,32 @@ public class AsyncSSLChannel {
         return !buffer.hasRemaining();
     }
 
-    protected ByteBuffer getDataBuffer() {
-        if(allocCache.isEmpty()) {
-            return ByteBuffer.allocateDirect(1024);
+    protected ByteBuffer getAppDataBuffer() {
+        if(appAllocCache.isEmpty()) {
+            return allocBuffer(this.engine.getSession().getApplicationBufferSize());
         }
-        else return allocCache.poll();
+        else return appAllocCache.poll();
     }
 
-    private void cacheBuffer(ByteBuffer buffer) {
+    protected ByteBuffer getNetDataBuffer() {
+        if(netAllocCache.isEmpty()) {
+            return allocBuffer(this.engine.getSession().getPacketBufferSize());
+        }
+        else return netAllocCache.poll();
+    }
+
+    private ByteBuffer allocBuffer(int sz) {
+        return ByteBuffer.allocateDirect(sz);
+    }
+
+    protected void cacheAppBuffer(ByteBuffer buffer) {
         buffer.clear();
-        this.allocCache.add(buffer);
+        this.appAllocCache.add(buffer);
+    }
+
+    protected void cacheNetBuffer(ByteBuffer buffer) {
+        buffer.clear();
+        this.netAllocCache.add(buffer);
     }
 
 }

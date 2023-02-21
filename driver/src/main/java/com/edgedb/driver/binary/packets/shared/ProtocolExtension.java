@@ -23,7 +23,7 @@ public class ProtocolExtension implements SerializableData {
     @Override
     public void write(PacketWriter writer) throws OperationNotSupportedException {
         writer.write(this.name);
-        writer.writeArray(this.annotations);
+        writer.writeArray(this.annotations, Short.TYPE);
     }
 
     @Override

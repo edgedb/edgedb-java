@@ -4,6 +4,7 @@ import com.edgedb.driver.util.BinaryProtocolUtils;
 
 import javax.naming.OperationNotSupportedException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -25,12 +26,13 @@ public class PacketWriter implements AutoCloseable {
         this.isDynamic = isDynamic;
         this.canWrite = true;
         this.buffer = ByteBuffer.allocateDirect(size);
+        this.buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
     static {
         primitiveNumberWriters = new HashMap<>();
 
-        primitiveNumberWriters.put(Byte.class, (p, v) -> {
+        primitiveNumberWriters.put(Byte.TYPE, (p, v) -> {
             try {
                 p.write((byte)v);
             } catch (OperationNotSupportedException e) {
@@ -38,7 +40,7 @@ public class PacketWriter implements AutoCloseable {
             }
         });
 
-        primitiveNumberWriters.put(Short.class, (p, v) -> {
+        primitiveNumberWriters.put(Short.TYPE, (p, v) -> {
             try {
                 p.write((short)v);
             } catch (OperationNotSupportedException e) {
@@ -46,7 +48,7 @@ public class PacketWriter implements AutoCloseable {
             }
         });
 
-        primitiveNumberWriters.put(Integer.class, (p, v) -> {
+        primitiveNumberWriters.put(Integer.TYPE, (p, v) -> {
             try {
                 p.write((int) v);
             } catch (OperationNotSupportedException e) {
@@ -54,7 +56,7 @@ public class PacketWriter implements AutoCloseable {
             }
         });
 
-        primitiveNumberWriters.put(Long.class, (p, v) -> {
+        primitiveNumberWriters.put(Long.TYPE, (p, v) -> {
             try {
                 p.write((long) v);
             } catch (OperationNotSupportedException e) {
@@ -189,9 +191,12 @@ public class PacketWriter implements AutoCloseable {
         serializable.write(this);
     }
 
-    public <T extends SerializableData> void writeArray(T[] serializableArray) throws OperationNotSupportedException {
-        ensureCanWrite(BinaryProtocolUtils.sizeOf(serializableArray));
-        write(serializableArray.length);
+    public <T extends SerializableData, U extends Number> void writeArray(T[] serializableArray, Class<U> lengthPrimitive) throws OperationNotSupportedException {
+        ensureCanWrite(BinaryProtocolUtils.sizeOf(serializableArray, lengthPrimitive));
+
+        var len = BinaryProtocolUtils.castNumber(serializableArray.length, lengthPrimitive);
+
+        primitiveNumberWriters.get(lengthPrimitive).accept(this, len);
 
         for (T serializable : serializableArray) {
             write(serializable);

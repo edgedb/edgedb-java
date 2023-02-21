@@ -1,6 +1,22 @@
 package com.edgedb.driver.util;
 
+import java.nio.ByteBuffer;
+
 public class HexUtils {
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    public static String bufferToHexString(ByteBuffer buffer) {
+
+        char[] hexChars = new char[buffer.limit() * 2];
+        int j =0;
+        while(buffer.hasRemaining()) {
+            int v = buffer.get() & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+            j++;
+        }
+        return new String(hexChars);
+    }
+
     public static String byteArrayToHexString(byte[] b) {
         StringBuilder result = new StringBuilder();
         for (byte value : b) {

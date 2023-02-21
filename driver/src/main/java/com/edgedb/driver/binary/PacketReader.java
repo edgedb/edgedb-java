@@ -21,12 +21,12 @@ public class PacketReader {
 
     static {
         numberReaderMap = new HashMap<>();
-        numberReaderMap.put(Byte.class, PacketReader::readByte);
-        numberReaderMap.put(Short.class, PacketReader::readInt16);
-        numberReaderMap.put(Integer.class, PacketReader::readInt32);
-        numberReaderMap.put(Long.class, PacketReader::readInt64);
-        numberReaderMap.put(Float.class, PacketReader::readFloat);
-        numberReaderMap.put(double.class, PacketReader::readDouble);
+        numberReaderMap.put(Byte.TYPE, PacketReader::readByte);
+        numberReaderMap.put(Short.TYPE, PacketReader::readInt16);
+        numberReaderMap.put(Integer.TYPE, PacketReader::readInt32);
+        numberReaderMap.put(Long.TYPE, PacketReader::readInt64);
+        numberReaderMap.put(Float.TYPE, PacketReader::readFloat);
+        numberReaderMap.put(Double.TYPE, PacketReader::readDouble);
     }
 
     public void skip(int count) {
@@ -54,7 +54,7 @@ public class PacketReader {
         return buffer.get() > 0;
     }
 
-    public byte readByte() {
+    public Byte readByte() {
         return buffer.get();
     }
 
@@ -107,11 +107,11 @@ public class PacketReader {
     }
 
     public Annotation[] readAnnotations() {
-        return readArrayOf(Annotation.class, Annotation::new, Short.class);
+        return readArrayOf(Annotation.class, Annotation::new, Short.TYPE);
     }
 
     public KeyValue[] readAttributes() {
-        return readArrayOf(KeyValue.class, KeyValue::new, Short.class);
+        return readArrayOf(KeyValue.class, KeyValue::new, Short.TYPE);
     }
 
     @SuppressWarnings("unchecked")
@@ -128,8 +128,9 @@ public class PacketReader {
         return arr;
     }
 
+    @SuppressWarnings("unchecked")
     public <U extends Number, T extends Enum<T> & BinaryEnum<U>> T readEnum(Function<U, T> mapper, Class<U> primitive) {
-        var value = primitive.cast(numberReaderMap.get(primitive).apply(this));
+        var value = (U)numberReaderMap.get(primitive).apply(this);
         return mapper.apply(value);
     }
 

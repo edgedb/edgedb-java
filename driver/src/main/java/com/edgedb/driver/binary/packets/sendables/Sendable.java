@@ -20,6 +20,7 @@ public abstract class Sendable implements SerializableData {
 
     @Override
     public void write(final PacketWriter writer) throws OperationNotSupportedException {
+        writer.write(type.getCode());
         writer.write(getSize() + 4);
         buildPacket(writer);
     }

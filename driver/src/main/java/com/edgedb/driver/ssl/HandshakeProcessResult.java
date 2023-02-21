@@ -4,12 +4,12 @@ import javax.net.ssl.SSLEngineResult;
 
 public class HandshakeProcessResult {
     public final SSLEngineResult.HandshakeStatus operation;
-    public final SSLEngineResult.HandshakeStatus handshakeStatus;
     public final SSLEngineResult.Status processStatus;
     public final boolean hasErrored;
     public final String errorMessage;
 
     public final ChannelContext context;
+    public final SSLEngineResult.HandshakeStatus handshakeStatus;
 
     private HandshakeProcessResult(
             SSLEngineResult.HandshakeStatus operation,
@@ -19,7 +19,7 @@ public class HandshakeProcessResult {
             String errorMessage,
             ChannelContext context) {
         this.operation = operation;
-        this.handshakeStatus = handshakeStatus;
+        this.handshakeStatus = context.getHandshakeStatus(handshakeStatus);
         this.processStatus = processStatus;
         this.hasErrored = hasErrored;
         this.errorMessage = errorMessage;

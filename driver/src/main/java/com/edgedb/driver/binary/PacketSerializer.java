@@ -48,7 +48,12 @@ public class PacketSerializer {
 
         try {
             return deserializerMap.get(messageType).apply(reader);
-        } finally {
+        }
+        catch (Exception x) {
+            logger.error("Failed to deserialize packet", x);
+            throw x;
+        }
+        finally {
             // ensure we read the entire packet
             if(!reader.isEmpty()) {
                 logger.warn("Hanging data left inside packet reader of type {} with length {}", messageType, length);

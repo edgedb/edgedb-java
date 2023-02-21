@@ -17,11 +17,11 @@ public class Dump extends Sendable {
 
     @Override
     public int getDataSize() {
-        return BinaryProtocolUtils.sizeOf(this.annotations);
+        return BinaryProtocolUtils.sizeOf(this.annotations, Short.TYPE);
     }
 
     @Override
     protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
-        writer.writeArray(this.annotations);
+        writer.writeArray(this.annotations, Short.TYPE);
     }
 }

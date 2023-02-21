@@ -32,8 +32,8 @@ public class ClientHandshake extends Sendable {
     protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
         writer.write(this.majorVersion);
         writer.write(this.minorVersion);
-        writer.writeArray(this.connectionParams);
-        writer.writeArray(this.extensions);
+        writer.writeArray(this.connectionParams, Short.TYPE);
+        writer.writeArray(this.extensions, Short.TYPE);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ClientHandshake extends Sendable {
         return
                 SHORT_SIZE +
                 SHORT_SIZE +
-                sizeOf(connectionParams) +
-                sizeOf(extensions);
+                sizeOf(connectionParams, Short.TYPE) +
+                sizeOf(extensions, Short.TYPE);
     }
 }

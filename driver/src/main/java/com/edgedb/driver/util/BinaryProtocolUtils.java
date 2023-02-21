@@ -5,6 +5,9 @@ import com.edgedb.driver.binary.SerializableData;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class BinaryProtocolUtils {
     public static final int DOUBLE_SIZE = 8;
@@ -16,6 +19,18 @@ public class BinaryProtocolUtils {
     public static final int CHAR_SIZE = 2;
     public static final int BOOL_SIZE = 1;
     public static final int UUID_SIZE = 16;
+
+    private static final Map<Class<?>, Function<Number, ?>> numberCastMap;
+
+    static {
+        numberCastMap = new HashMap<>();
+        numberCastMap.put(Long.TYPE, Number::longValue);
+        numberCastMap.put(Integer.TYPE, Number::intValue);
+        numberCastMap.put(Short.TYPE, Number::shortValue);
+        numberCastMap.put(Byte.TYPE, Number::byteValue);
+        numberCastMap.put(Double.TYPE, Number::doubleValue);
+        numberCastMap.put(Float.TYPE, Number::floatValue);
+    }
 
     public static int sizeOf(String s) {
         int size = 4;
@@ -47,7 +62,35 @@ public class BinaryProtocolUtils {
         return size;
     }
 
-    public static <T extends SerializableData> int sizeOf(T[] arr) {
-        return Arrays.stream(arr).mapToInt(T::getSize).sum() + 4;
+    public static <U extends Number> int sizeOf(Class<U> primitive) {
+        if(primitive == Long.TYPE) {
+            return LONG_SIZE;
+        }
+        else if(primitive == Integer.TYPE) {
+            return INT_SIZE;
+        }
+        else if(primitive == Short.TYPE) {
+            return SHORT_SIZE;
+        }
+        else if(primitive == Byte.TYPE) {
+            return BYTE_SIZE;
+        }
+        else if(primitive == Double.TYPE) {
+            return DOUBLE_SIZE;
+        }
+        else if(primitive == Float.TYPE) {
+            return FLOAT_SIZE;
+        }
+
+        // TODO: fail
+        return 0;
+    }
+    @SuppressWarnings("unchecked")
+    public static <T extends Number, U extends Number> U castNumber(T value, Class<U> target) {
+        return (U) numberCastMap.get(target).apply(value);
+    }
+
+    public static <T extends SerializableData, U extends Number> int sizeOf(T[] arr, Class<U> primitive) {
+        return Arrays.stream(arr).mapToInt(T::getSize).sum() + sizeOf(primitive);
     }
 }

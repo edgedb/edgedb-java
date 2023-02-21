@@ -24,12 +24,12 @@ public class Restore extends Sendable{
 
     @Override
     public int getDataSize() {
-        return SHORT_SIZE + sizeOf(attributes) + sizeOf(headerData);
+        return SHORT_SIZE + sizeOf(attributes, Short.TYPE) + sizeOf(headerData);
     }
 
     @Override
     protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
-        writer.writeArray(attributes);
+        writer.writeArray(attributes, Short.TYPE);
         writer.write(jobs);
         writer.writeArray(headerData);
     }
