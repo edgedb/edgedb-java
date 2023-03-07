@@ -40,6 +40,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
     @Override
     protected CompletionStage<Void> openConnectionAsync() {
+        verifyReflectionModeForNetty();
         final var connection = getConnection();
         EventLoopGroup group = new NioEventLoopGroup();
 
@@ -63,11 +64,11 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
                             var builder = SslContextBuilder.forClient()
                                     .sslProvider(SslProvider.OPENSSL)
-                                    //.protocols("TLSv1.2")
+                                    .protocols("TLSv1.3")
                                     .applicationProtocolConfig(new ApplicationProtocolConfig(
                                             ApplicationProtocolConfig.Protocol.ALPN,
-                                            ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT,
-                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
+                                            ApplicationProtocolConfig.SelectorFailureBehavior.CHOOSE_MY_LAST_PROTOCOL,
+                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
                                             "edgedb-binary"
                                     ));
 
@@ -92,6 +93,13 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
         catch (Exception err) {
             logger.error("Failed to open connection", err);
             return CompletableFuture.failedFuture(err);
+        }
+    }
+
+    private static synchronized void verifyReflectionModeForNetty() {
+        var v = System.getProperty("Dio.netty.tryReflectionSetAccessible");
+        if(v == null || v.equals("false")){
+            System.setProperty("Dio.netty.tryReflectionSetAccessible", "true");
         }
     }
 
