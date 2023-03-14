@@ -1,6 +1,7 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.async.AsyncSemaphore;
 import com.edgedb.driver.binary.duplexers.Duplexer;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.receivable.*;
@@ -8,10 +9,7 @@ import com.edgedb.driver.binary.packets.sendables.ClientHandshake;
 import com.edgedb.driver.binary.packets.shared.AuthStatus;
 import com.edgedb.driver.binary.packets.shared.ConnectionParam;
 import com.edgedb.driver.binary.packets.shared.ProtocolExtension;
-import com.edgedb.driver.exceptions.EdgeDBErrorException;
-import com.edgedb.driver.exceptions.InvalidSignatureException;
-import com.edgedb.driver.exceptions.ScramException;
-import com.edgedb.driver.exceptions.UnexpectedMessageException;
+import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.Scram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +34,12 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     protected Duplexer duplexer;
     private boolean isIdle;
-    private final Semaphore connectionSemaphore;
+    private final AsyncSemaphore connectionSemaphore;
     private final CompletableFuture<Void> readyPromise;
 
     public EdgeDBBinaryClient(EdgeDBConnection connection) {
         super(connection);
-        connectionSemaphore = new Semaphore(1);
+        connectionSemaphore = new AsyncSemaphore(1);
         readyPromise = new CompletableFuture<>();
     }
 
@@ -116,7 +114,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 }
                 break;
             case SERVER_KEY_DATA:
-                this.serverKey = ((ServerKeyData)packet).keyData.array();
+                this.serverKey = new byte[32];
+                ((ServerKeyData)packet).keyData.readBytes(this.serverKey);
                 break;
             case STATE_DATA_DESCRIPTION:
                 // TODO: state
@@ -210,20 +209,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     @Override
     public CompletionStage<Void> connectAsync() {
         return CompletableFuture
-                .runAsync(() -> {
-                    try {
-                        this.connectionSemaphore.acquire();
-                    } catch (InterruptedException e) {
-                        throw new CompletionException(e);
-                    }
-                })
-                .thenCompose((v) -> {
-                    try {
-                        return this.connectInternalAsync();
-                    } catch (Throwable e) {
-                        throw new CompletionException(e);
-                    }
-                })
+                .runAsync(this.connectionSemaphore::aquire)
+                .thenCompose((v) -> this.connectInternalAsync())
                 .thenRunAsync(this::doClientHandshake)
                 .thenCompose((v) -> this.readyPromise);
     }
@@ -231,18 +218,21 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> doClientHandshake() {
         return this.duplexer.readNextAsync()
                 .thenCompose(packet -> {
-                    try {
-                        return handlePacketAsync(packet);
-                    } catch (SSLException|ScramException|UnexpectedMessageException e) {
-                        throw new CompletionException(e);
-                    }
-                })
-                .thenCompose((v) -> {
-                    if(!this.readyPromise.isDone()) {
-                        return doClientHandshake();
+                    if(packet == null) {
+                        return CompletableFuture.failedFuture(new UnexpectedDisconnectException());
                     }
 
-                    return CompletableFuture.completedFuture(null);
+                    if(packet instanceof ReadyForCommand) {
+                        this.readyPromise.complete(null);
+                        return CompletableFuture.completedFuture(null);
+                    }
+
+                    try {
+                        return handlePacketAsync(packet)
+                                .thenCompose((v) -> doClientHandshake());
+                    } catch (Throwable e) {
+                        throw new CompletionException(e);
+                    }
                 });
     }
 
@@ -251,7 +241,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         return null;
     }
 
-    private CompletionStage<Void> connectInternalAsync() throws GeneralSecurityException, IOException, TimeoutException {
+    private CompletionStage<Void> connectInternalAsync() {
         if(this.getIsConnected()) {
             return CompletableFuture.completedFuture(null);
         }
@@ -259,25 +249,30 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.duplexer.reset();
 
         // TODO: handle socket errors proxied thru EdgeDBException when 'shouldReconnect' is true
-        return this.openConnectionAsync()
-                .thenCompose((v) -> {
-                    var connection = getConnection();
-                    try {
-                        return this.duplexer.sendAsync(new ClientHandshake(
-                                PROTOCOL_MAJOR_VERSION,
-                                PROTOCOL_MINOR_VERSION,
-                                new ConnectionParam[] {
-                                        new ConnectionParam("user", connection.getUsername()),
-                                        new ConnectionParam("database", connection.getDatabase())
-                                },
-                                new ProtocolExtension[0]
-                        ));
-                    } catch (SSLException e) {
-                        // TODO: handle?
-                        logger.warn("SSL error when sending packet", e);
-                        throw new CompletionException(e);
-                    }
-                });
+        try {
+            return this.openConnectionAsync()
+                    .thenCompose((v) -> {
+                        var connection = getConnection();
+                        try {
+                            return this.duplexer.sendAsync(new ClientHandshake(
+                                    PROTOCOL_MAJOR_VERSION,
+                                    PROTOCOL_MINOR_VERSION,
+                                    new ConnectionParam[] {
+                                            new ConnectionParam("user", connection.getUsername()),
+                                            new ConnectionParam("database", connection.getDatabase())
+                                    },
+                                    new ProtocolExtension[0]
+                            ));
+                        } catch (SSLException e) {
+                            // TODO: handle?
+                            logger.warn("SSL error when sending packet", e);
+                            throw new CompletionException(e);
+                        }
+                    });
+        }
+        catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     protected abstract CompletionStage<Void> openConnectionAsync() throws GeneralSecurityException, IOException, TimeoutException;

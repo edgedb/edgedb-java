@@ -53,17 +53,8 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
                         protected void initChannel(@NotNull SocketChannel ch) throws Exception {
                             var pipeline = ch.pipeline();
 
-                            // SSL
-//                            var engine = connection.getSSLContext().createSSLEngine(connection.getHostname(), connection.getPort());
-//                            engine.setUseClientMode(true);
-//
-//                            var params = engine.getSSLParameters();
-//                            params.setApplicationProtocols(new String[] {"edgedb-binary"});
-//                            engine.setSSLParameters(params);
-
-
                             var builder = SslContextBuilder.forClient()
-                                    .sslProvider(SslProvider.OPENSSL)
+                                    .sslProvider(SslProvider.JDK)
                                     .protocols("TLSv1.3")
                                     .applicationProtocolConfig(new ApplicationProtocolConfig(
                                             ApplicationProtocolConfig.Protocol.ALPN,

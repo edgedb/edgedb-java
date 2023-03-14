@@ -16,6 +16,6 @@ public class ReadyForCommand implements Receivable {
 
     @Override
     public ServerMessageType getMessageType() {
-        return null;
+        return ServerMessageType.READY_FOR_COMMAND;
     }
 }

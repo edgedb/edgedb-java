@@ -1,5 +1,8 @@
 package com.edgedb.driver.util;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+
 import java.nio.ByteBuffer;
 
 public class HexUtils {
@@ -15,6 +18,10 @@ public class HexUtils {
             j++;
         }
         return new String(hexChars);
+    }
+
+    public static String bufferToHexString(ByteBuf buffer) {
+        return ByteBufUtil.hexDump(buffer);
     }
 
     public static String byteArrayToHexString(byte[] b) {

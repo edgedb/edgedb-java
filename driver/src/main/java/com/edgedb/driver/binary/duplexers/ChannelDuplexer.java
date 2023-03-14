@@ -57,14 +57,16 @@ public class ChannelDuplexer extends Duplexer {
 
         @Override
         public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) throws Exception {
-            super.channelRead(ctx, msg);
-
             synchronized (messageEnqueueReference) {
-                messageQueue.add((Receivable)msg);
-
-                for (var promise : readPromises) {
-                    promise.complete((Receivable) msg);
+                if(readPromises.isEmpty()) {
+                    messageQueue.add((Receivable)msg);
                 }
+                else {
+                    for (var promise : readPromises) {
+                        promise.complete((Receivable) msg);
+                    }
+                }
+
             }
         }
 

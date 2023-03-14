@@ -13,13 +13,8 @@ module com.edgedb.driver {
     requires io.netty.codec;
     requires io.netty.buffer;
     requires io.netty.handler;
-    requires io.netty.tcnative.classes.openssl;
-
-    // exposes 'sun/misc/unsafe'
-    requires jdk.unsupported;
 
     opens com.edgedb.driver;
 
     exports com.edgedb.driver.util;
-    exports com.edgedb.driver.ssl;
 }

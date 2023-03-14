@@ -105,7 +105,7 @@ public class PacketReader {
     }
 
     public ByteBuf readBytes(int length) {
-        return this.buffer.readSlice(length);
+        return this.buffer.readRetainedSlice(length);
     }
 
     public Annotation[] readAnnotations() {
