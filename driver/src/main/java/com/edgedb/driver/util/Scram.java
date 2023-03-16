@@ -50,6 +50,7 @@ public class Scram {
         var encoded = s.getBytes(StandardCharsets.UTF_8);
         buffer.writeInt(encoded.length);
         buffer.writeBytes(encoded);
+        var h = HexUtils.bufferToHexString(buffer);
         return buffer;
     }
 

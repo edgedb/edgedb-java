@@ -3,6 +3,10 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.joou.UByte;
+import org.joou.UInteger;
+import org.joou.ULong;
+import org.joou.UShort;
 
 import javax.naming.OperationNotSupportedException;
 import java.nio.charset.StandardCharsets;
@@ -56,6 +60,38 @@ public class PacketWriter implements AutoCloseable {
         });
 
         primitiveNumberWriters.put(Long.TYPE, (p, v) -> {
+            try {
+                p.write((long) v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(UByte.class, (p, v) -> {
+            try {
+                p.write((byte)v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(UShort.class, (p, v) -> {
+            try {
+                p.write((short)v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(UInteger.class, (p, v) -> {
+            try {
+                p.write((int) v);
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        primitiveNumberWriters.put(ULong.class, (p, v) -> {
             try {
                 p.write((long) v);
             } catch (OperationNotSupportedException e) {
@@ -137,6 +173,22 @@ public class PacketWriter implements AutoCloseable {
         write((int)value, BYTE_SIZE, this.buffer::writeByte);
     }
 
+    public void write(ULong value) throws OperationNotSupportedException {
+        this.write(value.longValue());
+    }
+
+    public void write(UInteger value) throws OperationNotSupportedException {
+        write(value.intValue());
+    }
+
+    public void write(UShort value) throws OperationNotSupportedException {
+        write(value.shortValue());
+    }
+
+    public void write(UByte value) throws OperationNotSupportedException {
+        write(value.byteValue());
+    }
+
     public void write(char value) throws OperationNotSupportedException {
         write((int)value, CHAR_SIZE, this.buffer::writeChar);
     }
@@ -160,7 +212,7 @@ public class PacketWriter implements AutoCloseable {
         ensureCanWrite(buffer.writerIndex() + INT_SIZE); // arr length (i32)
 
         write(buffer.writerIndex());
-        this.buffer.writeBytes(buffer);
+        this.buffer.writeBytes(buffer, 0, buffer.writerIndex());
     }
 
     public void writeArray(byte[] array) throws OperationNotSupportedException {

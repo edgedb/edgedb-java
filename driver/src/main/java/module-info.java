@@ -13,6 +13,7 @@ module com.edgedb.driver {
     requires io.netty.codec;
     requires io.netty.buffer;
     requires io.netty.handler;
+    requires org.jooq.joou;
 
     opens com.edgedb.driver;
 

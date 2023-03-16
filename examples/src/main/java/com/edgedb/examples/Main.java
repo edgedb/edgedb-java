@@ -12,6 +12,8 @@ public class Main {
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException, ExecutionException {
 
         var conn = new EdgeDBConnection();
+        conn.setUsername("java");
+        conn.setPassword("word");
 
         conn.setTLSSecurity(TLSSecurityMode.INSECURE);
 

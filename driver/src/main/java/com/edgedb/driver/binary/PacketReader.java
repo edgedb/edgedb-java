@@ -3,12 +3,18 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
 import io.netty.buffer.ByteBuf;
+import org.joou.UByte;
+import org.joou.UInteger;
+import org.joou.ULong;
+import org.joou.UShort;
 
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.joou.Unsigned.*;
 
 public class PacketReader {
     private final ByteBuf buffer;
@@ -24,6 +30,10 @@ public class PacketReader {
         numberReaderMap.put(Short.TYPE, PacketReader::readInt16);
         numberReaderMap.put(Integer.TYPE, PacketReader::readInt32);
         numberReaderMap.put(Long.TYPE, PacketReader::readInt64);
+        numberReaderMap.put(UByte.class, PacketReader::readUByte);
+        numberReaderMap.put(UShort.class, PacketReader::readUInt16);
+        numberReaderMap.put(UInteger.class, PacketReader::readUInt32);
+        numberReaderMap.put(ULong.class, PacketReader::readUInt64);
         numberReaderMap.put(Float.TYPE, PacketReader::readFloat);
         numberReaderMap.put(Double.TYPE, PacketReader::readDouble);
     }
@@ -47,14 +57,16 @@ public class PacketReader {
         return new String(buffer, StandardCharsets.UTF_8);
     }
 
-
-
     public boolean readBoolean() {
         return buffer.readBoolean();
     }
 
     public Byte readByte() {
         return buffer.readByte();
+    }
+
+    public UByte readUByte() {
+        return ubyte(buffer.readByte());
     }
 
     public char readChar() {
@@ -73,18 +85,24 @@ public class PacketReader {
         return buffer.readLong();
     }
 
+    public ULong readUInt64() {
+        return ulong(buffer.readLong());
+    }
+
     public int readInt32() {
         return buffer.readInt();
     }
-    public long readUInt32() {
-        return buffer.readUnsignedInt();
+
+    public UInteger readUInt32() {
+        return uint(buffer.readUnsignedInt());
     }
 
     public short readInt16() {
         return buffer.readShort();
     }
-    public int readUInt16() {
-        return buffer.readUnsignedShort();
+
+    public UShort readUInt16() {
+        return ushort(buffer.readUnsignedShort());
     }
 
     public String[] readStringArray() {
@@ -109,11 +127,11 @@ public class PacketReader {
     }
 
     public Annotation[] readAnnotations() {
-        return readArrayOf(Annotation.class, Annotation::new, Short.TYPE);
+        return readArrayOf(Annotation.class, Annotation::new, UShort.class);
     }
 
     public KeyValue[] readAttributes() {
-        return readArrayOf(KeyValue.class, KeyValue::new, Short.TYPE);
+        return readArrayOf(KeyValue.class, KeyValue::new, UShort.class);
     }
 
     @SuppressWarnings("unchecked")

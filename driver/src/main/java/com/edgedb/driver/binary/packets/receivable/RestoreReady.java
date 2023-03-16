@@ -3,14 +3,15 @@ package com.edgedb.driver.binary.packets.receivable;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.Annotation;
+import org.joou.UShort;
 
 public class RestoreReady implements Receivable {
     public final Annotation[] annotations;
-    public final short jobs;
+    public final UShort jobs;
 
     public RestoreReady(PacketReader reader) {
         annotations = reader.readAnnotations();
-        jobs = reader.readInt16();
+        jobs = reader.readUInt16();
     }
 
     @Override

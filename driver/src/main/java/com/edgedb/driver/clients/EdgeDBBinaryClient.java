@@ -11,6 +11,7 @@ import com.edgedb.driver.binary.packets.shared.ConnectionParam;
 import com.edgedb.driver.binary.packets.shared.ProtocolExtension;
 import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.Scram;
+import org.joou.UShort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +24,14 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.joou.Unsigned.ushort;
+
 @SuppressWarnings("ClassEscapesDefinedScope")
 public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
 
-    private static final short PROTOCOL_MAJOR_VERSION = 1;
-    private static final short PROTOCOL_MINOR_VERSION = 0;
+    private static final UShort PROTOCOL_MAJOR_VERSION = ushort(1);
+    private static final UShort PROTOCOL_MINOR_VERSION = ushort(0);
 
     private byte[] serverKey;
 
@@ -80,14 +83,14 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             case SERVER_HANDSHAKE:
                 var handshake = (ServerHandshake)packet;
 
-                if(handshake.majorVersion != PROTOCOL_MAJOR_VERSION || handshake.minorVersion < PROTOCOL_MINOR_VERSION) {
+                if(handshake.majorVersion.compareTo(PROTOCOL_MAJOR_VERSION) != 0 || handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) < 0) {
                     logger.error(
                             "The server requested protocol version {} but the currently installed client only supports {}. Please switch to a different client version that supports the requested protocol.",
                             String.format("%d.%d", handshake.majorVersion, handshake.majorVersion),
                             String.format("%d.%d", PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION)
                     );
                     return this.disconnectAsync();
-                } else if(handshake.minorVersion > PROTOCOL_MINOR_VERSION) {
+                } else if(handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) > 0) {
                     logger.warn(
                             "The server requested protocol version {} but the currently installed client only supports {}. Functionality may be limited and bugs may arise, please switch to a different client version that supports the requested protocol.",
                             String.format("%d.%d", handshake.majorVersion, handshake.majorVersion),
@@ -153,7 +156,9 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         var method = authStatus.authenticationMethods[0];
 
-        if(method != "SCRAM-SHA-256") {
+        assert method != null;
+
+        if(!method.equals("SCRAM-SHA-256")) {
             throw new ScramException("The only supported method is SCRAM-SHA-256, but the server wants " + method);
         }
 
@@ -162,48 +167,53 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         AtomicReference<byte[]> signature = new AtomicReference<>(new byte[0]);
 
-        return this.duplexer.duplexAsync(initialMessage, (state) -> {
-            try {
-                switch (state.packet.getMessageType()) {
-                    case AUTHENTICATION:
-                        var auth = (AuthenticationStatus)state.packet;
+        try{
+            return this.duplexer.duplexAsync(initialMessage, (state) -> {
+                try {
+                    switch (state.packet.getMessageType()) {
+                        case AUTHENTICATION:
+                            var auth = (AuthenticationStatus)state.packet;
 
-                        switch (auth.authStatus) {
-                            case AUTHENTICATION_SASL_CONTINUE:
-                                var result = scram.buildFinalMessage(auth, connection.getPassword());
-                                signature.set(result.signature);
+                            switch (auth.authStatus) {
+                                case AUTHENTICATION_SASL_CONTINUE:
+                                    var result = scram.buildFinalMessage(auth, connection.getPassword());
+                                    signature.set(result.signature);
 
-                                return this.duplexer.sendAsync(result.buildPacket());
-                            case AUTHENTICATION_SASL_FINAL:
-                                var key = Scram.parseServerFinalMessage(auth);
+                                    return this.duplexer.sendAsync(result.buildPacket());
+                                case AUTHENTICATION_SASL_FINAL:
+                                    var key = Scram.parseServerFinalMessage(auth);
 
-                                if(!Arrays.equals(signature.get(), key)) {
-                                    logger.error("The SCRAM signature didn't match. ours: {}, servers: {}.", signature.get(), key);
-                                    throw new InvalidSignatureException();
-                                }
-                                break;
-                            case AUTHENTICATION_OK:
-                                state.finishDuplexing();
-                                this.isIdle = false;
-                                break;
-                            default:
-                                throw new UnexpectedMessageException("Expected continue or final but got " + auth.authStatus);
-                        }
-                        break;
-                    case ERROR_RESPONSE:
-                        throw EdgeDBErrorException.fromError((ErrorResponse)state.packet);
-                    default:
-                        logger.error("Unexpected message. expected: {} actual: {}", ServerMessageType.AUTHENTICATION, state.packet.getMessageType());
-                        throw new CompletionException(new UnexpectedMessageException(ServerMessageType.AUTHENTICATION, state.packet.getMessageType()));
+                                    if(!Arrays.equals(signature.get(), key)) {
+                                        logger.error("The SCRAM signature didn't match. ours: {}, servers: {}.", signature.get(), key);
+                                        throw new InvalidSignatureException();
+                                    }
+                                    break;
+                                case AUTHENTICATION_OK:
+                                    state.finishDuplexing();
+                                    this.isIdle = false;
+                                    break;
+                                default:
+                                    throw new UnexpectedMessageException("Expected continue or final but got " + auth.authStatus);
+                            }
+                            break;
+                        case ERROR_RESPONSE:
+                            throw EdgeDBErrorException.fromError((ErrorResponse)state.packet);
+                        default:
+                            logger.error("Unexpected message. expected: {} actual: {}", ServerMessageType.AUTHENTICATION, state.packet.getMessageType());
+                            throw new CompletionException(new UnexpectedMessageException(ServerMessageType.AUTHENTICATION, state.packet.getMessageType()));
+                    }
+                } // TODO: should reconnect & should retry exceptions
+                catch (Exception err) {
+                    this.isIdle = false;
+                    state.finishExceptionally(err);
                 }
-            } // TODO: should reconnect & should retry exceptions
-            catch (Exception err) {
-                this.isIdle = false;
-                state.finishExceptionally(err);
-            }
 
-            return CompletableFuture.completedFuture(null);
-        });
+                return CompletableFuture.completedFuture(null);
+            });
+        }
+        catch (Throwable x) {
+            return CompletableFuture.failedFuture(x);
+        }
     }
 
     @Override

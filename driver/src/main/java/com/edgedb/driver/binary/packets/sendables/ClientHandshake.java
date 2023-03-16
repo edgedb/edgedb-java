@@ -4,20 +4,22 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.binary.packets.shared.ConnectionParam;
 import com.edgedb.driver.binary.packets.shared.ProtocolExtension;
+import org.joou.UShort;
 
 import javax.naming.OperationNotSupportedException;
 
-import static com.edgedb.driver.util.BinaryProtocolUtils.*;
+import static com.edgedb.driver.util.BinaryProtocolUtils.SHORT_SIZE;
+import static com.edgedb.driver.util.BinaryProtocolUtils.sizeOf;
 
 public class ClientHandshake extends Sendable {
-    private final short majorVersion;
-    private final short minorVersion;
+    private final UShort majorVersion;
+    private final UShort minorVersion;
     private final ConnectionParam[] connectionParams;
     private final ProtocolExtension[] extensions;
 
     public ClientHandshake(
-            short majorVersion,
-            short minorVersion,
+            UShort majorVersion,
+            UShort minorVersion,
             ConnectionParam[] connectionParams,
             ProtocolExtension[] extensions
     ) {

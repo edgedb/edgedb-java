@@ -6,13 +6,14 @@ import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     private static final long CONNECTION_TIMEOUT = 5000;
 
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
+    private static final NioEventLoopGroup nettyTcpGroup = new NioEventLoopGroup();
+    private static final EventExecutorGroup duplexerGroup = new DefaultEventExecutorGroup(8);
+
 
     private final ChannelDuplexer duplexer;
 
@@ -42,11 +46,10 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     protected CompletionStage<Void> openConnectionAsync() {
         verifyReflectionModeForNetty();
         final var connection = getConnection();
-        EventLoopGroup group = new NioEventLoopGroup();
 
         try {
             var bootstrap = new Bootstrap()
-                    .group(group)
+                    .group(nettyTcpGroup)
                     .channel(NioSocketChannel.class)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
@@ -73,7 +76,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
                                     PacketSerializer.PACKET_ENCODER
                             );
 
-                            pipeline.addLast(duplexer.channelHandler);
+                            pipeline.addLast(duplexerGroup, duplexer.channelHandler);
 
                             duplexer.init(ch);
                         }

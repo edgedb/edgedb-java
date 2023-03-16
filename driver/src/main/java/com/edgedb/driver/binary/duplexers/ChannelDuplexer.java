@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -39,11 +37,13 @@ public class ChannelDuplexer extends Duplexer {
 
     private final EdgeDBBinaryClient client;
     private final AtomicBoolean isDisconnected;
+    private final Executor dispatcher;
 
     private Channel channel;
 
+
     public class ChannelHandler extends ChannelInboundHandlerAdapter {
-        public final CompletableFuture<Void> channelActivePromise;
+        private final CompletableFuture<Void> channelActivePromise;
 
         public ChannelHandler() {
             channelActivePromise = new CompletableFuture<>();
@@ -75,6 +75,14 @@ public class ChannelDuplexer extends Duplexer {
             //super.exceptionCaught(ctx, cause);
             logger.error("Channel failed", cause);
         }
+
+        public synchronized CompletableFuture<Void> whenReady() {
+            if(this.channelActivePromise.isDone()) {
+                return CompletableFuture.completedFuture(null);
+            } else {
+                return this.channelActivePromise;
+            }
+        }
     }
 
     public ChannelDuplexer(EdgeDBBinaryClient client) {
@@ -82,6 +90,7 @@ public class ChannelDuplexer extends Duplexer {
         this.isDisconnected = new AtomicBoolean(false);
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
+        this.dispatcher = ForkJoinPool.commonPool();
     }
 
     @Override
@@ -102,7 +111,7 @@ public class ChannelDuplexer extends Duplexer {
         logger.debug("Starting to send packets to {}, is connected? {}", channel, !isDisconnected.get());
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
-        return this.channelHandler.channelActivePromise.thenCompose((v) -> {
+        return this.channelHandler.whenReady().thenCompose((v) -> {
             if(channel == null || isDisconnected.get()) {
                 logger.debug("Reconnecting...");
                 return client.reconnectAsync().thenCompose((w) -> {
@@ -115,6 +124,7 @@ public class ChannelDuplexer extends Duplexer {
                 }); // TODO: check for recursive loop
             }
 
+            logger.debug("Beginning packet encoding and writing...");
             var result = ChannelCompletableFuture.completeFrom(channel.write(packet));
 
             if(packets != null) {
@@ -123,8 +133,9 @@ public class ChannelDuplexer extends Duplexer {
                 }
             }
 
-            result.thenAccept((w) -> channel.flush());
-
+            logger.debug("Flushing data...");
+            channel.flush();
+            logger.debug("Flush complete, returning write proxy task");
             return result;
         });
     }
