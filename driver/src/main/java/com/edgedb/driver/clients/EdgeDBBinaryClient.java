@@ -206,6 +206,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 catch (Exception err) {
                     this.isIdle = false;
                     state.finishExceptionally(err);
+                    return CompletableFuture.failedFuture(err);
                 }
 
                 return CompletableFuture.completedFuture(null);

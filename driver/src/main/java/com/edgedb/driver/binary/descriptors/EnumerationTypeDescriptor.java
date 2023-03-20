@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 
 import java.util.UUID;
 
-public class EnumerationTypeDescriptor implements TypeDescriptor {
+public final class EnumerationTypeDescriptor implements TypeDescriptor {
     public final String[] members;
 
     private final UUID id;
@@ -17,6 +17,6 @@ public class EnumerationTypeDescriptor implements TypeDescriptor {
 
     @Override
     public UUID getId() {
-        return null;
+        return this.id;
     }
 }

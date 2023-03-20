@@ -4,11 +4,14 @@ import com.edgedb.driver.binary.PacketReader;
 
 import java.util.UUID;
 
-public final class BaseScalarTypeDescriptor implements TypeDescriptor {
+public final class ScalarTypeNameAnnotation implements TypeDescriptor {
+    public final String name;
+
     private final UUID id;
 
-    public BaseScalarTypeDescriptor(final UUID id, final PacketReader reader) {
+    public ScalarTypeNameAnnotation(final UUID id, final PacketReader reader) {
         this.id = id;
+        this.name = reader.readString();
     }
 
     @Override

@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+
+// TODO: abstract to have a version implemented in .binary that supports packet in and out.
 public class Scram {
     private static final int NONCE_LENGTH = 18;
     private static final SecureRandom random = new SecureRandom();
@@ -46,17 +48,14 @@ public class Scram {
     }
 
     private static ByteBuf encodeString(String s) {
-        var buffer = ByteBufAllocator.DEFAULT.buffer(BinaryProtocolUtils.sizeOf(s));
+        var buffer = ByteBufAllocator.DEFAULT.buffer(BinaryProtocolUtils.sizeOf(s) - 4); // no str length
         var encoded = s.getBytes(StandardCharsets.UTF_8);
-        buffer.writeInt(encoded.length);
         buffer.writeBytes(encoded);
-        var h = HexUtils.bufferToHexString(buffer);
         return buffer;
     }
 
     private static String decodeString(ByteBuf buffer) {
-        var len = buffer.readInt();
-        byte[] strBytes = new byte[len];
+        byte[] strBytes = new byte[buffer.readableBytes()];
 
         buffer.readBytes(strBytes);
 
@@ -142,7 +141,7 @@ public class Scram {
     }
 
     private static byte[] saltPassword(String password, byte[] salt, int iterations) throws ScramException {
-        var spec = new PBEKeySpec(password.toCharArray(), salt, iterations);
+        var spec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);
 
         try {
             var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -165,12 +164,12 @@ public class Scram {
         return computeHMACHash(data, key.getBytes(StandardCharsets.UTF_8));
     }
     private static byte[] computeHMACHash(byte[] data, byte[] key) throws ScramException {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "SHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(data, "SHA256");
 
         try {
-            var mac = Mac.getInstance("SHA256");
+            var mac = Mac.getInstance("HmacSHA256");
             mac.init(secretKeySpec);
-            return mac.doFinal(data);
+            return mac.doFinal(key);
         } catch (NoSuchAlgorithmException|InvalidKeyException e) {
             throw new ScramException(e);
         }

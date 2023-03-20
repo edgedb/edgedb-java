@@ -119,7 +119,7 @@ public class PacketReader {
 
     public ByteBuf readByteArray() {
         var len = readInt32();
-       return readBytes(len);
+        return readBytes(len);
     }
 
     public ByteBuf readBytes(int length) {
