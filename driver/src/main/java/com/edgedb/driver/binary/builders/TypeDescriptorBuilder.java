@@ -12,7 +12,7 @@ import java.util.function.BiFunction;
 import static org.joou.Unsigned.ubyte;
 
 public final class TypeDescriptorBuilder {
-    private static Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
+    private static final Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
 
     static {
         typeDescriptorFactories = new HashMap<>();

@@ -9,7 +9,7 @@ public final class EnumerationTypeDescriptor implements TypeDescriptor {
 
     private final UUID id;
 
-    public EnumerationTypeDescriptor(UUID id, final PacketReader reader) {
+    public EnumerationTypeDescriptor(final UUID id, final PacketReader reader) {
         this.id = id;
 
         this.members = reader.readArrayOf(String.class, PacketReader::readString, Short.TYPE);

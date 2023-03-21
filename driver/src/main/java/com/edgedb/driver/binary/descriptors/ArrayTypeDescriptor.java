@@ -12,7 +12,7 @@ public final class ArrayTypeDescriptor implements TypeDescriptor {
 
     private final UUID id;
 
-    public ArrayTypeDescriptor(UUID id, final PacketReader reader) {
+    public ArrayTypeDescriptor(final UUID id, final PacketReader reader) {
         this.id = id;
 
         this.typePosition = reader.readUInt16();

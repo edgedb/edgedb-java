@@ -46,6 +46,12 @@ public class PacketReader {
         return this.buffer.readableBytes() == 0; // TODO: this doesn't look right?
     }
 
+    public byte[] consumeByteArray() {
+        var arr = new byte[this.buffer.readableBytes()];
+        this.buffer.readBytes(arr);
+        return arr;
+    }
+
     public UUID readUUID() {
         return new UUID(buffer.readLong(), buffer.readLong());
     }
