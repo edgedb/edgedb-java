@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.edgedb.driver.util.BinaryProtocolUtils.SHORT_SIZE;
 import static org.joou.Unsigned.uint;
 import static org.joou.Unsigned.ushort;
 
@@ -63,7 +64,7 @@ public final class BigIntCodec extends ScalarCodecBase<BigInteger> {
         var isPos = reader.readUInt16().compareTo(ushort(0)) == 0;
 
         // reserved
-        reader.skip(2);
+        reader.skip(SHORT_SIZE);
 
         StringBuilder result = new StringBuilder(isPos ? "" : "-");
 

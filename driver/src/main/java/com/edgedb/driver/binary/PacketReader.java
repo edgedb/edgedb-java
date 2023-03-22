@@ -3,6 +3,7 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
 import org.joou.UInteger;
 import org.joou.ULong;
@@ -20,8 +21,11 @@ public class PacketReader {
     private final ByteBuf buffer;
     private static final Map<Class<?>, Function<PacketReader, ?>> numberReaderMap;
 
+    private final int initPos;
+
     public PacketReader(ByteBuf buffer) {
         this.buffer = buffer;
+        this.initPos = buffer.readerIndex();
     }
 
     static {
@@ -36,6 +40,14 @@ public class PacketReader {
         numberReaderMap.put(ULong.class, PacketReader::readUInt64);
         numberReaderMap.put(Float.TYPE, PacketReader::readFloat);
         numberReaderMap.put(Double.TYPE, PacketReader::readDouble);
+    }
+
+    public int position() {
+        return buffer.readerIndex() - this.initPos;
+    }
+
+    public int size() {
+        return position() + this.buffer.readableBytes();
     }
 
     public void skip(int count) {
@@ -123,8 +135,13 @@ public class PacketReader {
         return arr;
     }
 
-    public ByteBuf readByteArray() {
+    public @Nullable ByteBuf readByteArray() {
         var len = readInt32();
+
+        if(len <= 0) {
+            return null;
+        }
+
         return readBytes(len);
     }
 

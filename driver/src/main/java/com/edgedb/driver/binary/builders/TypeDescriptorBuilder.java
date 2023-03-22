@@ -15,36 +15,58 @@ public final class TypeDescriptorBuilder {
     private static final Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
 
     static {
-        typeDescriptorFactories = new HashMap<>();
-        typeDescriptorFactories.put(DescriptorType.ARRAY_TYPE_DESCRIPTOR,       ArrayTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.BASE_SCALAR_TYPE_DESCRIPTOR, BaseScalarTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.ENUMERATION_TYPE_DESCRIPTOR, EnumerationTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.NAMED_TUPLE_DESCRIPTOR,      NamedTupleTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.OBJECT_SHAPE_DESCRIPTOR,     ObjectShapeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.SCALAR_TYPE_DESCRIPTOR,      ScalarTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.SCALAR_TYPE_NAME_ANNOTATION, ScalarTypeNameAnnotation::new);
-        typeDescriptorFactories.put(DescriptorType.SET_DESCRIPTOR,              SetTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.TUPLE_TYPE_DESCRIPTOR,       TupleTypeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.INPUT_SHAPE_DESCRIPTOR,      InputShapeDescriptor::new);
-        typeDescriptorFactories.put(DescriptorType.RANGE_TYPE_DESCRIPTOR,       RangeTypeDescriptor::new);
+        typeDescriptorFactories = new HashMap<>() {
+            {
+                put(DescriptorType.ARRAY_TYPE_DESCRIPTOR,       ArrayTypeDescriptor::new);
+                put(DescriptorType.BASE_SCALAR_TYPE_DESCRIPTOR, BaseScalarTypeDescriptor::new);
+                put(DescriptorType.ENUMERATION_TYPE_DESCRIPTOR, EnumerationTypeDescriptor::new);
+                put(DescriptorType.NAMED_TUPLE_DESCRIPTOR,      NamedTupleTypeDescriptor::new);
+                put(DescriptorType.OBJECT_SHAPE_DESCRIPTOR,     ObjectShapeDescriptor::new);
+                put(DescriptorType.SCALAR_TYPE_DESCRIPTOR,      ScalarTypeDescriptor::new);
+                put(DescriptorType.SCALAR_TYPE_NAME_ANNOTATION, ScalarTypeNameAnnotation::new);
+                put(DescriptorType.SET_DESCRIPTOR,              SetTypeDescriptor::new);
+                put(DescriptorType.TUPLE_TYPE_DESCRIPTOR,       TupleTypeDescriptor::new);
+                put(DescriptorType.INPUT_SHAPE_DESCRIPTOR,      InputShapeDescriptor::new);
+                put(DescriptorType.RANGE_TYPE_DESCRIPTOR,       RangeTypeDescriptor::new);
+            }
+        };
     }
 
-    public static TypeDescriptor getDescriptor(final PacketReader reader) throws EdgeDBException {
+    public static TypeDescriptorResult getDescriptor(final PacketReader reader) throws EdgeDBException {
         var type = reader.readEnum(DescriptorType::valueOf, Byte.TYPE);
         var id = reader.readUUID();
 
         var factory = typeDescriptorFactories.get(type);
 
         if(factory != null) {
-            return factory.apply(id, reader);
+            return new TypeDescriptorResult(type, factory.apply(id, reader));
         }
 
         var v = ubyte(type.getValue());
 
         if (v.compareTo(ubyte(0x80)) >= 0 && v.compareTo(ubyte(0xfe)) <= 0) {
-            return new TypeAnnotationDescriptor(type, id, reader);
+            return new TypeDescriptorResult(type, new TypeAnnotationDescriptor(type, id, reader));
         }
 
         throw new EdgeDBException(String.format("No descriptor found for type %X", v.byteValue()));
+    }
+
+    public static class TypeDescriptorResult {
+        public final DescriptorType type;
+        private final TypeDescriptor descriptor;
+
+        public TypeDescriptorResult(DescriptorType type, TypeDescriptor descriptor) {
+            this.type = type;
+            this.descriptor = descriptor;
+        }
+
+        public UUID getId() {
+            return descriptor.getId();
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T extends TypeDescriptor> T as(Class<T> cls) {
+            return (T)descriptor;
+        }
     }
 }
