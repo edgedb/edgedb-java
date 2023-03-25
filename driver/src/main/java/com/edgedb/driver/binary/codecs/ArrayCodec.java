@@ -22,9 +22,9 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public ArrayCodec(Codec<T> codec) {
-        super((Class<T[]>)Array.newInstance(codec.getConvertingClass(), 0).getClass()); // TODO: can this be done better?
-        this.innerCodec = codec;
+    public ArrayCodec(Class<?> cls, Codec<?> codec) {
+        super((Class<T[]>) cls);
+        this.innerCodec = (Codec<T>) codec;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T @Nullable [] deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
+    public T @Nullable [] deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var dimensions = reader.readInt32();
 
         reader.skip(LONG_SIZE); // reserved
@@ -75,6 +75,12 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
             // TODO: memory falloff here? the buff returned here should have shared lifetime with the
             // buff in the root packet reader
             var data = reader.readByteArray();
+
+            if(data == null) {
+                array[i] = null;
+                continue;
+            }
+
             array[i] = innerCodec.deserialize(new PacketReader(data), context);
         }
 

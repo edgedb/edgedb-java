@@ -6,6 +6,7 @@ import com.edgedb.driver.binary.codecs.CodecContext;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.nio.charset.StandardCharsets;
 
 public final class TextCodec extends ScalarCodecBase<String> {
     public TextCodec() {
@@ -15,12 +16,12 @@ public final class TextCodec extends ScalarCodecBase<String> {
     @Override
     public void serialize(PacketWriter writer, @Nullable String value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
-            writer.write(value);
+            writer.writeArrayWithoutLength(value.getBytes(StandardCharsets.UTF_8));
         }
     }
 
     @Override
-    public @Nullable String deserialize(PacketReader reader, CodecContext context) {
-        return reader.readString();
+    public String deserialize(PacketReader reader, CodecContext context) {
+        return new String(reader.consumeByteArray(), StandardCharsets.UTF_8);
     }
 }

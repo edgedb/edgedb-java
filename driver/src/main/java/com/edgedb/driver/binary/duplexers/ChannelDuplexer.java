@@ -16,7 +16,6 @@ import javax.net.ssl.SSLException;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class ChannelDuplexer extends Duplexer {
@@ -36,8 +35,9 @@ public class ChannelDuplexer extends Duplexer {
     private final Object messageEnqueueReference = new Object();
 
     private final EdgeDBBinaryClient client;
-    private final AtomicBoolean isDisconnected;
     private final Executor dispatcher;
+
+    private boolean isConnected;
 
     private Channel channel;
 
@@ -51,6 +51,7 @@ public class ChannelDuplexer extends Duplexer {
 
         @Override
         public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+            isConnected = true;
             super.channelActive(ctx);
             channelActivePromise.complete(null);
         }
@@ -72,7 +73,6 @@ public class ChannelDuplexer extends Duplexer {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            //super.exceptionCaught(ctx, cause);
             logger.error("Channel failed", cause);
         }
 
@@ -87,7 +87,6 @@ public class ChannelDuplexer extends Duplexer {
 
     public ChannelDuplexer(EdgeDBBinaryClient client) {
         this.client = client;
-        this.isDisconnected = new AtomicBoolean(false);
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
         this.dispatcher = ForkJoinPool.commonPool();
@@ -108,11 +107,11 @@ public class ChannelDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Void> sendAsync(Sendable packet, @Nullable Sendable... packets) throws SSLException {
-        logger.debug("Starting to send packets to {}, is connected? {}", channel, !isDisconnected.get());
+        logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
         return this.channelHandler.whenReady().thenCompose((v) -> {
-            if(channel == null || isDisconnected.get()) {
+            if(channel == null || !isConnected) {
                 logger.debug("Reconnecting...");
                 return client.reconnectAsync().thenCompose((w) -> {
                     try {
@@ -167,6 +166,11 @@ public class ChannelDuplexer extends Duplexer {
     @Override
     public void reset() {
 
+    }
+
+    @Override
+    public boolean isConnected() {
+        return isConnected;
     }
 
     @Override

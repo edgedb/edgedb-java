@@ -17,6 +17,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'ch.qos.logback:logback-classic:1.4.5'
     implementation 'ch.qos.logback:logback-core:1.4.5'
+    implementation 'org.jooq:joou:0.9.4'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testImplementation 'junit:junit:4.13.2'

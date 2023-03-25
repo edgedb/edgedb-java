@@ -1,7 +1,9 @@
 module com.edgedb.driver {
     exports com.edgedb.driver;
+    exports com.edgedb.driver.datatypes;
     exports com.edgedb.driver.clients;
     exports com.edgedb.driver.exceptions;
+    exports com.edgedb.driver.util;
 
     requires org.jetbrains.annotations;
     requires com.fasterxml.jackson.core;
@@ -17,5 +19,4 @@ module com.edgedb.driver {
 
     opens com.edgedb.driver;
 
-    exports com.edgedb.driver.util;
 }

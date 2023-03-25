@@ -28,7 +28,7 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable Map<String, ?> value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(PacketWriter writer, @Nullable Map<String, ?> value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(value == null || value.isEmpty()) {
             writer.write(0);
             return;
@@ -36,7 +36,8 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
 
         writer.write(value.size());
 
-        // TODO: codec visitor
+        var visitor = context.getTypeVisitor();
+
         for(var element : value.entrySet()) {
             if(!propertyNamesMap.containsKey(element.getKey())) {
                 continue;
@@ -51,16 +52,16 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
                 continue;
             }
 
-            var codec = innerCodecs[index];
-
-            // TODO: codec visitor
+            visitor.setTargetType(element.getClass());
+            var codec = (Codec)visitor.visit(innerCodecs[index]);
+            visitor.reset();
 
             writer.writeDelegateWithLength(v -> codec.serialize(v, element.getValue(), context));
         }
     }
 
     @Override
-    public Map<String, ?> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
+    public Map<String, ?> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(innerCodecs.length != numElements) {

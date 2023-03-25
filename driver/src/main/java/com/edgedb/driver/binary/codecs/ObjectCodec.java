@@ -27,6 +27,9 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
 
     public void initialize(Class<?> cls) {
         // TODO: get the deserialization factory for 'cls
+        if(cls.equals(Object.class)) {
+            factory = ObjectEnumerator::flatten;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -38,7 +41,7 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
 
         writer.write(value.size());
 
-        // TODO: codec visitor
+        var visitor = context.getTypeVisitor();
 
         for(int i = 0; i != value.size(); i++) {
             var propName = this.propertyNames[i];
@@ -55,7 +58,10 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
                 continue;
             }
 
-            var codec = this.innerCodecs[i];
+            visitor.setTargetType(element.getClass());
+            var codec = (Codec)visitor.visit(this.innerCodecs[i]);
+            visitor.reset();
+
 
             // TODO: codec visitor
             writer.writeDelegateWithLength((v) -> codec.serialize(v, element, context));
@@ -67,7 +73,6 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
         throw new OperationNotSupportedException();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public @Nullable Object deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
         synchronized (lock) {
@@ -76,7 +81,7 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
             }
         }
 
-        var enumerator = new ObjectEnumerator(reader, context);
+        var enumerator = new ObjectEnumerator(reader, this, context);
 
         try {
             return factory.deserialize(enumerator);

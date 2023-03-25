@@ -213,7 +213,10 @@ public class PacketWriter implements AutoCloseable {
         ensureCanWrite(buffer.writerIndex() + INT_SIZE); // arr length (i32)
 
         write(buffer.writerIndex());
-        this.buffer.writeBytes(buffer, 0, buffer.writerIndex());
+
+        if(buffer.writerIndex() > 0) {
+            this.buffer.writeBytes(buffer, 0, buffer.writerIndex());
+        }
     }
 
     public void writeArray(byte[] array) throws OperationNotSupportedException {
@@ -260,23 +263,7 @@ public class PacketWriter implements AutoCloseable {
             flags |= v.getValue().longValue();
         }
 
-        // convert back to U
-        U actualFlags;
-        Object temp;
-        if(primitive.equals(Long.class)) {
-            temp = flags;
-        } else if (primitive.equals(Integer.class)) {
-            temp = (int) flags;
-        } else if (primitive.equals(Short.class)) {
-            temp = (short) flags;
-        } else if (primitive.equals(Byte.class)) {
-            temp = (byte) flags;
-        } else {
-            throw new OperationNotSupportedException("Cannot use enum with primitive type " + primitive.getName());
-        }
-
-        actualFlags = primitive.cast(temp);
-        primitiveNumberWriters.get(primitive).accept(this, actualFlags);
+        primitiveNumberWriters.get(primitive).accept(this, BinaryProtocolUtils.castNumber(flags, primitive));
     }
 
     @FunctionalInterface

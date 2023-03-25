@@ -2,26 +2,19 @@ package com.edgedb.driver.binary.duplexers;
 
 import com.edgedb.driver.binary.packets.receivable.Receivable;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
+import com.edgedb.driver.binary.packets.sendables.Sync;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.SSLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class Duplexer {
-    private boolean isConnected;
-
-    public void setIsConnected(boolean value) {
-        isConnected = value;
-    }
-
-    public boolean getIsConnected() {
-        return isConnected;
-    }
-
     public abstract void reset();
+    public abstract boolean isConnected();
 
     public abstract CompletionStage<Void> disconnectAsync();
     public abstract CompletionStage<Receivable> readNextAsync();
@@ -34,6 +27,10 @@ public abstract class Duplexer {
 
     public final CompletionStage<Void> duplexAsync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
         return this.duplexAsync(func, packet);
+    }
+
+    public final CompletionStage<Void> duplexAndSyncAsync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
+        return duplexAsync(func, packet, new Sync());
     }
 
     public static class DuplexResult {
@@ -54,5 +51,12 @@ public abstract class Duplexer {
         public void finishExceptionally(Throwable err) {
             promise.completeExceptionally(err);
         }
+        public <T>  void finishExceptionally(T p, Function<T, Throwable> exceptionFactory) {
+            promise.completeExceptionally(exceptionFactory.apply(p));
+        }
+        public <T, U>  void finishExceptionally(T p1, U p2, BiFunction<T, U, Throwable> exceptionFactory) {
+            promise.completeExceptionally(exceptionFactory.apply(p1, p2));
+        }
+
     }
 }

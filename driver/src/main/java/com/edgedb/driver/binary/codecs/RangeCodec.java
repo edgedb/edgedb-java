@@ -16,9 +16,10 @@ import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 public final class RangeCodec<T extends Number> extends CodecBase<Range<T>> {
     private final Codec<T> innerCodec;
 
-    public RangeCodec(Class<Range<T>> cls, Codec<T> innerCodec) {
-        super(cls);
-        this.innerCodec = innerCodec;
+    @SuppressWarnings("unchecked")
+    public RangeCodec(Class<?> cls, Codec<?> innerCodec) {
+        super((Class<Range<T>>) cls);
+        this.innerCodec = (Codec<T>) innerCodec;
     }
 
     @Override
@@ -63,7 +64,7 @@ public final class RangeCodec<T extends Number> extends CodecBase<Range<T>> {
     }
 
     @Override
-    public @Nullable Range<T> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
+    public @Nullable Range<T> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var flags = reader.readEnumSet(RangeFlags.class, Byte.TYPE, RangeFlags::valueOf);
 
         if(flags.contains(RangeFlags.EMPTY)) {
@@ -82,11 +83,11 @@ public final class RangeCodec<T extends Number> extends CodecBase<Range<T>> {
             upperBound = innerCodec.deserialize(reader, context);
         }
 
-        return new Range<>(
+        return Range.create(
+                innerCodec.getConvertingClass(),
                 lowerBound,
                 upperBound,
                 flags.contains(RangeFlags.INCLUDE_LOWER_BOUNDS),
-                flags.contains(RangeFlags.INCLUDE_UPPER_BOUNDS)
-        );
+                flags.contains(RangeFlags.INCLUDE_UPPER_BOUNDS));
     }
 }

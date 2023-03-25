@@ -2,6 +2,7 @@ package com.edgedb.driver.binary;
 
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
+import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
@@ -178,7 +179,7 @@ public class PacketReader {
     }
 
     public <U extends Number, T extends Enum<T> & BinaryEnum<U>> EnumSet<T> readEnumSet(Class<T> cls, Class<U> primitive, Function<U, T> map) {
-        var value = primitive.cast(numberReaderMap.get(primitive).apply(this));
+        var value = BinaryProtocolUtils.castNumber((Number) numberReaderMap.get(primitive).apply(this), primitive);
 
         var flagBits = Arrays.stream(cls.getEnumConstants())
                 .map(BinaryEnum::getValue)

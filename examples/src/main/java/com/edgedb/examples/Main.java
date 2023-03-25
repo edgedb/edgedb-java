@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
+import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.TLSSecurityMode;
 import com.edgedb.driver.clients.EdgeDBTCPClient;
 
 import java.io.IOException;
@@ -11,19 +11,14 @@ import java.util.concurrent.ExecutionException;
 public class Main {
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException, ExecutionException {
 
-        var conn = new EdgeDBConnection();
-        conn.setUsername("java");
-        conn.setPassword("word");
+        var client = new EdgeDBTCPClient(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.getDefault());
 
-        conn.setTLSSecurity(TLSSecurityMode.INSECURE);
-
-        var client = new EdgeDBTCPClient(conn);
-
-        client.connectAsync().whenComplete((v,e) -> {
-            e.printStackTrace();
-        });
-
-
+        client.connectAsync()
+                .thenCompose((v) -> client.queryAsync("select 'Hello, Java!'", String.class))
+                .whenComplete((v, e) -> {
+                    var str = v.get(0);
+                    System.out.println(v);
+                });
 
         Thread.sleep(500000);
     }

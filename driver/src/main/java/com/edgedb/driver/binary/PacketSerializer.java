@@ -157,13 +157,19 @@ public class PacketSerializer {
         @Override
         protected void encode(ChannelHandlerContext ctx, Sendable msg, List<Object> out) throws Exception {
 
-            var data = PacketSerializer.serialize(msg);
+            try{
+                var data = PacketSerializer.serialize(msg);
 
-            data.readerIndex(0);
+                data.readerIndex(0);
 
-            logger.debug("C->S: T:{} D:{}", msg.type, HexUtils.bufferToHexString(data));
+                logger.debug("C->S: T:{} D:{}", msg.type, HexUtils.bufferToHexString(data));
 
-            out.add(data);
+                out.add(data);
+            }
+            catch (Throwable x) {
+                logger.error("Failed to serialize packet", x);
+                // TODO: close the client
+            }
         }
     };
 

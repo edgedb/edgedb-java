@@ -81,8 +81,8 @@ public class Execute extends Sendable {
 
         writer.write((short)0); // annotations (zero of them)
 
-        writer.writeEnumSet(capabilities, Long.class);
-        writer.writeEnumSet(compilationFlags, Long.class);
+        writer.writeEnumSet(capabilities, Long.TYPE);
+        writer.writeEnumSet(compilationFlags, Long.TYPE);
         writer.write(implicitLimit);
         writer.write(format);
         writer.write(cardinality);

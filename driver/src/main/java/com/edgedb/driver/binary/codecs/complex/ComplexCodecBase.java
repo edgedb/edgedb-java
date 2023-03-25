@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs.complex;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.*;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -84,13 +85,13 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
         }
 
         @Override
-        public void serialize(PacketWriter writer, @Nullable U value, CodecContext context) throws OperationNotSupportedException {
+        public void serialize(PacketWriter writer, @Nullable U value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
             var converted = value == null ? null : converter.from.apply(value);
             this.parent.serialize(writer, converted, context);
         }
 
         @Override
-        public @Nullable U deserialize(PacketReader reader, CodecContext context) {
+        public @Nullable U deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
             var value = parent.deserialize(reader, context);
             return value == null ? null : converter.to.apply(value);
         }

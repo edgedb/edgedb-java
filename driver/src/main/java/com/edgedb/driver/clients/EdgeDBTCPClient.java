@@ -1,5 +1,6 @@
 package com.edgedb.driver.clients;
 
+import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.PacketSerializer;
@@ -35,8 +36,8 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
 
     private final ChannelDuplexer duplexer;
 
-    public EdgeDBTCPClient(EdgeDBConnection connection) throws IOException {
-        super(connection);
+    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config) throws IOException {
+        super(connection, config);
 
         this.duplexer = new ChannelDuplexer(this);
         setDuplexer(this.duplexer);

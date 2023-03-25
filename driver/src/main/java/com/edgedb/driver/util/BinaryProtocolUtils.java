@@ -2,6 +2,7 @@ package com.edgedb.driver.util;
 
 import com.edgedb.driver.binary.SerializableData;
 import io.netty.buffer.ByteBuf;
+import org.joou.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import static org.joou.Unsigned.*;
 
 public class BinaryProtocolUtils {
     public static final int DOUBLE_SIZE = 8;
@@ -24,13 +27,20 @@ public class BinaryProtocolUtils {
     private static final Map<Class<?>, Function<Number, ?>> numberCastMap;
 
     static {
-        numberCastMap = new HashMap<>();
-        numberCastMap.put(Long.TYPE, Number::longValue);
-        numberCastMap.put(Integer.TYPE, Number::intValue);
-        numberCastMap.put(Short.TYPE, Number::shortValue);
-        numberCastMap.put(Byte.TYPE, Number::byteValue);
-        numberCastMap.put(Double.TYPE, Number::doubleValue);
-        numberCastMap.put(Float.TYPE, Number::floatValue);
+        numberCastMap = new HashMap<>() {
+            {
+                put(Long.TYPE, Number::longValue);
+                put(Integer.TYPE, Number::intValue);
+                put(Short.TYPE, Number::shortValue);
+                put(Byte.TYPE, Number::byteValue);
+                put(Double.TYPE, Number::doubleValue);
+                put(Float.TYPE, Number::floatValue);
+                put(UByte.class, number -> ubyte(number.longValue()));
+                put(UShort.class, number -> ushort(number.intValue()));
+                put(UInteger.class, number -> uint(number.longValue()));
+                put(ULong.class, number -> ulong(number.longValue()));
+            }
+        };
     }
 
     public static int sizeOf(String s) {

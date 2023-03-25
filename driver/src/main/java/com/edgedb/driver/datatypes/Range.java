@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class Range<T extends Number> implements Comparable<Range<T>> {
-    public static final Range<?> EMPTY_RANGE = new Range<>(null, null);
+public final class Range<T> implements Comparable<Range<T>> {
+    public static final Range<?> EMPTY_RANGE = new Range<>(Long.class, null, null);
 
     private final @Nullable T lower;
     private final @Nullable T upper;
@@ -14,16 +14,19 @@ public final class Range<T extends Number> implements Comparable<Range<T>> {
     private final boolean includeUpper;
     private final boolean isEmpty;
 
-    public Range(@Nullable T lower, @Nullable T upper) {
-        this(lower, upper, true, false);
+    private final Class<T> elementType;
+
+    private Range(Class<T> cls, @Nullable T lower, @Nullable T upper) {
+        this(cls, lower, upper, true, false);
     }
 
-    public Range(@Nullable T lower, @Nullable T upper, boolean includeLower, boolean includeUpper) {
+    private Range(Class<T> cls, @Nullable T lower, @Nullable T upper, boolean includeLower, boolean includeUpper) {
         this.lower = lower;
         this.upper = upper;
         this.includeLower = includeLower;
         this.includeUpper = includeUpper;
         this.isEmpty = (lower == null && upper == null) || (lower != null && lower.equals(upper));
+        this.elementType = cls;
     }
 
     public @Nullable T getLower() {
@@ -47,8 +50,29 @@ public final class Range<T extends Number> implements Comparable<Range<T>> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <U extends Number> Range<U> empty() {
+    public static <U> Range<U> empty() {
         return (Range<U>)EMPTY_RANGE;
+    }
+    public static <U> Range<U> empty(Class<U> cls) {
+        return new Range<>(cls, null, null);
+    }
+
+    public static <U> Range<U> create(Class<U> cls, @Nullable U lower, @Nullable U upper) {
+        return new Range<>(cls, lower, upper);
+    }
+
+    public static <U> Range<U> create(
+            Class<U> cls,
+            @Nullable U lower,
+            @Nullable U upper,
+            boolean includeLower,
+            boolean includeUpper
+    ) {
+        return new Range<>(cls, lower, upper, includeLower, includeUpper);
+    }
+
+    public Class<T> getElementType() {
+        return this.elementType;
     }
 
     @Override

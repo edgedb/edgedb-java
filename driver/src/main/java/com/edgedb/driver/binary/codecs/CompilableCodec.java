@@ -8,19 +8,37 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Type;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 
 @SuppressWarnings("rawtypes")
 public final class CompilableCodec implements Codec {
-
     private final UUID id;
     private final Codec<?> innerCodec;
     private final BiFunction<Class<?>, Codec<?>, Codec<?>> factory;
+
+    private final ConcurrentMap<Class<?>, Codec<?>> instanceCache;
 
     public CompilableCodec(UUID id, Codec<?> innerCodec, BiFunction<Class<?>, Codec<?>, Codec<?>> factory) {
         this.factory = factory;
         this.id = id;
         this.innerCodec = innerCodec;
+        this.instanceCache = new ConcurrentHashMap<>();
+    }
+
+    public Codec<?> getInnerCodec() {
+        return this.innerCodec;
+    }
+
+    public Codec<?> compile(Class<?> cls, Codec<?> innerCodec) {
+        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.apply(c, innerCodec));
+    }
+
+    public Class<?> getInnerType() {
+        return this.innerCodec instanceof CompilableCodec
+                ? ((CompilableCodec)this.innerCodec).getInnerType()
+                : this.innerCodec.getConvertingClass();
     }
 
     @Override
@@ -36,7 +54,7 @@ public final class CompilableCodec implements Codec {
 
     @Override
     public Class<?> getConvertingClass() {
-        throw new OperationNotSupportedException();
+        throw new RuntimeException(new OperationNotSupportedException());
     }
 
     @Override
