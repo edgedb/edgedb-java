@@ -16,21 +16,21 @@ public abstract class Duplexer {
     public abstract void reset();
     public abstract boolean isConnected();
 
-    public abstract CompletionStage<Void> disconnectAsync();
-    public abstract CompletionStage<Receivable> readNextAsync();
-    public abstract CompletionStage<Void> sendAsync(Sendable packet, @Nullable Sendable... packets) throws SSLException;
-    public abstract CompletionStage<Void> duplexAsync(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException;
+    public abstract CompletionStage<Void> disconnect();
+    public abstract CompletionStage<Receivable> readNext();
+    public abstract CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets) throws SSLException;
+    public abstract CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException;
 
-    public final CompletionStage<Void> sendAsync(Sendable packet) throws SSLException {
-        return this.sendAsync(packet, (Sendable[]) null);
+    public final CompletionStage<Void> send(Sendable packet) throws SSLException {
+        return this.send(packet, (Sendable[]) null);
     }
 
-    public final CompletionStage<Void> duplexAsync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
-        return this.duplexAsync(func, packet);
+    public final CompletionStage<Void> duplex(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
+        return this.duplex(func, packet);
     }
 
-    public final CompletionStage<Void> duplexAndSyncAsync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
-        return duplexAsync(func, packet, new Sync());
+    public final CompletionStage<Void> duplexAndSync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
+        return duplex(func, packet, new Sync());
     }
 
     public static class DuplexResult {

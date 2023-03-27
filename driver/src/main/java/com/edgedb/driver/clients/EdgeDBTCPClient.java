@@ -44,7 +44,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     }
 
     @Override
-    protected CompletionStage<Void> openConnectionAsync() {
+    protected CompletionStage<Void> openConnection() {
         verifyReflectionModeForNetty();
         final var connection = getConnection();
 
@@ -83,7 +83,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
                         }
                     });
 
-            return ChannelCompletableFuture.completeFrom(bootstrap.connect(connection.getHostname(), connection.getPort()));
+            return ChannelCompletableFuture.completeFrom(
+                    bootstrap.connect(
+                            connection.getHostname(),
+                            connection.getPort()
+                    )
+            );
         }
         catch (Exception err) {
             logger.error("Failed to open connection", err);
@@ -99,8 +104,8 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     }
 
     @Override
-    protected CompletionStage<Void> closeConnectionAsync() {
-        return this.duplexer.disconnectAsync();
+    protected CompletionStage<Void> closeConnection() {
+        return this.duplexer.disconnect();
     }
 
 }

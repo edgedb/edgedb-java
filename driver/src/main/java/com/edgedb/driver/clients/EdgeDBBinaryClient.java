@@ -99,13 +99,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> parse0(ExecutionArguments args) {
         if(args.parseAttempts > MAX_PARSE_ATTEMPTS) {
             logger.debug("Parse attempts exceeded {}", MAX_PARSE_ATTEMPTS);
-            return CompletableFuture.failedFuture(new EdgeDBException("Failed to parse query after " + args.parseAttempts + " attempts"));
+            return CompletableFuture.failedFuture(
+                    new EdgeDBException("Failed to parse query after " + args.parseAttempts + " attempts")
+            );
         }
 
         logger.debug("Starting to parse... attempt {}/{}", args.parseAttempts + 1, MAX_PARSE_ATTEMPTS);
 
         try {
-            return duplexer.duplexAndSyncAsync(args.toParsePacket(), (result) -> {
+            return duplexer.duplexAndSync(args.toParsePacket(), (result) -> {
                 switch (result.packet.getMessageType()) {
                     case ERROR_RESPONSE:
                         var err = result.packet.as(ErrorResponse.class);
@@ -169,21 +171,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         }
                         break;
                     case STATE_DATA_DESCRIPTION:
-                        var stateDescriptor = result.packet.as(StateDataDescription.class);
-
-                        var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
-
-                        codec = updateExecutionState(result, stateDescriptor, codec);
-
-                        stateCodec = codec;
-                        stateDescriptorId = stateDescriptor.typeDescriptorId;
-                        args.stateUpdated = true;
-
-                        try {
-                            args.setStateData(serializeState());
-                        } catch (OperationNotSupportedException | EdgeDBException e) {
-                            result.finishExceptionally("Failed to serialize state", e, EdgeDBException::new);
-                        }
+                        updateStateCodec(result, args);
                         break;
                     case READY_FOR_COMMAND:
                         var ready = result.packet.as(ReadyForCommand.class);
@@ -209,7 +197,9 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
     private CompletionStage<Void> execute0(ExecutionArguments args) {
         if(args.parseAttempts > 2) {
-            return CompletableFuture.failedFuture(new EdgeDBException("Failed to parse query after " + args.parseAttempts + " attempts"));
+            return CompletableFuture.failedFuture(
+                    new EdgeDBException("Failed to parse query after " + args.parseAttempts + " attempts")
+            );
         }
 
         if(!(args.codecs.inputCodec instanceof ArgumentCodec)) {
@@ -222,27 +212,13 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
 
         try {
-            return duplexer.duplexAndSyncAsync(args.toExecutePacket(), (result) -> {
+            return duplexer.duplexAndSync(args.toExecutePacket(), (result) -> {
                 switch (result.packet.getMessageType()) {
                     case DATA:
                         args.data.add(result.packet.as(Data.class));
                         break;
                     case STATE_DATA_DESCRIPTION:
-                        var stateDescriptor = result.packet.as(StateDataDescription.class);
-
-                        var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
-
-                        codec = updateExecutionState(result, stateDescriptor, codec);
-
-                        stateCodec = codec;
-                        stateDescriptorId = stateDescriptor.typeDescriptorId;
-                        args.stateUpdated = true;
-
-                        try {
-                            args.setStateData(serializeState());
-                        } catch (OperationNotSupportedException | EdgeDBException e) {
-                            result.finishExceptionally("Failed to serialize state", e, EdgeDBException::new);
-                        }
+                        updateStateCodec(result, args);
                         break;
                     case ERROR_RESPONSE:
                         var err = result.packet.as(ErrorResponse.class);
@@ -284,7 +260,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         if(err.errorCode == ErrorCode.STATE_MISMATCH_ERROR) {
             // should have new state
             if(!args.stateUpdated) {
-                result.finishExceptionally("Failed to properly encode state data, this is a bug", EdgeDBException::new);
+                result.finishExceptionally(
+                        "Failed to properly encode state data, this is a bug",
+                        EdgeDBException::new
+                );
                 return;
             }
 
@@ -295,9 +274,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    @Nullable
-    private Codec<Map> updateExecutionState(Duplexer.DuplexResult result, StateDataDescription stateDescriptor, Codec<Map> codec) {
+    private void updateStateCodec(Duplexer.DuplexResult result, ExecutionArguments args) {
+        var stateDescriptor = result.packet.as(StateDataDescription.class);
+        var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
+
         if(codec == null) {
             try {
                 codec = CodecBuilder.buildCodec(
@@ -314,31 +294,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 result.finishExceptionally("Failed to parse state codec", e, EdgeDBException::new);
             }
         }
-        return codec;
-    }
 
-    private CompletionStage<Void> executeQuery0(ExecutionArguments args) {
-        logger.debug("Entering execute step");
+        stateCodec = codec;
+        stateDescriptorId = stateDescriptor.typeDescriptorId;
+        args.stateUpdated = true;
 
         try {
-            var cacheKey = args.getCacheKey();
-
             args.setStateData(serializeState());
-
-            var codecInfo = CodecBuilder.getCachedCodecs(cacheKey);
-
-            if(codecInfo == null) {
-                return parse(args).thenCompose((v) -> execute(args));
-            }
-
-            args.codecs = codecInfo;
-
-            logger.debug("Codecs found for query: {} {}", codecInfo.inputCodec, codecInfo.outputCodec);
-
-            return execute(args);
-
         } catch (OperationNotSupportedException | EdgeDBException e) {
-            throw new RuntimeException(e);
+            result.finishExceptionally("Failed to serialize state", e, EdgeDBException::new);
         }
     }
 
@@ -348,7 +312,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         logger.debug("Execute request: is connected? {}", duplexer.isConnected());
         if(!duplexer.isConnected()) {
             // TODO: check for recursion
-            return reconnectAsync()
+            return reconnect()
                     .thenCompose(v -> executeQuery(args));
         }
 
@@ -359,12 +323,39 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         throw new RuntimeException(e);
                     }
                 })
-                .thenCompose((v) -> executeQuery0(args))
+                .thenCompose((v) -> {
+                    logger.debug("Entering execute step");
+
+                    try {
+                        var cacheKey = args.getCacheKey();
+
+                        args.setStateData(serializeState());
+
+                        var codecInfo = CodecBuilder.getCachedCodecs(cacheKey);
+
+                        if(codecInfo == null) {
+                            return parse(args).thenCompose((u) -> execute(args));
+                        }
+
+                        args.codecs = codecInfo;
+
+                        logger.debug("Codecs found for query: {} {}", codecInfo.inputCodec, codecInfo.outputCodec);
+
+                        return execute(args);
+
+                    } catch (OperationNotSupportedException | EdgeDBException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .whenComplete((v,e) -> this.querySemaphore.release());
     }
 
     @Override
-    public CompletionStage<Void> executeAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public CompletionStage<Void> execute(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities
+    ) {
         return executeQuery(new ExecutionArguments(
                 query,
                 args,
@@ -377,8 +368,12 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @Override
-    public <T> CompletionStage<List<T>> queryAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls) {
-
+    public <T> CompletionStage<List<T>> query(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
                 query,
@@ -412,13 +407,92 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @Override
-    public <T> CompletionStage<T> querySingleAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return null;
+    public <T> CompletionStage<T> querySingle(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    ) {
+        // TODO: does this query result require implicit type names
+        final var executeArgs = new ExecutionArguments(
+                query,
+                args,
+                Cardinality.MANY,
+                capabilities,
+                IOFormat.BINARY,
+                false,
+                false
+        );
+
+        return executeQuery(executeArgs)
+                .thenCompose((v) -> {
+                   if(executeArgs.data.size() > 1) {
+                       return CompletableFuture.failedFuture(
+                               new ResultCardinalityMismatchException(Cardinality.AT_MOST_ONE, Cardinality.MANY)
+                       );
+                   }
+
+                    try {
+                        var data = executeArgs.data.size() == 0
+                                ? null
+                                : ObjectBuilder.buildResult(
+                                        this,
+                                        executeArgs.codecs.outputCodec,
+                                        executeArgs.data.get(0),
+                                        cls
+                                );
+
+                        return CompletableFuture.completedFuture(data);
+                    } catch (EdgeDBException | OperationNotSupportedException e) {
+                        return CompletableFuture.failedFuture(e);
+                    }
+                });
     }
 
     @Override
-    public <T> CompletionStage<T> queryRequiredSingleAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return null;
+    public <T> CompletionStage<T> queryRequiredSingle(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    ) {
+        // TODO: does this query result require implicit type names
+        final var executeArgs = new ExecutionArguments(
+                query,
+                args,
+                Cardinality.MANY,
+                capabilities,
+                IOFormat.BINARY,
+                false,
+                false
+        );
+
+        return executeQuery(executeArgs)
+                .thenCompose((v) -> {
+                    if(executeArgs.data.size() != 1) {
+                        return CompletableFuture.failedFuture(
+                                new ResultCardinalityMismatchException(
+                                        Cardinality.ONE,
+                                        executeArgs.data.size() > 1
+                                                ? Cardinality.MANY
+                                                : Cardinality.AT_MOST_ONE
+                                )
+                        );
+                    }
+
+                    try {
+                        return CompletableFuture.completedFuture(
+                                ObjectBuilder.buildResult(
+                                        this,
+                                        executeArgs.codecs.outputCodec,
+                                        executeArgs.data.get(0),
+                                        cls
+                                )
+                        );
+                    } catch (EdgeDBException | OperationNotSupportedException e) {
+                        return CompletableFuture.failedFuture(e);
+                    }
+                });
     }
 
     private @Nullable ByteBuf serializeState() throws OperationNotSupportedException, EdgeDBException {
@@ -430,23 +504,31 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         return Codec.serializeToBuffer(this.stateCodec, data, this.codecContext);
     }
 
-    private CompletionStage<Void> handlePacketAsync(Receivable packet) throws SSLException, EdgeDBException, OperationNotSupportedException {
+    private CompletionStage<Void> handlePacket(
+            Receivable packet
+    ) throws SSLException, EdgeDBException, OperationNotSupportedException {
         switch (packet.getMessageType()) {
             case SERVER_HANDSHAKE:
                 var handshake = (ServerHandshake)packet;
 
-                if(handshake.majorVersion.compareTo(PROTOCOL_MAJOR_VERSION) != 0 || handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) < 0) {
+                if(handshake.majorVersion.compareTo(PROTOCOL_MAJOR_VERSION) != 0 ||
+                        handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) < 0
+                ) {
                     logger.error(
-                            "The server requested protocol version {} but the currently installed client only supports {}. Please switch to a different client version that supports the requested protocol.",
-                            String.format("%s.%s", handshake.majorVersion, handshake.majorVersion),
-                            String.format("%s.%s", PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION)
+                            "The server requested protocol version {}.{} but the currently installed client only " +
+                            "supports {}.{}. Please switch to a different client version that supports the " +
+                            "requested protocol.",
+                            handshake.majorVersion, handshake.majorVersion,
+                            PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
                     );
-                    return this.disconnectAsync();
+                    return this.disconnect();
                 } else if(handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) > 0) {
                     logger.warn(
-                            "The server requested protocol version {} but the currently installed client only supports {}. Functionality may be limited and bugs may arise, please switch to a different client version that supports the requested protocol.",
-                            String.format("%s.%s", handshake.majorVersion, handshake.majorVersion),
-                            String.format("%s.%s", PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION)
+                            "The server requested protocol version {}.{} but the currently installed client only " +
+                            "supports {}.{}. Functionality may be limited and bugs may arise, please switch to " +
+                            "a different client version that supports the requested protocol.",
+                            handshake.majorVersion, handshake.majorVersion,
+                            PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
                     );
                 }
                 break;
@@ -463,9 +545,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             case AUTHENTICATION:
                 var auth = (AuthenticationStatus)packet;
                 if(auth.authStatus == AuthStatus.AUTHENTICATION_REQUIRED_SASL_MESSAGE) {
-                    return startSASLAuthenticationAsync(auth);
+                    return startSASLAuthentication(auth);
                 } else if (auth.authStatus != AuthStatus.AUTHENTICATION_OK) {
-                    throw new UnexpectedMessageException("Expected AuthenticationRequiredSASLMessage, got " + auth.authStatus);
+                    throw new UnexpectedMessageException(
+                            "Expected AuthenticationRequiredSASLMessage, got " + auth.authStatus
+                    );
                 }
                 break;
             case SERVER_KEY_DATA:
@@ -554,7 +638,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    private CompletionStage<Void> startSASLAuthenticationAsync(AuthenticationStatus authStatus) throws ScramException, SSLException {
+    private CompletionStage<Void> startSASLAuthentication(AuthenticationStatus authStatus) throws ScramException {
         this.isIdle = false;
 
         final var scram = new Scram();
@@ -575,7 +659,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         AtomicReference<byte[]> signature = new AtomicReference<>(new byte[0]);
 
         try{
-            return this.duplexer.duplexAsync(initialMessage, (state) -> {
+            return this.duplexer.duplex(initialMessage, (state) -> {
                 try {
                     switch (state.packet.getMessageType()) {
                         case AUTHENTICATION:
@@ -586,12 +670,16 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                     var result = scram.buildFinalMessage(auth, connection.getPassword());
                                     signature.set(result.signature);
 
-                                    return this.duplexer.sendAsync(result.buildPacket());
+                                    return this.duplexer.send(result.buildPacket());
                                 case AUTHENTICATION_SASL_FINAL:
                                     var key = Scram.parseServerFinalMessage(auth);
 
                                     if(!Arrays.equals(signature.get(), key)) {
-                                        logger.error("The SCRAM signature didn't match. ours: {}, servers: {}.", signature.get(), key);
+                                        logger.error(
+                                                "The SCRAM signature didn't match. ours: {}, servers: {}.",
+                                                signature.get(),
+                                                key
+                                        );
                                         throw new InvalidSignatureException();
                                     }
                                     break;
@@ -600,14 +688,25 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                     this.isIdle = false;
                                     break;
                                 default:
-                                    throw new UnexpectedMessageException("Expected continue or final but got " + auth.authStatus);
+                                    throw new UnexpectedMessageException(
+                                            "Expected continue or final but got " + auth.authStatus
+                                    );
                             }
                             break;
                         case ERROR_RESPONSE:
                             throw EdgeDBErrorException.fromError((ErrorResponse)state.packet);
                         default:
-                            logger.error("Unexpected message. expected: {} actual: {}", ServerMessageType.AUTHENTICATION, state.packet.getMessageType());
-                            throw new CompletionException(new UnexpectedMessageException(ServerMessageType.AUTHENTICATION, state.packet.getMessageType()));
+                            logger.error(
+                                    "Unexpected message. expected: {} actual: {}",
+                                    ServerMessageType.AUTHENTICATION,
+                                    state.packet.getMessageType()
+                            );
+                            throw new CompletionException(
+                                    new UnexpectedMessageException(
+                                            ServerMessageType.AUTHENTICATION,
+                                            state.packet.getMessageType()
+                                    )
+                            );
                     }
                 } // TODO: should reconnect & should retry exceptions
                 catch (Exception err) {
@@ -625,7 +724,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @Override
-    public CompletionStage<Void> connectAsync() {
+    public CompletionStage<Void> connect() {
         return CompletableFuture
                 .runAsync(() -> {
                     try {
@@ -634,14 +733,14 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         throw new CompletionException(e);
                     }
                 })
-                .thenCompose((v) -> this.connectInternalAsync())
+                .thenCompose((v) -> this.connectInternal())
                 .thenRunAsync(this::doClientHandshake)
                 .thenCompose((v) -> this.readyPromise)
                 .whenComplete((v,e) -> this.connectionSemaphore.release());
     }
 
     private CompletionStage<Void> doClientHandshake() {
-        return this.duplexer.readNextAsync()
+        return this.duplexer.readNext()
                 .thenCompose(packet -> {
                     if(packet == null) {
                         return CompletableFuture.failedFuture(new UnexpectedDisconnectException());
@@ -653,7 +752,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     }
 
                     try {
-                        return handlePacketAsync(packet)
+                        return handlePacket(packet)
                                 .thenCompose((v) -> doClientHandshake());
                     } catch (Throwable e) {
                         throw new CompletionException(e);
@@ -662,11 +761,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @Override
-    public CompletionStage<Void> disconnectAsync() {
+    public CompletionStage<Void> disconnect() {
         return null;
     }
 
-    private CompletionStage<Void> connectInternalAsync() {
+    private CompletionStage<Void> connectInternal() {
         if(this.getIsConnected()) {
             return CompletableFuture.completedFuture(null);
         }
@@ -675,11 +774,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         // TODO: handle socket errors proxied thru EdgeDBException when 'shouldReconnect' is true
         try {
-            return this.openConnectionAsync()
+            return this.openConnection()
                     .thenCompose((v) -> {
                         var connection = getConnection();
                         try {
-                            return this.duplexer.sendAsync(new ClientHandshake(
+                            return this.duplexer.send(new ClientHandshake(
                                     PROTOCOL_MAJOR_VERSION,
                                     PROTOCOL_MINOR_VERSION,
                                     new ConnectionParam[] {
@@ -700,8 +799,9 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    protected abstract CompletionStage<Void> openConnectionAsync() throws GeneralSecurityException, IOException, TimeoutException;
-    protected abstract CompletionStage<Void> closeConnectionAsync();
+    protected abstract CompletionStage<Void> openConnection()
+            throws GeneralSecurityException, IOException, TimeoutException;
+    protected abstract CompletionStage<Void> closeConnection();
 
     private final class ExecutionArguments {
         public final String query;

@@ -5,20 +5,23 @@ import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.clients.EdgeDBTCPClient;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.concurrent.ExecutionException;
 
 public class Main {
-    public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException, ExecutionException {
+    public static final class Person {
+        private String name;
+        private Long age;
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
+
+        var c = Person.class.getDeclaredConstructors();
 
         var client = new EdgeDBTCPClient(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.getDefault());
 
-        client.connectAsync()
-                .thenCompose((v) -> client.queryAsync("select 'Hello, Java!'", String.class))
-                .whenComplete((v, e) -> {
-                    var str = v.get(0);
-                    System.out.println(v);
-                });
+        client.connect().toCompletableFuture().get();
+
+        var result = client.querySingle("select 'Hello, Java'", String.class).toCompletableFuture().get();
 
         Thread.sleep(500000);
     }

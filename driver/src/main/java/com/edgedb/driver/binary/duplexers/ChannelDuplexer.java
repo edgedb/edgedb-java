@@ -21,12 +21,6 @@ import java.util.function.Function;
 public class ChannelDuplexer extends Duplexer {
     private static final Logger logger = LoggerFactory.getLogger(ChannelDuplexer.class);
 
-    private static final int PACKET_HEADER_SIZE = 5;
-
-    // TODO: config these
-    private static final int READ_TIMEOUT = 5000;
-    private static final int WRITE_TIMEOUT = 5000;
-
     public final ChannelHandler channelHandler = new ChannelHandler();
 
     private final Queue<Receivable> messageQueue;
@@ -67,7 +61,6 @@ public class ChannelDuplexer extends Duplexer {
                         promise.complete((Receivable) msg);
                     }
                 }
-
             }
         }
 
@@ -93,7 +86,7 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Receivable> readNextAsync() {
+    public CompletionStage<Receivable> readNext() {
         synchronized (messageEnqueueReference) {
             if(this.messageQueue.isEmpty()) {
                 var promise = new CompletableFuture<Receivable>();
@@ -106,17 +99,17 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Void> sendAsync(Sendable packet, @Nullable Sendable... packets) throws SSLException {
+    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets) throws SSLException {
         logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
         return this.channelHandler.whenReady().thenCompose((v) -> {
             if(channel == null || !isConnected) {
                 logger.debug("Reconnecting...");
-                return client.reconnectAsync().thenCompose((w) -> {
+                return client.reconnect().thenCompose((w) -> {
                     try {
                         logger.debug("Sending after reconnect");
-                        return this.sendAsync(packet, packets);
+                        return this.send(packet, packets);
                     } catch (SSLException e) {
                         throw new CompletionException(e);
                     }
@@ -140,16 +133,16 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Void> duplexAsync(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException {
+    public CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException {
         final var duplexPromise = new CompletableFuture<Void>();
 
-        return this.sendAsync(packet, packets)
+        return this.send(packet, packets)
                 .thenCompose((v) -> processDuplexStep(func, duplexPromise))
                 .thenCompose((v) -> duplexPromise);
     }
 
     private CompletionStage<Void> processDuplexStep(Function<DuplexResult, CompletionStage<Void>> func, CompletableFuture<Void> promise) {
-        return readNextAsync()
+        return readNext()
                 .thenCompose((packet) -> func.apply(new DuplexResult(packet, promise)))
                 .thenCompose((v) -> {
                     if(promise.isDone())
@@ -174,7 +167,7 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletableFuture<Void> disconnectAsync() {
+    public CompletableFuture<Void> disconnect() {
         return null;
     }
 }

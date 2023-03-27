@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
+import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,10 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
         if(cls.equals(Object.class)) {
             factory = ObjectEnumerator::flatten;
         }
+    }
+
+    public void initialize(TypeDeserializerInfo info) {
+
     }
 
     @SuppressWarnings("unchecked")

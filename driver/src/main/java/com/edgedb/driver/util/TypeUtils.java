@@ -1,17 +1,10 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.datatypes.Range;
+import java.lang.reflect.Array;
 
 public class TypeUtils {
-    public static Class<?> getWrappingType(Class<?> cls) {
-        if(cls.isArray()) {
-            return cls.getComponentType();
-        }
 
-        if(cls.equals(Range.EMPTY_RANGE.getClass())) {
-            //return
-        }
-
-        return cls;
+    private static Object getDefaultValue(Class<?> cls) {
+        return Array.get(Array.newInstance(cls, 1), 0);
     }
 }

@@ -41,44 +41,63 @@ public abstract class BaseEdgeDBClient {
     }
 
 
-    public abstract CompletionStage<Void> executeAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities);
-    public CompletionStage<Void> executeAsync(String query) {
-        return executeAsync(query, null, EnumSet.of(Capabilities.MODIFICATIONS));
+    public abstract CompletionStage<Void> execute(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities
+    );
+    public CompletionStage<Void> execute(String query) {
+        return execute(query, null, EnumSet.of(Capabilities.MODIFICATIONS));
     }
-    public CompletionStage<Void> executeAsync(String query, EnumSet<Capabilities> capabilities){
-        return executeAsync(query, null, capabilities);
-    }
-
-    public abstract <T> CompletionStage<List<T>> queryAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls);
-    public <T> CompletionStage<List<T>> queryAsync(String query, Class<T> cls) {
-        return queryAsync(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
-    }
-    public <T> CompletionStage<List<T>> queryAsync(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return queryAsync(query, null, capabilities, cls);
+    public CompletionStage<Void> execute(String query, EnumSet<Capabilities> capabilities){
+        return execute(query, null, capabilities);
     }
 
-    public abstract <T> CompletionStage<T> querySingleAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls);
-    public <T> CompletionStage<T> querySingleAsync(String query, Class<T> cls) {
-        return querySingleAsync(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
+    public abstract <T> CompletionStage<List<T>> query(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    );
+    public <T> CompletionStage<List<T>> query(String query, Class<T> cls) {
+        return query(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
+    }
+    public <T> CompletionStage<List<T>> query(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
+        return query(query, null, capabilities, cls);
     }
 
-    public <T> CompletionStage<T> querySingleAsync(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return querySingleAsync(query, null, capabilities, cls);
+    public abstract <T> CompletionStage<T> querySingle(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    );
+    public <T> CompletionStage<T> querySingle(String query, Class<T> cls) {
+        return querySingle(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
     }
 
-    public abstract <T> CompletionStage<T> queryRequiredSingleAsync(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities, Class<T> cls);
-    public <T> CompletionStage<T> queryRequiredSingleAsync(String query, Class<T> cls) {
-        return queryRequiredSingleAsync(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
+    public <T> CompletionStage<T> querySingle(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
+        return querySingle(query, null, capabilities, cls);
     }
 
-    public <T> CompletionStage<T> queryRequiredSingleAsync(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return queryRequiredSingleAsync(query, null, capabilities, cls);
+    public abstract <T> CompletionStage<T> queryRequiredSingle(
+            String query,
+            @Nullable Map<String, Object> args,
+            EnumSet<Capabilities> capabilities,
+            Class<T> cls
+    );
+    public <T> CompletionStage<T> queryRequiredSingle(String query, Class<T> cls) {
+        return queryRequiredSingle(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
     }
 
-    public abstract CompletionStage<Void> connectAsync();
-    public abstract CompletionStage<Void> disconnectAsync();
+    public <T> CompletionStage<T> queryRequiredSingle(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
+        return queryRequiredSingle(query, null, capabilities, cls);
+    }
 
-    public CompletionStage<Void> reconnectAsync() {
-        return disconnectAsync().thenCompose((v) -> connectAsync());
+    public abstract CompletionStage<Void> connect();
+    public abstract CompletionStage<Void> disconnect();
+
+    public CompletionStage<Void> reconnect() {
+        return disconnect().thenCompose((v) -> connect());
     }
 }
