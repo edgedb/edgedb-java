@@ -3,4 +3,6 @@ module com.edgedb.examples {
     requires org.slf4j;
     requires org.jooq.joou;
     //requires nio2.ssl;
+
+    exports com.edgedb.examples;
 }

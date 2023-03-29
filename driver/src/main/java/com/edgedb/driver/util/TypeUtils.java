@@ -4,7 +4,7 @@ import java.lang.reflect.Array;
 
 public class TypeUtils {
 
-    private static Object getDefaultValue(Class<?> cls) {
+    public static Object getDefaultValue(Class<?> cls) {
         return Array.get(Array.newInstance(cls, 1), 0);
     }
 }

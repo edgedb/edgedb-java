@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class TypeBuilder {
-    private static final ConcurrentMap<Class<?>, TypeDeserializerInfo> deserializerInfo;
+    private static final ConcurrentMap<Class<?>, TypeDeserializerInfo<?>> deserializerInfo;
 
     static {
         deserializerInfo = new ConcurrentHashMap<>();

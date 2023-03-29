@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.builders;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
+import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,6 @@ import java.util.Map;
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public final class ObjectEnumerator {
-
     private final PacketReader reader;
     private final CodecContext context;
     private final ObjectCodec codec;
@@ -27,6 +27,10 @@ public final class ObjectEnumerator {
         this.codec = codec;
 
         this.numElements = reader.readInt32();
+    }
+
+    public EdgeDBBinaryClient getClient() {
+        return this.context.client;
     }
 
     public boolean hasRemaining() {

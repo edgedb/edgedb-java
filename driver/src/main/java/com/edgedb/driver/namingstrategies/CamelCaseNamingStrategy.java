@@ -2,7 +2,7 @@ package com.edgedb.driver.namingstrategies;
 
 import com.edgedb.driver.util.StringsUtil;
 
-public final class CamelCaseNamingStrategy implements NamingStrategy {
+final class CamelCaseNamingStrategy implements NamingStrategy {
     public static final CamelCaseNamingStrategy instance = new CamelCaseNamingStrategy();
 
     @Override

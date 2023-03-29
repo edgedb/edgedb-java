@@ -9,19 +9,16 @@ import java.util.concurrent.ExecutionException;
 
 public class Main {
     public static final class Person {
-        private String name;
-        private Long age;
+        public String name;
+        public Long age;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
-
-        var c = Person.class.getDeclaredConstructors();
-
         var client = new EdgeDBTCPClient(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.getDefault());
 
         client.connect().toCompletableFuture().get();
 
-        var result = client.querySingle("select 'Hello, Java'", String.class).toCompletableFuture().get();
+        var result = client.query("select Person { name, age }", Person.class).toCompletableFuture().get();
 
         Thread.sleep(500000);
     }

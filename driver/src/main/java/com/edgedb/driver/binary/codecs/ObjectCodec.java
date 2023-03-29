@@ -34,7 +34,7 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
     }
 
     public void initialize(TypeDeserializerInfo info) {
-
+        this.factory = info.factory;
     }
 
     @SuppressWarnings("unchecked")

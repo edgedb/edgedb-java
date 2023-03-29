@@ -1,5 +1,7 @@
 package com.edgedb.driver;
 
+import com.edgedb.driver.namingstrategies.NamingStrategy;
+
 import java.util.concurrent.TimeUnit;
 
 public final class EdgeDBClientConfig {
@@ -12,6 +14,8 @@ public final class EdgeDBClientConfig {
     private TimeUnit messageTimeoutUnit = TimeUnit.SECONDS;
     private boolean explicitObjectIds;
     private long implicitLimit;
+    private NamingStrategy namingStrategy = NamingStrategy.defaultStrategy();
+    private boolean useFieldSetters = true;
 
     public static EdgeDBClientConfig getDefault() {
         return new EdgeDBClientConfig();
@@ -77,5 +81,21 @@ public final class EdgeDBClientConfig {
 
     public void setConnectionRetryMode(ConnectionRetryMode retryMode) {
         this.retryMode = retryMode;
+    }
+
+    public NamingStrategy getNamingStrategy() {
+        return namingStrategy;
+    }
+
+    public void setNamingStrategy(NamingStrategy namingStrategy) {
+        this.namingStrategy = namingStrategy;
+    }
+
+    public boolean UseFieldSetters() {
+        return useFieldSetters;
+    }
+
+    public void setUseFieldSetters(boolean useFieldSetters) {
+        this.useFieldSetters = useFieldSetters;
     }
 }

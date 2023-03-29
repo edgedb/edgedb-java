@@ -2,7 +2,7 @@ package com.edgedb.driver.namingstrategies;
 
 import com.edgedb.driver.util.StringsUtil;
 
-public final class SnakeCaseNamingStrategy implements NamingStrategy {
+final class SnakeCaseNamingStrategy implements NamingStrategy {
     public static final SnakeCaseNamingStrategy instance = new SnakeCaseNamingStrategy();
 
     @Override

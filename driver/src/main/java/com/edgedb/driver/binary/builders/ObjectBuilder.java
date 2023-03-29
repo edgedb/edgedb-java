@@ -1,5 +1,6 @@
 package com.edgedb.driver.binary.builders;
 
+import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
@@ -17,6 +18,7 @@ public final class ObjectBuilder {
 
         if(codec instanceof ObjectCodec) {
             // TODO: type builder
+            return TypeBuilder.buildObject(client, cls, (ObjectCodec)codec, data);
         }
 
         var value = Codec.deserializeFromBuffer(codec, data.payloadBuffer, client.getCodecContext());
