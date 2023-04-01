@@ -1,35 +1,50 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.async.AsyncEvent;
+import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
-public abstract class BaseEdgeDBClient {
+public abstract class BaseEdgeDBClient implements StatefulClient, AutoCloseable {
+    private final AsyncEvent<BaseEdgeDBClient> onReady;
     private boolean isConnected = false;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
+    private final AutoCloseable poolHandle;
 
     // TODO: remove when 'clients' are no longer exposed
-    @SuppressWarnings("ClassEscapesDefinedScope")
     protected Session session;
 
-    public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config) {
+    public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
         this.connection = connection;
         this.config = config;
         this.session = new Session();
+        this.poolHandle = poolHandle;
+        this.onReady = new AsyncEvent<>();
     }
+
+    public void onReady(Function<BaseEdgeDBClient, CompletionStage<?>> handler) {
+        this.onReady.add(handler);
+    }
+
+    protected CompletionStage<Void> dispatchReady() {
+        return this.onReady.dispatch(this);
+    }
+
+    public abstract Map<String, Object> getServerConfig();
+
+    public abstract Optional<Long> getSuggestedPoolConcurrency();
 
     void setIsConnected(boolean isConnected) {
         this.isConnected = isConnected;
     }
-    public boolean getIsConnected() {
+    public boolean isConnected() {
         return isConnected;
     }
 
@@ -40,58 +55,34 @@ public abstract class BaseEdgeDBClient {
         return this.config;
     }
 
-
-    public abstract CompletionStage<Void> execute(
-            String query,
-            @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities
-    );
-    public CompletionStage<Void> execute(String query) {
-        return execute(query, null, EnumSet.of(Capabilities.MODIFICATIONS));
-    }
-    public CompletionStage<Void> execute(String query, EnumSet<Capabilities> capabilities){
-        return execute(query, null, capabilities);
+    @Override
+    public BaseEdgeDBClient withSession(Session session) {
+        this.session = session;
+        return this;
     }
 
-    public abstract <T> CompletionStage<List<T>> query(
-            String query,
-            @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
-    );
-    public <T> CompletionStage<List<T>> query(String query, Class<T> cls) {
-        return query(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
-    }
-    public <T> CompletionStage<List<T>> query(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return query(query, null, capabilities, cls);
+    @Override
+    public BaseEdgeDBClient withModuleAliases(Map<String, String> aliases) {
+        this.session = this.session.withModuleAliases(aliases);
+        return this;
     }
 
-    public abstract <T> CompletionStage<T> querySingle(
-            String query,
-            @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
-    );
-    public <T> CompletionStage<T> querySingle(String query, Class<T> cls) {
-        return querySingle(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
+    @Override
+    public BaseEdgeDBClient withConfig(Config config) {
+        this.session = this.session.withConfig(config);
+        return this;
     }
 
-    public <T> CompletionStage<T> querySingle(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return querySingle(query, null, capabilities, cls);
+    @Override
+    public BaseEdgeDBClient withGlobals(Map<String, Object> globals) {
+        this.session = this.session.withGlobals(globals);
+        return this;
     }
 
-    public abstract <T> CompletionStage<T> queryRequiredSingle(
-            String query,
-            @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
-    );
-    public <T> CompletionStage<T> queryRequiredSingle(String query, Class<T> cls) {
-        return queryRequiredSingle(query, null, EnumSet.of(Capabilities.MODIFICATIONS), cls);
-    }
-
-    public <T> CompletionStage<T> queryRequiredSingle(String query, EnumSet<Capabilities> capabilities, Class<T> cls) {
-        return queryRequiredSingle(query, null, capabilities, cls);
+    @Override
+    public BaseEdgeDBClient withModule(String module) {
+        this.session = this.session.withModule(module);
+        return this;
     }
 
     public abstract CompletionStage<Void> connect();
@@ -99,5 +90,10 @@ public abstract class BaseEdgeDBClient {
 
     public CompletionStage<Void> reconnect() {
         return disconnect().thenCompose((v) -> connect());
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.poolHandle.close();
     }
 }

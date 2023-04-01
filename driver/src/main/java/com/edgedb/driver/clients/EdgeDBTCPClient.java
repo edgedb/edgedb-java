@@ -1,7 +1,6 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.*;
 import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
@@ -19,11 +18,11 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.util.EnumSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class EdgeDBTCPClient extends EdgeDBBinaryClient {
+public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
     // placeholders
     private static final long WRITE_TIMEOUT = 5000;
     private static final long READ_TIMEOUT = 5000;
@@ -33,14 +32,21 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
     private static final NioEventLoopGroup nettyTcpGroup = new NioEventLoopGroup();
     private static final EventExecutorGroup duplexerGroup = new DefaultEventExecutorGroup(8);
 
+    private TransactionState transactionState;
+
 
     private final ChannelDuplexer duplexer;
 
-    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config) throws IOException {
-        super(connection, config);
+    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+        super(connection, config, poolHandle);
 
         this.duplexer = new ChannelDuplexer(this);
         setDuplexer(this.duplexer);
+    }
+
+    @Override
+    protected void setTransactionState(TransactionState state) {
+        this.transactionState = state;
     }
 
     @Override
@@ -108,4 +114,33 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient {
         return this.duplexer.disconnect();
     }
 
+    @Override
+    public TransactionState getTransactionState() {
+        return this.transactionState;
+    }
+
+    @Override
+    public CompletionStage<Void> startTransaction(TransactionIsolation isolation, boolean readonly, boolean deferrable) {
+        assert isolation != null;
+
+        String query = "start transaction isolation " +
+                isolation +
+                ", " +
+                (readonly ? "read only" : "read write") +
+                ", " +
+                (deferrable ? "" : "not ") +
+                "deferrable";
+
+        return execute(query, EnumSet.of(Capabilities.TRANSACTION));
+    }
+
+    @Override
+    public CompletionStage<Void> commit() {
+        return execute("commit", EnumSet.of(Capabilities.TRANSACTION));
+    }
+
+    @Override
+    public CompletionStage<Void> rollback() {
+        return execute("rollback", EnumSet.of(Capabilities.TRANSACTION));
+    }
 }

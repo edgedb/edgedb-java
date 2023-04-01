@@ -29,7 +29,7 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
     public void initialize(Class<?> cls) {
         // TODO: get the deserialization factory for 'cls
         if(cls.equals(Object.class)) {
-            factory = ObjectEnumerator::flatten;
+            factory = (e, p) -> e.flatten();
         }
     }
 

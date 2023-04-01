@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.packets.receivable.Data;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,20 @@ public final class TypeBuilder {
         codec.initialize(info);
 
         return (T)Codec.deserializeFromBuffer(codec, data.payloadBuffer, client.getCodecContext());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> @Nullable TypeDeserializerInfo<T> getDeserializerInfo(Class<T> cls) {
+        if(!isValidObjectType(cls)) {
+            return null;
+        }
+
+        return (TypeDeserializerInfo<T>) deserializerInfo.computeIfAbsent(cls, TypeDeserializerInfo::new);
+    }
+
+    public static boolean requiredImplicitTypeNames(Class<?> cls) {
+        var info = getDeserializerInfo(cls);
+        return info != null && info.requiresTypeNameIntrospection();
     }
 
     private static boolean isValidObjectType(Class<?> type) {

@@ -16,7 +16,7 @@ public class EdgeDBException extends Exception {
         this.shouldReconnect = shouldReconnect;
     }
 
-    public EdgeDBException(String message, Exception inner, boolean shouldRetry, boolean shouldReconnect) {
+    public EdgeDBException(String message, Throwable inner, boolean shouldRetry, boolean shouldReconnect) {
         super(message, inner);
 
         this.shouldRetry = shouldRetry;
@@ -29,7 +29,7 @@ public class EdgeDBException extends Exception {
         this.shouldRetry = false;
         this.shouldReconnect = false;
     }
-    public EdgeDBException(String message, Exception inner) {
+    public EdgeDBException(String message, Throwable inner) {
         super(message, inner);
 
         this.shouldRetry = false;

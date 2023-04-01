@@ -46,11 +46,15 @@ public class EdgeDBErrorException extends EdgeDBException {
     }
 
 
-    private EdgeDBErrorException(ErrorResponse error, String query, boolean shouldRetry, boolean shouldReconnect) {
+    private EdgeDBErrorException(ErrorResponse error, @Nullable String query, boolean shouldRetry, boolean shouldReconnect) {
         super(shouldRetry, shouldReconnect);
 
         this.attributes = Arrays.stream(error.attributes)
-                .collect(Collectors.toMap((v) -> v.code, (v) -> v.value.array()));
+                .collect(Collectors.toMap((v) -> v.code, (v) -> {
+                    var arr = new byte[v.value.readableBytes()];
+                    v.value.readBytes(arr);
+                    return arr;
+                }));
 
         this.errorCode = error.errorCode;
         this.message = error.message;
@@ -120,7 +124,7 @@ public class EdgeDBErrorException extends EdgeDBException {
         var lines = this.query.split("\n");
         var lineNoWidth = lineEndStr.length();
 
-        var errorMessage = new StringBuilder(String.format("%s: %s", this.errorCode, this.message));
+        var errorMessage = new StringBuilder(String.format("%s: %s\n", this.errorCode, this.message));
         errorMessage.append(StringsUtil.padLeft("|", lineNoWidth + 3)).append("\n");
 
         int

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class Session {
+    public static final Session DEFAULT = new Session();
+
     private final String module;
     private final Map<String, String> aliases;
     private final Config config;
@@ -17,11 +19,18 @@ public final class Session {
         globals = Map.of();
     }
 
+    public Session(String module, Map<String, String> aliases, Config config, Map<String, Object> globals) {
+        this.module = module;
+        this.aliases = aliases;
+        this.config = config;
+        this.globals = globals;
+    }
+
     public Map<String, Object> serialize() {
         return new HashMap<>() {
             {
                 if(!module.equals("default")) {
-                    put("module", "default");
+                    put("module", module);
                 }
 
                 if(!aliases.isEmpty()) {
@@ -43,5 +52,41 @@ public final class Session {
                 }
             }
         };
+    }
+
+    public Session withGlobals(Map<String, Object> globals) {
+        return new Session(
+                this.module,
+                this.aliases,
+                this.config,
+                globals
+        );
+    }
+
+    public Session withModuleAliases(Map<String, String> aliases) {
+        return new Session(
+                this.module,
+                aliases,
+                this.config,
+                this.globals
+        );
+    }
+
+    public Session withConfig(Config config) {
+        return new Session(
+                this.module,
+                this.aliases,
+                config,
+                this.globals
+        );
+    }
+
+    public Session withModule(String module) {
+        return new Session(
+                module,
+                this.aliases,
+                this.config,
+                this.globals
+        );
     }
 }

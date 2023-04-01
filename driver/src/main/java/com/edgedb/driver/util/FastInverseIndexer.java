@@ -6,11 +6,12 @@ public final class FastInverseIndexer {
     private int trackedLength;
 
     public FastInverseIndexer(int count) {
-        length = count;
+        this.trackedLength = count;
+        this.length = count;
 
         var c = count + 0b111;
         var t = (count >> 3) + ((count | c) >> 3);
-        buffer = new byte[t];
+        this.buffer = new byte[t];
     }
 
     public void set(int position) {

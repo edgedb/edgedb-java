@@ -5,6 +5,8 @@ module com.edgedb.driver {
     exports com.edgedb.driver.exceptions;
     exports com.edgedb.driver.util;
     exports com.edgedb.driver.namingstrategies;
+    exports com.edgedb.driver.annotations;
+    exports com.edgedb.driver.state;
 
     requires org.jetbrains.annotations;
     requires com.fasterxml.jackson.core;
@@ -17,6 +19,7 @@ module com.edgedb.driver {
     requires io.netty.buffer;
     requires io.netty.handler;
     requires org.jooq.joou;
+    requires org.reflections;
 
     opens com.edgedb.driver;
 

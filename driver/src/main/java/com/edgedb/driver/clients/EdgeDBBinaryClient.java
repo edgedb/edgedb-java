@@ -1,12 +1,10 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.Capabilities;
-import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.ErrorCode;
+import com.edgedb.driver.*;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.builders.CodecBuilder;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
+import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.codecs.ArgumentCodec;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.CodecContext;
@@ -32,10 +30,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.edgedb.driver.async.ExceptionallyCompose.exceptionallyCompose;
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 import static org.joou.Unsigned.ushort;
 
@@ -48,7 +48,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     private static final int MAX_PARSE_ATTEMPTS = 2;
 
-    public int suggestedPoolConcurrency;
+    public @Nullable Long suggestedPoolConcurrency;
     public Map<String, Object> rawServerConfig;
 
     @SuppressWarnings("rawtypes")
@@ -64,12 +64,22 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private final CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
-    public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config) {
-        super(connection, config);
+    public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+        super(connection, config, poolHandle);
         this.connectionSemaphore = new Semaphore(1);
         this.querySemaphore = new Semaphore(1);
         this.readyPromise = new CompletableFuture<>();
         this.stateDescriptorId = CodecBuilder.INVALID_CODEC_ID;
+    }
+
+    @Override
+    public Optional<Long> getSuggestedPoolConcurrency() {
+        return Optional.ofNullable(this.suggestedPoolConcurrency);
+    }
+
+    @Override
+    public Map<String, Object> getServerConfig() {
+        return rawServerConfig;
     }
 
     public CodecContext getCodecContext() {
@@ -175,7 +185,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         break;
                     case READY_FOR_COMMAND:
                         var ready = result.packet.as(ReadyForCommand.class);
-                        // TODO: transaction state
+                        setTransactionState(ready.transactionState);
                         args.completedParse = true;
                         result.finishDuplexing();
                 }
@@ -226,7 +236,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         break;
                     case READY_FOR_COMMAND:
                         var ready = result.packet.as(ReadyForCommand.class);
-                        // TODO: transaction state
+                        setTransactionState(ready.transactionState);
                         args.completedExecute = true;
                         result.finishDuplexing();
                         break;
@@ -306,7 +316,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    private CompletionStage<Void> executeQuery(
+    protected final CompletionStage<Void> executeQuery(
             ExecutionArguments args
     ) {
         logger.debug("Execute request: is connected? {}", duplexer.isConnected());
@@ -315,6 +325,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             return reconnect()
                     .thenCompose(v -> executeQuery(args));
         }
+
+        final var hasReleased = new AtomicBoolean();
 
         return CompletableFuture.runAsync(() -> {
                     try {
@@ -326,6 +338,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 .thenCompose((v) -> {
                     logger.debug("Entering execute step");
 
+                    CompletionStage<Void> task;
+
                     try {
                         var cacheKey = args.getCacheKey();
 
@@ -334,20 +348,61 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         var codecInfo = CodecBuilder.getCachedCodecs(cacheKey);
 
                         if(codecInfo == null) {
-                            return parse(args).thenCompose((u) -> execute(args));
+                            task = parse(args).thenCompose((u) -> execute(args));
+                        } else {
+                            args.codecs = codecInfo;
+
+                            logger.debug("Codecs found for query: {} {}", codecInfo.inputCodec, codecInfo.outputCodec);
+
+                            task = execute(args);
                         }
-
-                        args.codecs = codecInfo;
-
-                        logger.debug("Codecs found for query: {} {}", codecInfo.inputCodec, codecInfo.outputCodec);
-
-                        return execute(args);
-
                     } catch (OperationNotSupportedException | EdgeDBException e) {
                         throw new RuntimeException(e);
                     }
+
+                    return exceptionallyCompose(task, e -> {
+                        if(e instanceof EdgeDBErrorException && !((EdgeDBException)e).shouldReconnect && !((EdgeDBException)e).shouldRetry) {
+                            return CompletableFuture.failedFuture(e);
+                        }
+
+                        if(e instanceof EdgeDBException) {
+                            var edbException = (EdgeDBException) e;
+                            if(edbException.shouldRetry && !args.isRetry) {
+                                this.querySemaphore.release();
+                                hasReleased.set(true);
+                                var newArgs = args.deriveNew();
+                                newArgs.isRetry = true;
+                                return executeQuery(newArgs);
+                            }
+
+                            if(edbException.shouldReconnect && !args.isRetry) {
+                                var newArgs = args.deriveNew();
+                                newArgs.isRetry = true;
+
+                                return this.reconnect()
+                                        .thenAccept(x -> {
+                                            this.querySemaphore.release();
+                                            hasReleased.set(true);
+                                        })
+                                        .thenCompose(y -> executeQuery(newArgs));
+                            }
+                        }
+
+                        var sb = new StringBuilder("Failed to execute query");
+
+                        if(args.isRetry) {
+                            sb.append(" after retrying once");
+                        }
+
+                        return CompletableFuture.failedFuture(new EdgeDBException(sb.toString(), e));
+                    });
+
                 })
-                .whenComplete((v,e) -> this.querySemaphore.release());
+                .whenComplete((v,e) -> {
+                    if(!hasReleased.get()) {
+                        this.querySemaphore.release();
+                    }
+                });
     }
 
     @Override
@@ -369,10 +424,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public <T> CompletionStage<List<T>> query(
+            Class<T> cls,
             String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
+            EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -382,7 +437,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 capabilities,
                 IOFormat.BINARY,
                 false,
-                false
+                TypeBuilder.requiredImplicitTypeNames(cls)
         );
 
         return executeQuery(executeArgs)
@@ -408,10 +463,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public <T> CompletionStage<T> querySingle(
+            Class<T> cls,
             String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
+            EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -421,7 +476,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 capabilities,
                 IOFormat.BINARY,
                 false,
-                false
+                TypeBuilder.requiredImplicitTypeNames(cls)
         );
 
         return executeQuery(executeArgs)
@@ -451,10 +506,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public <T> CompletionStage<T> queryRequiredSingle(
+            Class<T> cls,
             String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities,
-            Class<T> cls
+            EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -464,7 +519,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 capabilities,
                 IOFormat.BINARY,
                 false,
-                false
+                TypeBuilder.requiredImplicitTypeNames(cls)
         );
 
         return executeQuery(executeArgs)
@@ -607,7 +662,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 var str = new String(buffer, StandardCharsets.UTF_8);
 
                 try {
-                    this.suggestedPoolConcurrency = Integer.parseInt(str);
+                    this.suggestedPoolConcurrency = Long.parseLong(str);
                 } catch (NumberFormatException x) {
                     logger.error("suggested_pool_concurrency wasn't in a numeric format", x);
                 }
@@ -748,7 +803,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
                     if(packet instanceof ReadyForCommand) {
                         this.readyPromise.complete(null);
-                        return CompletableFuture.completedFuture(null);
+                        return dispatchReady();
                     }
 
                     try {
@@ -762,11 +817,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public CompletionStage<Void> disconnect() {
-        return null;
+        return this.duplexer.disconnect();
     }
 
     private CompletionStage<Void> connectInternal() {
-        if(this.getIsConnected()) {
+        if(this.isConnected()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -775,41 +830,36 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         // TODO: handle socket errors proxied thru EdgeDBException when 'shouldReconnect' is true
         try {
             return this.openConnection()
-                    .thenCompose((v) -> {
-                        var connection = getConnection();
-                        try {
-                            return this.duplexer.send(new ClientHandshake(
-                                    PROTOCOL_MAJOR_VERSION,
-                                    PROTOCOL_MINOR_VERSION,
-                                    new ConnectionParam[] {
-                                            new ConnectionParam("user", connection.getUsername()),
-                                            new ConnectionParam("database", connection.getDatabase())
-                                    },
-                                    new ProtocolExtension[0]
-                            ));
-                        } catch (SSLException e) {
-                            // TODO: handle?
-                            logger.warn("SSL error when sending packet", e);
-                            throw new CompletionException(e);
-                        }
-                    });
+                    .thenApply(v -> getConnection())
+                    .thenApply(connection -> new ClientHandshake(
+                            PROTOCOL_MAJOR_VERSION,
+                            PROTOCOL_MINOR_VERSION,
+                            new ConnectionParam[] {
+                                    new ConnectionParam("user", connection.getUsername()),
+                                    new ConnectionParam("database", connection.getDatabase())
+                            },
+                            new ProtocolExtension[0]
+                    ))
+                    .thenCompose(this.duplexer::send);
         }
         catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
     }
 
+    protected abstract void setTransactionState(TransactionState state);
+
     protected abstract CompletionStage<Void> openConnection()
             throws GeneralSecurityException, IOException, TimeoutException;
     protected abstract CompletionStage<Void> closeConnection();
 
-    private final class ExecutionArguments {
+    protected final class ExecutionArguments {
         public final String query;
         public final Map<String, Object> args;
         public final Cardinality cardinality;
         public final EnumSet<Capabilities> capabilities;
         public final IOFormat format;
-        public final boolean isRetry;
+        public boolean isRetry;
         public final boolean implicitTypeNames;
 
         public Cardinality actualCardinality;
@@ -848,6 +898,18 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
             this.actualCardinality = cardinality;
             this.actualCapabilities = capabilities;
+        }
+
+        public ExecutionArguments deriveNew() {
+            return new ExecutionArguments(
+                    this.query,
+                    this.args,
+                    this.cardinality,
+                    this.capabilities,
+                    this.format,
+                    this.isRetry,
+                    this.implicitTypeNames
+            );
         }
 
         public boolean isParseComplete() {

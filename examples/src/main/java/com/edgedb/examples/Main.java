@@ -1,25 +1,42 @@
 package com.edgedb.examples;
 
+import com.edgedb.driver.EdgeDBClient;
 import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.clients.EdgeDBTCPClient;
+import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.namingstrategies.NamingStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 public class Main {
-    public static final class Person {
-        public String name;
-        public Long age;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
-        var client = new EdgeDBTCPClient(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.getDefault());
+    public static void main(String[] args) throws IOException, EdgeDBException, ExecutionException, InterruptedException {
+        var client = new EdgeDBClient(new EdgeDBClientConfig() {{
+            setNamingStrategy(NamingStrategy.snakeCase());
+        }});
 
-        client.connect().toCompletableFuture().get();
+        // use the example module
+        var exampleClient = client.withModule("examples");
+        var examples = new ArrayList<Supplier<AbstractTypes>>() {
+            {
+                add(AbstractTypes::new);
+            }
+        };
 
-        var result = client.query("select Person { name, age }", Person.class).toCompletableFuture().get();
+        try {
+            CompletableFuture
+                    .allOf(examples.stream().map(v -> v.get().run(exampleClient).toCompletableFuture()).toArray(java.util.concurrent.CompletableFuture[]::new))
+                    .get();
+        }
+        catch (Exception x) {
+            logger.error("Failed to run examples", x);
+        }
 
-        Thread.sleep(500000);
     }
 }

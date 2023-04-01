@@ -1,10 +1,13 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.namingstrategies.NamingStrategy;
+import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-public final class EdgeDBClientConfig {
+public class EdgeDBClientConfig {
     private int poolSize = 50;
     private ConnectionRetryMode retryMode;
     private int maxConnectionRetries = 5;
@@ -16,6 +19,9 @@ public final class EdgeDBClientConfig {
     private long implicitLimit;
     private NamingStrategy namingStrategy = NamingStrategy.defaultStrategy();
     private boolean useFieldSetters = true;
+    private ClientType clientType = ClientType.TCP;
+    private int clientAvailability = 10;
+    private Duration clientMaxAge = Duration.of(10, ChronoUnit.MINUTES);
 
     public static EdgeDBClientConfig getDefault() {
         return new EdgeDBClientConfig();
@@ -29,20 +35,20 @@ public final class EdgeDBClientConfig {
         this.maxConnectionRetries = maxConnectionRetries;
     }
 
-    public long getConnectionTimeout(TimeUnit unit) {
+    public long getConnectionTimeout(@NotNull TimeUnit unit) {
         return unit.convert(connectionTimeout, this.connectionTimeoutUnit);
     }
 
-    public void setConnectionTimeout(long connectionTimeout, TimeUnit unit) {
+    public void setConnectionTimeout(long connectionTimeout, @NotNull TimeUnit unit) {
         this.connectionTimeout = connectionTimeout;
         this.connectionTimeoutUnit = unit;
     }
 
-    public long getMessageTimeout(TimeUnit unit) {
+    public long getMessageTimeout(@NotNull TimeUnit unit) {
         return unit.convert(this.messageTimeout, this.messageTimeoutUnit);
     }
 
-    public void setMessageTimeout(long messageTimeout, TimeUnit unit) {
+    public void setMessageTimeout(long messageTimeout, @NotNull TimeUnit unit) {
         this.messageTimeout = messageTimeout;
         this.messageTimeoutUnit = unit;
     }
@@ -79,7 +85,7 @@ public final class EdgeDBClientConfig {
         return retryMode;
     }
 
-    public void setConnectionRetryMode(ConnectionRetryMode retryMode) {
+    public void setConnectionRetryMode(@NotNull ConnectionRetryMode retryMode) {
         this.retryMode = retryMode;
     }
 
@@ -87,15 +93,40 @@ public final class EdgeDBClientConfig {
         return namingStrategy;
     }
 
-    public void setNamingStrategy(NamingStrategy namingStrategy) {
+    public void setNamingStrategy(@NotNull NamingStrategy namingStrategy) {
         this.namingStrategy = namingStrategy;
     }
 
-    public boolean UseFieldSetters() {
+    public boolean useFieldSetters() {
         return useFieldSetters;
     }
 
     public void setUseFieldSetters(boolean useFieldSetters) {
         this.useFieldSetters = useFieldSetters;
+    }
+
+    public ClientType getClientType() {
+        return clientType;
+    }
+
+    public void setClientType(@NotNull ClientType clientType) {
+        this.clientType = clientType;
+    }
+
+    public int getClientAvailability() {
+        return clientAvailability;
+    }
+
+    public void setClientAvailability(int clientAvailability) {
+        assert clientAvailability > 0;
+        this.clientAvailability = clientAvailability;
+    }
+
+    public Duration getClientMaxAge() {
+        return clientMaxAge;
+    }
+
+    public void setClientMaxAge(@NotNull Duration clientMaxAge) {
+        this.clientMaxAge = clientMaxAge;
     }
 }

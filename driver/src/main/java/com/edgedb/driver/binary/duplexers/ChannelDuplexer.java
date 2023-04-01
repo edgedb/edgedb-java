@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.duplexers;
 import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.packets.receivable.Receivable;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
+import com.edgedb.driver.binary.packets.sendables.Terminate;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,15 +30,14 @@ public class ChannelDuplexer extends Duplexer {
     private final Object messageEnqueueReference = new Object();
 
     private final EdgeDBBinaryClient client;
-    private final Executor dispatcher;
 
     private boolean isConnected;
 
-    private Channel channel;
+    private @Nullable Channel channel;
 
 
     public class ChannelHandler extends ChannelInboundHandlerAdapter {
-        private final CompletableFuture<Void> channelActivePromise;
+        private CompletableFuture<Void> channelActivePromise;
 
         public ChannelHandler() {
             channelActivePromise = new CompletableFuture<>();
@@ -48,6 +48,18 @@ public class ChannelDuplexer extends Duplexer {
             isConnected = true;
             super.channelActive(ctx);
             channelActivePromise.complete(null);
+        }
+
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            if(evt.equals("RESET")) {
+                channelActivePromise = new CompletableFuture<>();
+            }
+        }
+
+        @Override
+        public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+            isConnected = false;
         }
 
         @Override
@@ -82,7 +94,6 @@ public class ChannelDuplexer extends Duplexer {
         this.client = client;
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
-        this.dispatcher = ForkJoinPool.commonPool();
     }
 
     @Override
@@ -99,7 +110,7 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets) throws SSLException {
+    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets){
         logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
@@ -107,12 +118,8 @@ public class ChannelDuplexer extends Duplexer {
             if(channel == null || !isConnected) {
                 logger.debug("Reconnecting...");
                 return client.reconnect().thenCompose((w) -> {
-                    try {
-                        logger.debug("Sending after reconnect");
-                        return this.send(packet, packets);
-                    } catch (SSLException e) {
-                        throw new CompletionException(e);
-                    }
+                    logger.debug("Sending after reconnect");
+                    return this.send(packet, packets);
                 }); // TODO: check for recursive loop
             }
 
@@ -145,8 +152,14 @@ public class ChannelDuplexer extends Duplexer {
         return readNext()
                 .thenCompose((packet) -> func.apply(new DuplexResult(packet, promise)))
                 .thenCompose((v) -> {
-                    if(promise.isDone())
+                    if(promise.isDone()) {
+                        if(promise.isCompletedExceptionally() || promise.isCancelled()) {
+                            return promise;
+                        }
+
                         return CompletableFuture.completedFuture(null);
+                    }
+
 
                     return processDuplexStep(func, promise);
                 });
@@ -158,6 +171,9 @@ public class ChannelDuplexer extends Duplexer {
 
     @Override
     public void reset() {
+        if(this.channel != null) {
+            channel.pipeline().fireUserEventTriggered("RESET");
+        }
 
     }
 
@@ -167,7 +183,15 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletableFuture<Void> disconnect() {
-        return null;
+    public CompletionStage<Void> disconnect() {
+        if(this.channel == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        if(this.channel.isOpen()) {
+            return send(new Terminate())
+                    .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
+        }
+        return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
     }
 }

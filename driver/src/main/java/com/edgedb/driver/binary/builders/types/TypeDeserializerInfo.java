@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.builders.types;
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBIgnore;
 import com.edgedb.driver.annotations.EdgeDBName;
+import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
@@ -11,49 +12,80 @@ import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.edgedb.driver.util.FastInverseIndexer;
 import com.edgedb.driver.util.TypeUtils;
 import org.jetbrains.annotations.Nullable;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TypeDeserializerInfo<T> {
     private static final Logger logger = LoggerFactory.getLogger(TypeDeserializerInfo.class);
     public final TypeDeserializerFactory<T> factory;
-
+    private final Reflections reflection;
     private final Class<T> type;
     private final Method[] methods;
 
     private final Map<NamingStrategy, NamingStrategyMap<Parameter>> constructorNamingMap;
     private final Map<NamingStrategy, NamingStrategyMap<FieldInfo>> fieldNamingMap;
+    private final @Nullable EdgeDBType edgeDBTypeAnno;
+
+    private final Map<String, TypeDeserializerInfo<? extends T>> children;
 
     public TypeDeserializerInfo(Class<T> type) {
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.type = type;
         this.methods = type.getDeclaredMethods();
+        this.reflection = new Reflections(type);
+        this.edgeDBTypeAnno = type.getAnnotation(EdgeDBType.class);
+
+        // find potential children
+        var children = this.reflection.getSubTypesOf(type);
+
+        if(!children.isEmpty()) {
+            this.children = new HashMap<>(children.size());
+            for (var child : children) {
+                if(child.getAnnotation(EdgeDBIgnore.class) != null) {
+                    continue;
+                }
+
+                var typeInfo = TypeBuilder.getDeserializerInfo(child);
+
+                if(typeInfo == null) {
+                    continue;
+                }
+
+                this.children.put(typeInfo.type.getSimpleName(), typeInfo);
+            }
+        } else {
+            this.children = Map.of();
+        }
 
         try {
             this.factory = createFactory();
-        } catch (ReflectiveOperationException e) {
+        } catch (ReflectiveOperationException | EdgeDBException e) {
             logger.error("Failed to create type deserialization factory", e);
             throw new RuntimeException(e);
         }
     }
 
-    public boolean isValidField(Field field) {
+    public boolean requiresTypeNameIntrospection() {
+        return !this.children.isEmpty();
+    }
+
+    public @Nullable String getModuleName() {
+        return this.edgeDBTypeAnno == null ? null : this.edgeDBTypeAnno.module();
+    }
+
+    private boolean isValidField(Field field) {
         return field.getAnnotation(EdgeDBIgnore.class) == null;
     }
 
     @SuppressWarnings("unchecked")
-    private TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException {
+    private TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException, EdgeDBException {
         // check for constructor deserializer
         var constructors = this.type.getDeclaredConstructors();
 
@@ -62,21 +94,26 @@ public class TypeDeserializerInfo<T> {
         if(ctorDeserializer.isPresent()) {
             var ctor = ctorDeserializer.get();
 
-            return enumerator -> {
+            return (enumerator, parent) -> {
                 var namingStrategyEntry = constructorNamingMap.computeIfAbsent(
                         enumerator.getClient().getConfig().getNamingStrategy(),
-                        (n) -> new NamingStrategyMap<>(n, Parameter::getName, ctor.getParameters())
+                        (n) -> new NamingStrategyMap<>(n, (v) -> getNameOrAnnotated(v, Parameter::getName), ctor.getParameters())
                 );
 
                 var params = new Object[namingStrategyEntry.nameIndexMap.size()];
                 var inverseIndexer = new FastInverseIndexer(params.length);
 
                 ObjectEnumerator.ObjectElement element;
+
+                var unhandled = new Vector<ObjectEnumerator.ObjectElement>(params.length);
+
                 while(enumerator.hasRemaining() && (element = enumerator.next()) != null) {
                     if(namingStrategyEntry.map.containsKey(element.name)) {
                         var i = namingStrategyEntry.nameIndexMap.get(element.name);
                         inverseIndexer.set(i);
                         params[i] = element.value;
+                    } else {
+                        unhandled.add(element);
                     }
                 }
 
@@ -86,23 +123,17 @@ public class TypeDeserializerInfo<T> {
                     params[missed[i]] = TypeUtils.getDefaultValue(namingStrategyEntry.values[i].getType());
                 }
 
-                return (T)ctor.newInstance(params);
+                var instance = (T)ctor.newInstance(params);
+
+                if(parent != null) {
+                    for (var unhandledElement : unhandled) {
+                        parent.accept(instance, unhandledElement);
+                    }
+                }
+
+                return instance;
             };
         }
-
-        // abstract or interface: TODO
-        if(type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
-
-        }
-
-        // default case
-        var emptyCtor = Arrays.stream(constructors).filter(v -> v.getParameterCount() == 0).findFirst();
-
-        if(emptyCtor.isEmpty()) {
-            throw new ReflectiveOperationException(String.format("No empty constructor found to construct the type %s", this.type));
-        }
-
-        var ctor = emptyCtor.get();
 
         var setterMethods = Arrays.stream(methods)
                 .filter((v) -> v.getName().startsWith("set"))
@@ -119,25 +150,92 @@ public class TypeDeserializerInfo<T> {
             }
         }
 
+        // abstract or interface
+        if(type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
+            if(this.children.isEmpty()) {
+                throw new EdgeDBException(
+                        "Cannot deserialize to type " + this.type + "; no sub-types found to " +
+                        "deserialize to for this interface/abstract class"
+                );
+            }
+
+            return (enumerator, parent) -> {
+                var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
+                        enumerator.getClient().getConfig().getNamingStrategy(),
+                        (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), validFields)
+                );
+
+                var element = enumerator.next();
+
+                if(element == null) {
+                    throw new EdgeDBException("No data left in object enumerator for type building");
+                }
+
+                //noinspection SpellCheckingInspection
+                if(!element.name.equals("__tname__")) {
+                    throw new EdgeDBException("Type introspection is required for deserializing abstract classes or interfaces");
+                }
+
+                var split = ((String)element.value).split("::");
+
+                for (var child : children.entrySet()) {
+                    var module = child.getValue().getModuleName();
+
+                    if((module == null || split[0] == module) && child.getKey().equals(split[1])) {
+                        return child.getValue().factory.deserialize(enumerator, (i, v) -> {
+                            if(namingStrategyEntry.map.containsKey(v.name)) {
+                                var fieldInfo = namingStrategyEntry.map.get(v.name);
+                                fieldInfo.convertAndSet(enumerator.getClient().getConfig().useFieldSetters(), i, v.value);
+                            } else if(parent != null) {
+                                parent.accept(i, v);
+                            }
+                        });
+                    }
+                }
+
+                throw new EdgeDBException(String.format("No child found for abstract type %s matching the name \"%s::%s\"", this.type.getName(), split[0], split[1]));
+            };
+        }
+
         // default case
-        return enumerator -> {
+        var emptyCtor = Arrays.stream(constructors).filter(v -> v.getParameterCount() == 0).findFirst();
+
+        if(emptyCtor.isEmpty()) {
+            throw new ReflectiveOperationException(String.format("No empty constructor found to construct the type %s", this.type));
+        }
+
+        var ctor = emptyCtor.get();
+
+        // default case
+        return (enumerator, parent) -> {
             var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
                     enumerator.getClient().getConfig().getNamingStrategy(),
-                    (v) -> new NamingStrategyMap<>(v, FieldInfo::getFieldName, validFields)
+                    (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), validFields)
             );
 
-            var instance = ctor.newInstance();
+            var instance = (T)ctor.newInstance();
             ObjectEnumerator.ObjectElement element;
 
             while (enumerator.hasRemaining() && (element = enumerator.next()) != null) {
                 if(namingStrategyEntry.map.containsKey(element.name)) {
                     var fieldInfo = namingStrategyEntry.map.get(element.name);
-                    fieldInfo.convertAndSet(enumerator.getClient().getConfig().UseFieldSetters(), instance, element.value);
+                    fieldInfo.convertAndSet(enumerator.getClient().getConfig().useFieldSetters(), instance, element.value);
+                } else if(parent != null) {
+                    parent.accept(instance, element);
                 }
             }
 
-            return (T)instance;
+            return instance;
         };
+    }
+
+    private <U extends AnnotatedElement> String getNameOrAnnotated(U value, Function<U, String> getName) {
+        var anno = value.getAnnotation(EdgeDBName.class);
+        if(anno != null && anno.value() != null) {
+            return anno.value();
+        }
+
+        return getName.apply(value);
     }
 
     private static class FieldInfo {
