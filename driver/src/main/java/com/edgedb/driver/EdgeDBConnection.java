@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -32,6 +33,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class EdgeDBConnection {
@@ -48,6 +50,11 @@ public class EdgeDBConnection {
     private static final Pattern DSN_QUERY_PARAMETERS = Pattern.compile("((?:.(?!\\?))+$)");
     private static final Pattern DSN_FILE_ARG = Pattern.compile("(.*?)_file");
     private static final Pattern DSN_ENV_ARG = Pattern.compile("(.*?)_env");
+
+    private static final JsonMapper mapper = JsonMapper.builder()
+            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .build();
 
     @JsonProperty("user")
     private String user;
@@ -68,7 +75,7 @@ public class EdgeDBConnection {
     private String tlsca;
 
     @JsonProperty("tls_security")
-    private TLSSecurityMode tlsSecurity;
+    private @Nullable TLSSecurityMode tlsSecurity;
 
     public String getUsername() {
         return user == null ? "edgedb" : user;
@@ -317,9 +324,149 @@ public class EdgeDBConnection {
         }
     }
 
-    public static EdgeDBConnection parse(String connection) {
-        // TODO: implement this method and add a builder method for parse
-        return new EdgeDBConnection();
+    public static EdgeDBConnection parse(String connection) throws ConfigurationException, IOException {
+        return parse(connection, null, true);
+    }
+
+    public static EdgeDBConnection parse(
+            Consumer<EdgeDBConnection> configure
+    ) throws ConfigurationException, IOException {
+        return parse(null, configure, true);
+    }
+
+    public static EdgeDBConnection parse(
+            String connection,
+            Consumer<EdgeDBConnection> configure
+    ) throws ConfigurationException, IOException {
+        return parse(connection, configure, true);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static EdgeDBConnection parse(
+            @Nullable String connParam,
+            @Nullable Consumer<EdgeDBConnection> configure,
+            boolean autoResolve
+    ) throws ConfigurationException, IOException {
+        EdgeDBConnection connection = new EdgeDBConnection();
+
+        if(autoResolve) {
+            try {
+                resolveEdgeDBTOML().mergeInto(connection);
+            }
+            catch (IOException x) {
+                // ignore
+            }
+        }
+
+        applyEnv(connection);
+
+        if(connParam != null) {
+            if(connParam.startsWith("edgedb://")) {
+                fromDSN(connParam).mergeInto(connection);
+            } else {
+                fromInstanceName(connParam).mergeInto(connection);
+            }
+        }
+
+        if(configure != null) {
+            configure.accept(connection);
+        }
+
+        return connection;
+    }
+
+    private static void applyEnv(EdgeDBConnection connection) throws ConfigurationException, IOException {
+        var instanceName = System.getenv(EDGEDB_INSTANCE_ENV_NAME);
+        var dsn = System.getenv(EDGEDB_DSN_ENV_NAME);
+        var host = System.getenv(EDGEDB_HOST_ENV_NAME);
+        var port = System.getenv(EDGEDB_PORT_ENV_NAME);
+        var credentials = System.getenv(EDGEDB_CREDENTIALS_FILE_ENV_NAME);
+        var user = System.getenv(EDGEDB_USER_ENV_NAME);
+        var pass = System.getenv(EDGEDB_PASSWORD_ENV_NAME);
+        var db = System.getenv(EDGEDB_DATABASE_ENV_NAME);
+
+        if(instanceName != null) {
+            fromInstanceName(instanceName).mergeInto(connection);
+        }
+
+        if(dsn != null) {
+            fromDSN(dsn).mergeInto(connection);
+        }
+
+        if(host != null) {
+            connection.hostname = host;
+        }
+
+        if(port != null) {
+            try {
+                connection.port = Integer.parseInt(port);
+            }
+            catch (NumberFormatException x) {
+                throw new ConfigurationException(
+                        String.format(
+                                "Expected integer for environment variable '%s' but got '%s'",
+                                EDGEDB_PORT_ENV_NAME,
+                                port
+                        )
+                );
+            }
+        }
+
+        if(credentials != null) {
+            var path = Path.of(credentials);
+            if(!Files.exists(path)) {
+                throw new ConfigurationException(
+                        String.format(
+                                "Could not find the file specified in '%s'",
+                                EDGEDB_CREDENTIALS_FILE_ENV_NAME
+                        )
+                );
+            }
+
+            fromJSON(Files.readString(path, StandardCharsets.UTF_8)).mergeInto(connection);
+        }
+
+        if(user != null) {
+            connection.user = user;
+        }
+
+        if(pass != null) {
+            connection.password = pass;
+        }
+
+        if(db != null) {
+            connection.database = db;
+        }
+    }
+
+    private void mergeInto(EdgeDBConnection other) {
+        if(other.tlsSecurity == null) {
+            other.tlsSecurity = this.tlsSecurity;
+        }
+
+        if(other.database == null) {
+            other.database = this.database;
+        }
+
+        if(other.hostname == null) {
+            other.hostname = this.hostname;
+        }
+
+        if(other.password == null) {
+            other.password = this.password;
+        }
+
+        if(other.tlsca == null) {
+            other.tlsca = this.tlsca;
+        }
+
+        if(other.port == null) {
+            other.port = this.port;
+        }
+
+        if(other.user == null) {
+            other.user = this.user;
+        }
     }
 
     public SSLContext getSSLContext() throws GeneralSecurityException, IOException {
@@ -393,11 +540,6 @@ public class EdgeDBConnection {
     }
 
     private static EdgeDBConnection fromJSON(String json) throws JsonProcessingException {
-        var mapper = JsonMapper.builder()
-                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .build();
-
         return mapper.readValue(json, EdgeDBConnection.class);
     }
 

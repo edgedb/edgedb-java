@@ -8,6 +8,9 @@ import java.util.Map;
 
 public final class Config {
     public static final Config DEFAULT = new Config();
+    public static ConfigBuilder builder() {
+        return new ConfigBuilder();
+    }
 
     private final @Nullable Duration idleTransactionTimeout;
     private final @Nullable Duration queryExecutionTimeout;
