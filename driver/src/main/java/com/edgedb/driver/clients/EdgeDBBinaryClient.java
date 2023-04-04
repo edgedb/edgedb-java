@@ -15,9 +15,11 @@ import com.edgedb.driver.binary.packets.sendables.ClientHandshake;
 import com.edgedb.driver.binary.packets.sendables.Execute;
 import com.edgedb.driver.binary.packets.sendables.Parse;
 import com.edgedb.driver.binary.packets.shared.*;
+import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.Scram;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UShort;
 import org.slf4j.Logger;
@@ -407,7 +409,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public CompletionStage<Void> execute(
-            String query,
+            @NotNull String query,
             @Nullable Map<String, Object> args,
             EnumSet<Capabilities> capabilities
     ) {
@@ -424,10 +426,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public <T> CompletionStage<List<T>> query(
-            Class<T> cls,
-            String query,
+            @NotNull Class<T> cls,
+            @NotNull String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities
+            @NotNull EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -441,7 +443,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         );
 
         return executeQuery(executeArgs)
-                .thenApply((v) -> {
+                .thenCompose((v) -> {
                     var arr = new ArrayList<T>(executeArgs.data.size());
 
                     for(int i = 0; i != executeArgs.data.size(); i++) {
@@ -453,20 +455,20 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                     cls
                             ));
                         } catch (EdgeDBException | OperationNotSupportedException e) {
-                            throw new CompletionException(e);
+                            return CompletableFuture.failedFuture(e);
                         }
                     }
 
-                    return Collections.unmodifiableList(arr);
+                    return CompletableFuture.completedFuture(Collections.unmodifiableList(arr));
                 });
     }
 
     @Override
     public <T> CompletionStage<T> querySingle(
-            Class<T> cls,
-            String query,
+            @NotNull Class<T> cls,
+            @NotNull String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities
+            @NotNull EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -480,36 +482,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         );
 
         return executeQuery(executeArgs)
-                .thenCompose((v) -> {
-                   if(executeArgs.data.size() > 1) {
-                       return CompletableFuture.failedFuture(
-                               new ResultCardinalityMismatchException(Cardinality.AT_MOST_ONE, Cardinality.MANY)
-                       );
-                   }
-
-                    try {
-                        var data = executeArgs.data.size() == 0
-                                ? null
-                                : ObjectBuilder.buildResult(
-                                        this,
-                                        executeArgs.codecs.outputCodec,
-                                        executeArgs.data.get(0),
-                                        cls
-                                );
-
-                        return CompletableFuture.completedFuture(data);
-                    } catch (EdgeDBException | OperationNotSupportedException e) {
-                        return CompletableFuture.failedFuture(e);
-                    }
-                });
+                .thenCompose((v) -> deserializeSingleResult(cls, executeArgs, Cardinality.AT_MOST_ONE));
     }
 
     @Override
     public <T> CompletionStage<T> queryRequiredSingle(
-            Class<T> cls,
-            String query,
+            @NotNull Class<T> cls,
+            @NotNull String query,
             @Nullable Map<String, Object> args,
-            EnumSet<Capabilities> capabilities
+            @NotNull EnumSet<Capabilities> capabilities
     ) {
         // TODO: does this query result require implicit type names
         final var executeArgs = new ExecutionArguments(
@@ -523,31 +504,127 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         );
 
         return executeQuery(executeArgs)
-                .thenCompose((v) -> {
-                    if(executeArgs.data.size() != 1) {
-                        return CompletableFuture.failedFuture(
-                                new ResultCardinalityMismatchException(
-                                        Cardinality.ONE,
-                                        executeArgs.data.size() > 1
-                                                ? Cardinality.MANY
-                                                : Cardinality.AT_MOST_ONE
-                                )
-                        );
+                .thenCompose((v) -> deserializeSingleResult(cls, executeArgs, Cardinality.ONE));
+    }
+
+    @Override
+    public CompletionStage<Json> queryJson(
+            @NotNull String query,
+            @Nullable Map<String, Object> args,
+            @NotNull EnumSet<Capabilities> capabilities
+    ) {
+        final var executeArgs = new ExecutionArguments(
+                query,
+                args,
+                Cardinality.MANY,
+                capabilities,
+                IOFormat.JSON,
+                false,
+                false
+        );
+
+        return executeQuery(executeArgs)
+                .thenCompose(v -> deserializeSingleResult(String.class, executeArgs, Cardinality.AT_MOST_ONE))
+                .thenApply(Json::new);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public CompletionStage<List<Json>> queryJsonElements(@NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
+        final var executeArgs = new ExecutionArguments(
+                query,
+                args,
+                Cardinality.MANY,
+                capabilities,
+                IOFormat.JSON_ELEMENTS,
+                false,
+                false
+        );
+
+        return executeQuery(executeArgs)
+                .thenApply(v -> {
+                    var result = new Json[executeArgs.data.size()];
+
+                    for(int i = 0; i != executeArgs.data.size(); i++) {
+                        try {
+                            result[i] = new Json(
+                                    (String) Codec.deserializeFromBuffer(
+                                            executeArgs.codecs.outputCodec,
+                                            executeArgs.data.get(i).payloadBuffer,
+                                            this.codecContext
+                                    )
+                            );
+                        } catch (EdgeDBException | OperationNotSupportedException e) {
+                            throw new CompletionException(e);
+                        }
                     }
 
+                    return List.of(result);
+                });
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> CompletionStage<T> deserializeSingleResult(Class<T> cls, ExecutionArguments args, Cardinality expected) {
+        switch (args.format) {
+            case JSON:
+                if(args.data.size() == 1) {
                     try {
                         return CompletableFuture.completedFuture(
-                                ObjectBuilder.buildResult(
-                                        this,
-                                        executeArgs.codecs.outputCodec,
-                                        executeArgs.data.get(0),
-                                        cls
+                                Codec.deserializeFromBuffer(
+                                        (Codec<T>)args.codecs.outputCodec,
+                                        args.data.get(0).payloadBuffer,
+                                        this.codecContext
                                 )
                         );
-                    } catch (EdgeDBException | OperationNotSupportedException e) {
-                        return CompletableFuture.failedFuture(e);
                     }
-                });
+                    catch (Exception x) {
+                        return CompletableFuture.failedFuture(x);
+                    }
+                }
+
+                return CompletableFuture.completedFuture((T)"[]");
+            case BINARY:
+                switch (expected) {
+                    case ONE:
+                    case AT_MOST_ONE:
+                        if(expected == Cardinality.ONE
+                            ? args.data.size() != 1
+                            : args.data.size() > 1
+                        ) {
+                            return CompletableFuture.failedFuture(
+                                    new ResultCardinalityMismatchException(
+                                            expected,
+                                            args.data.size() > 1
+                                                    ? Cardinality.MANY
+                                                    : Cardinality.AT_MOST_ONE
+                                    )
+                            );
+                        }
+
+                        try {
+                            return CompletableFuture.completedFuture(
+                                    args.data.size() == 0
+                                            ? null
+                                            : ObjectBuilder.buildResult(
+                                                this,
+                                                args.codecs.outputCodec,
+                                                args.data.get(0),
+                                                cls
+                                            )
+                            );
+                        } catch (EdgeDBException | OperationNotSupportedException e) {
+                            return CompletableFuture.failedFuture(e);
+                        }
+                    default:
+                        return CompletableFuture.failedFuture(
+                                new EdgeDBException("Unsupported cardinality result " + expected)
+                        );
+                }
+            default:
+                return CompletableFuture.failedFuture(
+                        new EdgeDBException("Unsupported IO format" + args.format)
+                );
+        }
     }
 
     private @Nullable ByteBuf serializeState() throws OperationNotSupportedException, EdgeDBException {

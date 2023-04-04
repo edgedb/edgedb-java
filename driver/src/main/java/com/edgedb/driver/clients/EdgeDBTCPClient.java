@@ -32,16 +32,49 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     private static final NioEventLoopGroup nettyTcpGroup = new NioEventLoopGroup();
     private static final EventExecutorGroup duplexerGroup = new DefaultEventExecutorGroup(8);
 
-    private TransactionState transactionState;
-
-
+    private final Bootstrap bootstrap;
     private final ChannelDuplexer duplexer;
+    private TransactionState transactionState;
 
     public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
 
         this.duplexer = new ChannelDuplexer(this);
         setDuplexer(this.duplexer);
+
+        this.bootstrap = new Bootstrap()
+                .group(nettyTcpGroup)
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(@NotNull SocketChannel ch) throws Exception {
+                        var pipeline = ch.pipeline();
+
+                        var builder = SslContextBuilder.forClient()
+                                .sslProvider(SslProvider.JDK)
+                                .protocols("TLSv1.3")
+                                .applicationProtocolConfig(new ApplicationProtocolConfig(
+                                        ApplicationProtocolConfig.Protocol.ALPN,
+                                        ApplicationProtocolConfig.SelectorFailureBehavior.CHOOSE_MY_LAST_PROTOCOL,
+                                        ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                        "edgedb-binary"
+                                ));
+
+                        connection.applyTrustManager(builder);
+
+                        pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
+
+                        // edgedb-binary protocol and duplexer
+                        pipeline.addLast(
+                                PacketSerializer.createDecoder(),
+                                PacketSerializer.createEncoder()
+                        );
+
+                        pipeline.addLast(duplexerGroup, duplexer.channelHandler);
+
+                        duplexer.init(ch);
+                    }
+                });
     }
 
     @Override
@@ -55,40 +88,6 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
         final var connection = getConnection();
 
         try {
-            var bootstrap = new Bootstrap()
-                    .group(nettyTcpGroup)
-                    .channel(NioSocketChannel.class)
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(@NotNull SocketChannel ch) throws Exception {
-                            var pipeline = ch.pipeline();
-
-                            var builder = SslContextBuilder.forClient()
-                                    .sslProvider(SslProvider.JDK)
-                                    .protocols("TLSv1.3")
-                                    .applicationProtocolConfig(new ApplicationProtocolConfig(
-                                            ApplicationProtocolConfig.Protocol.ALPN,
-                                            ApplicationProtocolConfig.SelectorFailureBehavior.CHOOSE_MY_LAST_PROTOCOL,
-                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                                            "edgedb-binary"
-                                    ));
-
-                            connection.applyTrustManager(builder);
-
-                            pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
-
-                            // edgedb-binary protocol and duplexer
-                            pipeline.addLast(
-                                    PacketSerializer.PACKET_DECODER,
-                                    PacketSerializer.PACKET_ENCODER
-                            );
-
-                            pipeline.addLast(duplexerGroup, duplexer.channelHandler);
-
-                            duplexer.init(ch);
-                        }
-                    });
-
             return ChannelCompletableFuture.completeFrom(
                     bootstrap.connect(
                             connection.getHostname(),

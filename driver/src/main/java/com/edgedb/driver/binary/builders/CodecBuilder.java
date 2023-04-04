@@ -145,15 +145,7 @@ public final class CodecBuilder {
                     case NAMED_TUPLE_DESCRIPTOR:
                     case OBJECT_SHAPE_DESCRIPTOR:
                         var objectShape = descriptor.as(ObjectShapeDescriptor.class);
-                        var objectShapeCodecs = new Codec[objectShape.shapes.length];
-                        var objectShapeNames = new String[objectShape.shapes.length];
-
-                        for (int i = 0; i != objectShape.shapes.length; i++) {
-                            objectShapeCodecs[i] = codecs.get(objectShape.shapes[i].typePosition.intValue());
-                            objectShapeNames[i] = objectShape.shapes[i].name;
-                        }
-
-                        codec = getOrCreateCodec(descriptor.getId(), () -> new ObjectCodec(objectShapeCodecs, objectShapeNames));
+                        codec = getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(codecs::get, objectShape.shapes));
                         break;
                     case RANGE_TYPE_DESCRIPTOR:
                         var rangeType = descriptor.as(RangeTypeDescriptor.class);

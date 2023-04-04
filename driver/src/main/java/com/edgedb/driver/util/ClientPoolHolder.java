@@ -21,6 +21,10 @@ public final class ClientPoolHolder {
         this.count = new AtomicLong(size);
     }
 
+    public long remaining() {
+        return this.size - count.get();
+    }
+
     public void resize(long newValue) {
         if(newValue == this.size) {
             return;
@@ -59,7 +63,6 @@ public final class ClientPoolHolder {
 
         queue.poll().complete(null);
     }
-
 
     public static class PoolContract implements AutoCloseable {
         private final Consumer<PoolContract> completer;

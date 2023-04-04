@@ -1,7 +1,15 @@
 module examples {
+    global current_user_id -> uuid;
+    
     type Person {
-        required property name -> str;
+        required property name -> str {
+            constraint exclusive;
+        }
+
         required property age -> int64;
+
+        multi link friends -> Person;
+        single link best_friend -> Person;
     }
 
     abstract type Media {

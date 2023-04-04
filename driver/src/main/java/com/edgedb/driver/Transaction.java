@@ -2,8 +2,10 @@ package com.edgedb.driver;
 
 import com.edgedb.driver.abstractions.QueryDelegate;
 import com.edgedb.driver.clients.TransactableClient;
+import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.TransactionException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,23 +110,37 @@ public final class Transaction implements EdgeDBQueryable {
     }
 
     @Override
-    public CompletionStage<Void> execute(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public CompletionStage<Void> execute(@NotNull String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
         return executeTransaction(Void.class, query, args, capabilities, (c, q, a, ca) -> client.execute(q, a, ca));
     }
 
     @Override
-    public <T> CompletionStage<List<T>> query(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<List<T>> query(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executeTransaction(cls, query, args, capabilities, client::query);
     }
 
     @Override
-    public <T> CompletionStage<T> querySingle(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<T> querySingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executeTransaction(cls, query, args, capabilities, client::querySingle);
     }
 
     @Override
-    public <T> CompletionStage<T> queryRequiredSingle(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<T> queryRequiredSingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executeTransaction(cls, query, args, capabilities, client::queryRequiredSingle);
+    }
+
+    @Override
+    public CompletionStage<Json> queryJson(@NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
+        return executeTransaction(Json.class, query, args, capabilities,
+                (c, q, a, ca) -> client.queryJson(q, a, ca)
+        );
+    }
+
+    @Override
+    public CompletionStage<List<Json>> queryJsonElements(@NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
+        return executeTransaction(Json.class, query, args, capabilities,
+                (c, q, a, ca) -> client.queryJsonElements(q, a, ca)
+        );
     }
 
     public static class TransactionSettings {

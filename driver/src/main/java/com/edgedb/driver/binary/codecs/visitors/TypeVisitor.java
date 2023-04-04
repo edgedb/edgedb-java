@@ -1,12 +1,15 @@
 package com.edgedb.driver.binary.codecs.visitors;
 
+import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.exceptions.EdgeDBException;
 
 import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("rawtypes")
@@ -33,7 +36,7 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     public void setTargetType(Class<?> type) {
-        this.frames.push(new TypeResultContextFrame(type));
+        this.frames.push(new TypeResultContextFrame(type, false));
     }
 
     public void reset(){
@@ -41,7 +44,7 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     @Override
-    public Codec<?> visit(Codec<?> codec) {
+    public Codec<?> visit(Codec<?> codec) throws EdgeDBException {
         if (getContext().type.equals(Void.class)) {
             return codec;
         }
@@ -54,14 +57,53 @@ public final class TypeVisitor implements CodecVisitor {
         return codec;
     }
 
-    public static Codec<?> visitObjectCodec(TypeVisitor visitor, ObjectCodec codec) {
+    public static Codec<?> visitObjectCodec(TypeVisitor visitor, ObjectCodec codec) throws EdgeDBException {
+        codec.initialize(visitor.getContext().type);
+
+        var info = codec.getDeserializerInfo();
+
+        if(info == null) {
+            throw new EdgeDBException("Could not find a valid deserialization strategy for " + visitor.getContext().type);
+        }
+
+        var map = info.getFieldMap(visitor.client.getConfig().getNamingStrategy());
+
+        for(int i = 0; i != codec.elements.length; i++) {
+            var element = codec.elements[i];
+
+            TypeDeserializerInfo.FieldInfo field = null;
+            Class<?> type;
+
+            if(map.contains(element.name) && (field = map.get(element.name)) != null) {
+                type = field.getType(element.cardinality);
+            }
+            else {
+                type = element.codec instanceof CompilableCodec
+                        ? ((CompilableCodec)element.codec).getInnerType()
+                        : element.codec.getConvertingClass();
+            }
+
+            final var isReal = field != null;
+
+            try(var ignored = visitor.enterNewContext(v -> {
+                v.type = type;
+                v.isRealType = isReal;
+            })) {
+                element.codec = visitor.visit(element.codec);
+            }
+        }
+
         return codec;
     }
 
-    public static Codec<?> visitCompilableCodec(TypeVisitor visitor, CompilableCodec codec) {
+    public static Codec<?> visitCompilableCodec(TypeVisitor visitor, CompilableCodec codec) throws EdgeDBException {
         // visit the inner codec
         Codec compiledCodec;
-        try(var handle = visitor.enterNewContext(codec.getInnerType())) {
+        try(var handle = visitor.enterNewContext(v -> {
+            v.type = visitor.getContext().isRealType
+                    ? visitor.getContext().type
+                    : codec.getInnerType();
+        })) {
             compiledCodec = codec.compile(visitor.getContext().type, visitor.visit(codec.getInnerCodec()));
         }
 
@@ -84,17 +126,29 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     private FrameHandle enterNewContext(
-            Class<?> type
+            Consumer<TypeResultContextFrame> func
     ) {
-        frames.push(new TypeResultContextFrame(type));
+        var ctx = frames.empty() ? new TypeResultContextFrame(null, false) : frames.peek().clone();
+        func.accept(ctx);
+        frames.push(ctx);
         return this.handle;
     }
 
-    private static final class TypeResultContextFrame {
-        public final Class<?> type;
+    private static final class TypeResultContextFrame implements Cloneable {
+        public Class<?> type;
+        public boolean isRealType;
 
-        private TypeResultContextFrame(Class<?> type) {
+        private TypeResultContextFrame(Class<?> type, boolean isRealType) {
             this.type = type;
+            this.isRealType = isRealType;
+        }
+
+        public TypeResultContextFrame clone() {
+            try {
+                return (TypeResultContextFrame)super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -113,6 +167,6 @@ public final class TypeVisitor implements CodecVisitor {
 
     @FunctionalInterface
     private interface TypeCodecVisitor {
-        Codec<?> visit(TypeVisitor visitor, Codec<?> codec);
+        Codec<?> visit(TypeVisitor visitor, Codec<?> codec) throws EdgeDBException ;
     }
 }

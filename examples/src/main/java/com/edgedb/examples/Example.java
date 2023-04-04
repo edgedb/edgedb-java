@@ -1,9 +1,9 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBQueryable;
+import com.edgedb.driver.EdgeDBClient;
 
 import java.util.concurrent.CompletionStage;
 
 public interface Example {
-    CompletionStage<Void> run(EdgeDBQueryable client);
+    CompletionStage<Void> run(EdgeDBClient client);
 }

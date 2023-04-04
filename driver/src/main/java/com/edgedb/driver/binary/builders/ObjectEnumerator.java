@@ -45,19 +45,18 @@ public final class ObjectEnumerator {
         try {
             reader.skip(INT_SIZE);
 
-            var name = codec.propertyNames[position];
-            var elementCodec = codec.innerCodecs[position];
+            var element = codec.elements[position];
 
             var data = reader.readByteArray();
 
             if(data == null || data.readableBytes() == 0) {
-                return new ObjectElement(name, null, elementCodec.getConvertingClass());
+                return new ObjectElement(element.name, null, element.codec.getConvertingClass());
             }
 
             return new ObjectElement(
-                    name,
-                    elementCodec.deserialize(new PacketReader(data), context),
-                    elementCodec.getConvertingClass()
+                    element.name,
+                    element.codec.deserialize(new PacketReader(data), context),
+                    element.codec.getConvertingClass()
             );
         }
         finally {

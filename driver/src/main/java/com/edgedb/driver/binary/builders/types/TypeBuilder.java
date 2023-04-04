@@ -1,5 +1,6 @@
 package com.edgedb.driver.binary.builders.types;
 
+import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.packets.receivable.Data;
@@ -20,11 +21,11 @@ public final class TypeBuilder {
 
     @SuppressWarnings("unchecked")
     public static <T> T buildObject(EdgeDBBinaryClient client, Class<T> type, ObjectCodec codec, Data data) throws OperationNotSupportedException, EdgeDBException {
-        if(!isValidObjectType(type)) {
+        var info = getDeserializerInfo(type);
+
+        if(info == null) {
             throw new OperationNotSupportedException("Cannot deserialize object data to " + type.getName());
         }
-
-        var info = deserializerInfo.computeIfAbsent(type, TypeDeserializerInfo::new);
 
         codec.initialize(info);
 
@@ -37,7 +38,11 @@ public final class TypeBuilder {
             return null;
         }
 
-        return (TypeDeserializerInfo<T>) deserializerInfo.computeIfAbsent(cls, TypeDeserializerInfo::new);
+        var info = (TypeDeserializerInfo<T>) deserializerInfo.computeIfAbsent(cls, TypeDeserializerInfo::new);
+
+        info.scanChildren();;
+
+        return info;
     }
 
     public static boolean requiredImplicitTypeNames(Class<?> cls) {
@@ -50,8 +55,8 @@ public final class TypeBuilder {
             return true;
         }
 
-        // TODO: check for valid strategy for construction
-        return true;
+        // TODO: make this smarter?
+        return type.getAnnotation(EdgeDBType.class) != null;
     }
 
 }

@@ -2,6 +2,7 @@ package com.edgedb.driver.state;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class Session {
@@ -77,6 +78,17 @@ public final class Session {
                 this.module,
                 this.aliases,
                 config,
+                this.globals
+        );
+    }
+
+    public Session withConfig(Consumer<ConfigBuilder> func) {
+        var builder = new ConfigBuilder();
+        func.accept(builder);
+        return new Session(
+                this.module,
+                this.aliases,
+                builder.build(),
                 this.globals
         );
     }

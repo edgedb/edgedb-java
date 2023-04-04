@@ -7,9 +7,11 @@ import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
+import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.edgedb.driver.util.FastInverseIndexer;
+import com.edgedb.driver.util.StringsUtil;
 import com.edgedb.driver.util.TypeUtils;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
@@ -26,8 +28,7 @@ public class TypeDeserializerInfo<T> {
     public final TypeDeserializerFactory<T> factory;
     private final Reflections reflection;
     private final Class<T> type;
-    private final Method[] methods;
-
+    private final List<FieldInfo> fields;
     private final Map<NamingStrategy, NamingStrategyMap<Parameter>> constructorNamingMap;
     private final Map<NamingStrategy, NamingStrategyMap<FieldInfo>> fieldNamingMap;
     private final @Nullable EdgeDBType edgeDBTypeAnno;
@@ -38,15 +39,41 @@ public class TypeDeserializerInfo<T> {
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.type = type;
-        this.methods = type.getDeclaredMethods();
         this.reflection = new Reflections(type);
         this.edgeDBTypeAnno = type.getAnnotation(EdgeDBType.class);
+        this.children = new HashMap<>();
 
+        try {
+            this.factory = createFactory();
+        } catch (ReflectiveOperationException | EdgeDBException e) {
+            logger.error("Failed to create type deserialization factory", e);
+            throw new RuntimeException(e);
+        }
+
+        var methods = type.getDeclaredMethods();
+        var setterMethods = Arrays.stream(methods)
+                .filter((v) -> v.getName().startsWith("set"))
+                .collect(Collectors.toMap(v -> v.getName().toLowerCase(), v -> v));
+
+        var fields = type.getDeclaredFields();
+
+        var validFields = new ArrayList<FieldInfo>(fields.length);
+
+        for(int i = 0; i != fields.length; i++) {
+            var field = fields[i];
+            if(isValidField(field)) {
+                validFields.add(new FieldInfo(field, setterMethods));
+            }
+        }
+
+        this.fields = validFields;
+    }
+
+    public void scanChildren() {
         // find potential children
         var children = this.reflection.getSubTypesOf(type);
 
         if(!children.isEmpty()) {
-            this.children = new HashMap<>(children.size());
             for (var child : children) {
                 if(child.getAnnotation(EdgeDBIgnore.class) != null) {
                     continue;
@@ -58,17 +85,8 @@ public class TypeDeserializerInfo<T> {
                     continue;
                 }
 
-                this.children.put(typeInfo.type.getSimpleName(), typeInfo);
+                this.children.putIfAbsent(typeInfo.type.getSimpleName(), typeInfo);
             }
-        } else {
-            this.children = Map.of();
-        }
-
-        try {
-            this.factory = createFactory();
-        } catch (ReflectiveOperationException | EdgeDBException e) {
-            logger.error("Failed to create type deserialization factory", e);
-            throw new RuntimeException(e);
         }
     }
 
@@ -77,7 +95,17 @@ public class TypeDeserializerInfo<T> {
     }
 
     public @Nullable String getModuleName() {
-        return this.edgeDBTypeAnno == null ? null : this.edgeDBTypeAnno.module();
+        if(this.edgeDBTypeAnno == null) {
+            return null;
+        }
+
+        var module = this.edgeDBTypeAnno.module();
+
+        if(StringsUtil.isNullOrEmpty(module) || module.equals("[UNASSIGNED]")) {
+            return null;
+        }
+
+        return module;
     }
 
     private boolean isValidField(Field field) {
@@ -120,7 +148,7 @@ public class TypeDeserializerInfo<T> {
                 var missed = inverseIndexer.getInverseIndexes();
 
                 for(int i = 0; i != missed.length; i++) {
-                    params[missed[i]] = TypeUtils.getDefaultValue(namingStrategyEntry.values[i].getType());
+                    params[missed[i]] = TypeUtils.getDefaultValue(namingStrategyEntry.values.get(i).getType());
                 }
 
                 var instance = (T)ctor.newInstance(params);
@@ -135,34 +163,19 @@ public class TypeDeserializerInfo<T> {
             };
         }
 
-        var setterMethods = Arrays.stream(methods)
-                .filter((v) -> v.getName().startsWith("set"))
-                .collect(Collectors.toMap(v -> v.getName().toLowerCase(), v -> v));
-
-        var fields = type.getDeclaredFields();
-
-        var validFields = new FieldInfo[fields.length];
-
-        for(int i = 0; i != validFields.length; i++) {
-            var field = fields[i];
-            if(isValidField(field)) {
-                validFields[i] = new FieldInfo(field, setterMethods);
-            }
-        }
-
         // abstract or interface
         if(type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
-            if(this.children.isEmpty()) {
-                throw new EdgeDBException(
-                        "Cannot deserialize to type " + this.type + "; no sub-types found to " +
-                        "deserialize to for this interface/abstract class"
-                );
-            }
-
             return (enumerator, parent) -> {
+                if(this.children.isEmpty()) {
+                    throw new EdgeDBException(
+                            "Cannot deserialize to type " + this.type + "; no sub-types found to " +
+                            "deserialize to for this interface/abstract class"
+                    );
+                }
+
                 var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
                         enumerator.getClient().getConfig().getNamingStrategy(),
-                        (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), validFields)
+                        (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), this.fields)
                 );
 
                 var element = enumerator.next();
@@ -210,7 +223,7 @@ public class TypeDeserializerInfo<T> {
         return (enumerator, parent) -> {
             var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
                     enumerator.getClient().getConfig().getNamingStrategy(),
-                    (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), validFields)
+                    (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), this.fields)
             );
 
             var instance = (T)ctor.newInstance();
@@ -229,6 +242,13 @@ public class TypeDeserializerInfo<T> {
         };
     }
 
+    public NamingStrategyMap<FieldInfo> getFieldMap(NamingStrategy strategy) {
+        return fieldNamingMap.computeIfAbsent(
+                strategy,
+                (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), this.fields)
+        );
+    }
+
     private <U extends AnnotatedElement> String getNameOrAnnotated(U value, Function<U, String> getName) {
         var anno = value.getAnnotation(EdgeDBName.class);
         if(anno != null && anno.value() != null) {
@@ -238,7 +258,7 @@ public class TypeDeserializerInfo<T> {
         return getName.apply(value);
     }
 
-    private static class FieldInfo {
+    public static class FieldInfo {
         public final EdgeDBName edgedbNameAnno;
         public final Class<?> fieldType;
         public final Field field;
@@ -252,6 +272,36 @@ public class TypeDeserializerInfo<T> {
 
             // if there's a set method that isn't ignored, with the same type, use it.
             this.setMethod = setters.get("set" + field.getName());
+        }
+
+        public Class<?> getType(Cardinality cardinality) throws EdgeDBException {
+            if (Objects.requireNonNull(cardinality) == Cardinality.MANY) {
+                if (fieldType.isArray()) {
+                    return fieldType.getComponentType();
+                }
+
+                if (Collection.class.isAssignableFrom(fieldType)) {
+                    // TODO: can this be improved?
+                    var generic = field.getGenericType();
+
+                    if (!(generic instanceof ParameterizedType)) {
+                        throw new EdgeDBException("Unable to resolve generic parameter in collection for " + field);
+                    }
+
+                    var actualGenerics = ((ParameterizedType) generic).getActualTypeArguments();
+
+                    if (actualGenerics.length != 1) {
+                        throw new EdgeDBException(
+                                "Unable to resolve generic parameter for " + field + ", expected 1 generic " +
+                                        "type argument, but found " + actualGenerics.length
+                        );
+                    }
+
+                    return (Class<?>) actualGenerics[0];
+                }
+            }
+
+            return fieldType;
         }
 
         public String getFieldName() {
@@ -279,20 +329,20 @@ public class TypeDeserializerInfo<T> {
         }
     }
 
-    private static class NamingStrategyMap<T> {
+    public static class NamingStrategyMap<T> {
         public final NamingStrategy strategy;
         public final Map<String, T> map;
         public final Map<String, Integer> nameIndexMap;
-        public final T[] values;
+        public final List<T> values;
 
-        public NamingStrategyMap(NamingStrategy strategy, Function<T, String> getName, T[] values) {
-            this.map = new HashMap<>(values.length);
-            this.nameIndexMap = new HashMap<>(values.length);
+        public NamingStrategyMap(NamingStrategy strategy, Function<T, String> getName, List<T> values) {
+            this.map = new HashMap<>(values.size());
+            this.nameIndexMap = new HashMap<>(values.size());
             this.values = values;
             this.strategy = strategy;
 
-            for (int i = 0; i < values.length; i++) {
-                var value = values[i];
+            for (int i = 0; i < values.size(); i++) {
+                var value = values.get(i);
 
                 if(value == null)
                     continue;
@@ -301,6 +351,22 @@ public class TypeDeserializerInfo<T> {
                 map.put(name, value);
                 nameIndexMap.put(name, i);
             }
+        }
+
+        public NamingStrategyMap(NamingStrategy strategy, Function<T, String> getName, T[] values) {
+            this(strategy, getName, List.of(values));
+        }
+
+        public boolean contains(String name) {
+            return this.map.containsKey(name);
+        }
+
+        public @Nullable T get(String name) {
+            return this.map.get(name);
+        }
+
+        public @Nullable T get(int index) {
+            return this.values.get(index);
         }
     }
 }

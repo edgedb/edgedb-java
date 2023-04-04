@@ -45,133 +45,138 @@ public class PacketSerializer {
         deserializerMap.put(ServerMessageType.STATE_DATA_DESCRIPTION, StateDataDescription::new);
     }
 
-    public static final MessageToMessageDecoder<ByteBuf> PACKET_DECODER = new MessageToMessageDecoder<ByteBuf>() {
-        private final Map<Channel, PacketContract> contracts = new HashMap<>();
 
-        @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-            // TODO: packet contract should be implemented if the 'msg' is partial due to async IO.
-            // packet contracts act as pub-sub in the sense that theres a queue of buffers, successfully
-            // read packets, and completion sources for said packets. consumers pop out either A: a completed
-            // packet contract; B: a packet contract which is partial and awaiting more data from IO; or C:
-            // a completion stage that represents a unfulfilled contract that is completed on the next read.
+    public static MessageToMessageDecoder<ByteBuf> createDecoder() {
+        return new MessageToMessageDecoder<ByteBuf>() {
+            private final Map<Channel, PacketContract> contracts = new HashMap<>();
 
-            while(msg.readableBytes() > 5)
-            {
-                var type = ServerMessageType.valueOf(msg.readByte());
-                var length = msg.readUnsignedInt() - 4; // remove length of self.
+            @Override
+            protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+                // TODO: packet contract should be implemented if the 'msg' is partial due to async IO.
+                // packet contracts act as pub-sub in the sense that theres a queue of buffers, successfully
+                // read packets, and completion sources for said packets. consumers pop out either A: a completed
+                // packet contract; B: a packet contract which is partial and awaiting more data from IO; or C:
+                // a completion stage that represents a unfulfilled contract that is completed on the next read.
 
-                // can we read this packet?
-                if(msg.readableBytes() >= length) {
-                    var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int)length));
-                    logger.debug("S->C: T:{}", type);
-                    out.add(packet);
-                    continue;
-                }
+                while(msg.readableBytes() > 5)
+                {
+                    var type = ServerMessageType.valueOf(msg.readByte());
+                    var length = msg.readUnsignedInt() - 4; // remove length of self.
 
-                if(contracts.containsKey(ctx.channel())) {
-                    var contract = contracts.get(ctx.channel());
-
-                    if(contract.tryComplete(msg)) {
-                        out.add(contract.getPacket());
+                    // can we read this packet?
+                    if(msg.readableBytes() >= length) {
+                        var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int)length));
+                        logger.debug("S->C: T:{}", type);
+                        out.add(packet);
+                        continue;
                     }
 
-                    return;
-                } else {
-                    contracts.put(ctx.channel(), new PacketContract(msg, type, length));
-                }
-            }
+                    if(contracts.containsKey(ctx.channel())) {
+                        var contract = contracts.get(ctx.channel());
 
-            if(msg.readableBytes() > 0){
-                if(contracts.containsKey(ctx.channel())) {
-                    var contract = contracts.get(ctx.channel());
+                        if(contract.tryComplete(msg)) {
+                            out.add(contract.getPacket());
+                        }
 
-                    if(contract.tryComplete(msg)) {
-                        out.add(contract.getPacket());
+                        return;
+                    } else {
+                        contracts.put(ctx.channel(), new PacketContract(msg, type, length));
                     }
-                } else {
-                    contracts.put(ctx.channel(), new PacketContract(msg, null, null));
-                }
-            }
-        }
-
-        class PacketContract {
-            private @Nullable Receivable packet;
-            private ByteBuf data;
-
-            private @Nullable ServerMessageType messageType;
-            private @Nullable Long length;
-
-            public PacketContract(
-                    ByteBuf data,
-                    @Nullable ServerMessageType messageType,
-                    @Nullable Long length
-            ) {
-                this.data = data;
-                this.length = length;
-                this.messageType = messageType;
-            }
-
-            public boolean tryComplete(ByteBuf other) {
-                if(messageType == null) {
-                    messageType = pick(other, b -> ServerMessageType.valueOf(b.readByte()), BYTE_SIZE);
                 }
 
-                if(length == null) {
-                    length = pick(other, b -> b.readUnsignedInt() - 4, INT_SIZE);
+                if(msg.readableBytes() > 0){
+                    if(contracts.containsKey(ctx.channel())) {
+                        var contract = contracts.get(ctx.channel());
+
+                        if(contract.tryComplete(msg)) {
+                            out.add(contract.getPacket());
+                        }
+                    } else {
+                        contracts.put(ctx.channel(), new PacketContract(msg, null, null));
+                    }
+                }
+            }
+
+            class PacketContract {
+                private @Nullable Receivable packet;
+                private ByteBuf data;
+
+                private @Nullable ServerMessageType messageType;
+                private @Nullable Long length;
+
+                public PacketContract(
+                        ByteBuf data,
+                        @Nullable ServerMessageType messageType,
+                        @Nullable Long length
+                ) {
+                    this.data = data;
+                    this.length = length;
+                    this.messageType = messageType;
                 }
 
-                data = Unpooled.wrappedBuffer(data, other);
+                public boolean tryComplete(ByteBuf other) {
+                    if(messageType == null) {
+                        messageType = pick(other, b -> ServerMessageType.valueOf(b.readByte()), BYTE_SIZE);
+                    }
 
-                if(data.readableBytes() >= length) {
-                    // read
-                    packet = PacketSerializer.deserialize(messageType, length, data);
-                    return true;
+                    if(length == null) {
+                        length = pick(other, b -> b.readUnsignedInt() - 4, INT_SIZE);
+                    }
+
+                    data = Unpooled.wrappedBuffer(data, other);
+
+                    if(data.readableBytes() >= length) {
+                        // read
+                        packet = PacketSerializer.deserialize(messageType, length, data);
+                        return true;
+                    }
+
+                    return false;
                 }
 
-                return false;
-            }
+                private <T> T pick(ByteBuf other, Function<ByteBuf, T> map, long sz) {
+                    if(data.readableBytes() > sz) {
+                        return map.apply(data);
+                    } else if(other.readableBytes() < sz) {
+                        throw new IndexOutOfBoundsException();
+                    }
 
-            private <T> T pick(ByteBuf other, Function<ByteBuf, T> map, long sz) {
-                if(data.readableBytes() > sz) {
-                    return map.apply(data);
-                } else if(other.readableBytes() < sz) {
-                    throw new IndexOutOfBoundsException();
+                    return map.apply(other);
                 }
 
-                return map.apply(other);
-            }
+                public @NotNull Receivable getPacket() throws OperationNotSupportedException {
+                    if(packet == null) {
+                        throw new OperationNotSupportedException("Packet contract was incomplete");
+                    }
 
-            public @NotNull Receivable getPacket() throws OperationNotSupportedException {
-                if(packet == null) {
-                    throw new OperationNotSupportedException("Packet contract was incomplete");
+                    return packet;
                 }
-
-                return packet;
             }
-        }
-    };
+        };
+    }
 
-    public static final MessageToMessageEncoder<Sendable> PACKET_ENCODER = new MessageToMessageEncoder<Sendable>() {
+    public static MessageToMessageEncoder<Sendable> createEncoder() {
+        return new MessageToMessageEncoder<Sendable>() {
 
-        @Override
-        protected void encode(ChannelHandlerContext ctx, Sendable msg, List<Object> out) throws Exception {
+            @Override
+            protected void encode(ChannelHandlerContext ctx, Sendable msg, List<Object> out) throws Exception {
 
-            try{
-                var data = PacketSerializer.serialize(msg);
+                try{
+                    var data = PacketSerializer.serialize(msg);
 
-                data.readerIndex(0);
+                    data.readerIndex(0);
 
-                logger.debug("C->S: T:{} D:{}", msg.type, HexUtils.bufferToHexString(data));
+                    logger.debug("C->S: T:{} D:{}", msg.type, HexUtils.bufferToHexString(data));
 
-                out.add(data);
+                    out.add(data);
+                }
+                catch (Throwable x) {
+                    logger.error("Failed to serialize packet", x);
+                    // TODO: close the client
+                }
             }
-            catch (Throwable x) {
-                logger.error("Failed to serialize packet", x);
-                // TODO: close the client
-            }
-        }
-    };
+        };
+    }
 
     public static Receivable deserialize(ServerMessageType messageType, long length, ByteBuf buffer) {
         var reader = new PacketReader(buffer);

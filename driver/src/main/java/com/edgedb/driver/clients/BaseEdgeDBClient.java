@@ -2,16 +2,20 @@ package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.driver.async.AsyncEvent;
 import com.edgedb.driver.state.Config;
+import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class BaseEdgeDBClient implements StatefulClient, AutoCloseable {
+public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
     private final AsyncEvent<BaseEdgeDBClient> onReady;
     private boolean isConnected = false;
     private final EdgeDBConnection connection;
@@ -56,31 +60,37 @@ public abstract class BaseEdgeDBClient implements StatefulClient, AutoCloseable 
     }
 
     @Override
-    public BaseEdgeDBClient withSession(Session session) {
+    public BaseEdgeDBClient withSession(@NotNull Session session) {
         this.session = session;
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withModuleAliases(Map<String, String> aliases) {
+    public BaseEdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
         this.session = this.session.withModuleAliases(aliases);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withConfig(Config config) {
+    public BaseEdgeDBClient withConfig(@NotNull Config config) {
         this.session = this.session.withConfig(config);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withGlobals(Map<String, Object> globals) {
+    public BaseEdgeDBClient withConfig(@NotNull Consumer<ConfigBuilder> func) {
+        this.session = this.session.withConfig(func);
+        return this;
+    }
+
+    @Override
+    public BaseEdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
         this.session = this.session.withGlobals(globals);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withModule(String module) {
+    public BaseEdgeDBClient withModule(@NotNull String module) {
         this.session = this.session.withModule(module);
         return this;
     }

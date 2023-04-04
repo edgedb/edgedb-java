@@ -9,6 +9,8 @@ import javax.naming.OperationNotSupportedException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+import static com.edgedb.driver.util.BinaryProtocolUtils.LONG_SIZE;
+
 public final class DurationCodec extends ScalarCodecBase<Duration> {
     public DurationCodec() {
         super(Duration.class);
@@ -18,11 +20,20 @@ public final class DurationCodec extends ScalarCodecBase<Duration> {
     public void serialize(PacketWriter writer, @Nullable Duration value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
             writer.write(Math.round(value.toNanos() / 1000d));
+
+            // deprecated: days & months
+            writer.write(0);
+            writer.write(0);
         }
     }
 
     @Override
     public @Nullable Duration deserialize(PacketReader reader, CodecContext context) {
-        return Duration.of(reader.readInt64(), ChronoUnit.MICROS);
+        var duration = Duration.of(reader.readInt64(), ChronoUnit.MICROS);
+
+        // deprecated: days & months
+        reader.skip(LONG_SIZE);
+
+        return duration;
     }
 }

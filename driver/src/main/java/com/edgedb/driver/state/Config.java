@@ -13,6 +13,21 @@ public final class Config {
     private final @Nullable Duration queryExecutionTimeout;
     private final @Nullable Boolean allowDMLInFunctions;
     private final @Nullable Boolean allowBareDDL;
+
+    public Config(
+            @Nullable Duration idleTransactionTimeout,
+            @Nullable Duration queryExecutionTimeout,
+            @Nullable Boolean allowDMLInFunctions,
+            @Nullable Boolean allowBareDDL,
+            @Nullable Boolean applyAccessPolicies
+    ) {
+        this.idleTransactionTimeout = idleTransactionTimeout;
+        this.queryExecutionTimeout = queryExecutionTimeout;
+        this.allowDMLInFunctions = allowDMLInFunctions;
+        this.allowBareDDL = allowBareDDL;
+        this.applyAccessPolicies = applyAccessPolicies;
+    }
+
     private final @Nullable Boolean applyAccessPolicies;
 
     public Config() {
@@ -27,7 +42,7 @@ public final class Config {
         return new HashMap<>(){
             {
                 if(idleTransactionTimeout != null) {
-                    put("idle_transaction_timeout", idleTransactionTimeout);
+                    put("session_idle_transaction_timeout", idleTransactionTimeout);
                 }
 
                 if(queryExecutionTimeout != null) {

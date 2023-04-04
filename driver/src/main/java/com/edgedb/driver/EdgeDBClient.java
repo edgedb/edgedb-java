@@ -4,11 +4,17 @@ import com.edgedb.driver.abstractions.ClientQueryDelegate;
 import com.edgedb.driver.clients.BaseEdgeDBClient;
 import com.edgedb.driver.clients.EdgeDBTCPClient;
 import com.edgedb.driver.clients.StatefulClient;
+import com.edgedb.driver.clients.TransactableClient;
+import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.state.Config;
+import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
 import com.edgedb.driver.util.ClientPoolHolder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -22,8 +28,12 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-public final class EdgeDBClient implements StatefulClient {
+public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
+    private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
+
     private static final class PooledClient {
         public final BaseEdgeDBClient client;
         public Instant lastUsed;
@@ -91,28 +101,48 @@ public final class EdgeDBClient implements StatefulClient {
         this.clientAvailability = other.clientAvailability;
     }
 
+    public boolean supportsTransactions() {
+        return this.config.getClientType() == ClientType.TCP;
+    }
+
+    public <T> CompletionStage<T> transaction(
+            Transaction.TransactionSettings settings,
+            Function<Transaction, CompletionStage<T>> func
+    ) {
+        return getTransactableClient().thenCompose(client -> client.transaction(settings, func));
+    }
+
+    public <T> CompletionStage<T> transaction(Function<Transaction, CompletionStage<T>> func) {
+        return getTransactableClient().thenCompose(client -> client.transaction(func));
+    }
+
     @Override
-    public EdgeDBClient withSession(Session session) {
+    public EdgeDBClient withSession(@NotNull Session session) {
         return new EdgeDBClient(this, session);
     }
 
     @Override
-    public EdgeDBClient withModuleAliases(Map<String, String> aliases) {
+    public EdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
         return new EdgeDBClient(this, this.session.withModuleAliases(aliases));
     }
 
     @Override
-    public EdgeDBClient withConfig(Config config) {
+    public EdgeDBClient withConfig(@NotNull Config config) {
         return new EdgeDBClient(this, this.session.withConfig(config));
     }
 
     @Override
-    public EdgeDBClient withGlobals(Map<String, Object> globals) {
+    public EdgeDBClient withConfig(@NotNull Consumer<ConfigBuilder> func) {
+        return new EdgeDBClient(this, this.session.withConfig(func));
+    }
+
+    @Override
+    public EdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
         return new EdgeDBClient(this, this.session.withGlobals(globals));
     }
 
     @Override
-    public EdgeDBClient withModule(String module) {
+    public EdgeDBClient withModule(@NotNull String module) {
         return new EdgeDBClient(this, this.session.withModule(module));
     }
 
@@ -152,37 +182,75 @@ public final class EdgeDBClient implements StatefulClient {
     }
 
     @Override
-    public CompletionStage<Void> execute(String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public CompletionStage<Void> execute(@NotNull String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
         return executePooledQuery(Void.class, query, args, capabilities,
                 (c, cls, q, a, ca) -> c.execute(q,a,ca)
         );
     }
 
     @Override
-    public <T> CompletionStage<List<T>> query(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<List<T>> query(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::query);
     }
 
     @Override
-    public <T> CompletionStage<T> querySingle(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<T> querySingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::querySingle);
     }
 
     @Override
-    public <T> CompletionStage<T> queryRequiredSingle(Class<T> cls, String query, @Nullable Map<String, Object> args, EnumSet<Capabilities> capabilities) {
+    public <T> CompletionStage<T> queryRequiredSingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
         return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::queryRequiredSingle);
     }
 
-    private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
-        var client = clients.poll();
+    @Override
+    public CompletionStage<Json> queryJson(@NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
+        return executePooledQuery(Json.class, query, args, capabilities,
+                (c, cls, q, a, ca) -> c.queryJson(q, a, ca)
+        );
+    }
 
-        if(client != null) {
-            this.clientCount.decrementAndGet();
-            client.touch();
-            return CompletableFuture.completedFuture(client.client);
+    @Override
+    public CompletionStage<List<Json>> queryJsonElements(@NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
+        return executePooledQuery(Json.class, query, args, capabilities,
+                (c, cls, q, a, ca) -> c.queryJsonElements(q, a, ca)
+        );
+    }
+
+    private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
+        logger.trace("polling cached clients...");
+        var cachedClient = clients.poll();
+
+        if(cachedClient != null) {
+            logger.debug(
+                    "returning cached client, cached client count: {}; age {}",
+                    this.clientCount.decrementAndGet(),
+                    cachedClient.age()
+            );
+
+            cachedClient.touch();
+            return CompletableFuture.completedFuture(cachedClient.client);
         }
 
         return createClient();
+    }
+
+    private synchronized CompletionStage<TransactableClient> getTransactableClient() {
+        return getClient()
+                .thenApply(client -> {
+                   if(!(client instanceof TransactableClient)) {
+                       logger.warn(
+                               "A request for a client that supports transactions cannot be fulfilled, the client" +
+                               " provided from the pool is of type {} which doesn't support transactions.",
+                               client.getClass().getSimpleName()
+                       );
+                       throw new CompletionException(
+                               new EdgeDBException("Cannot use transactions with " + client + " type")
+                       );
+                   }
+
+                   return (TransactableClient) client;
+                });
     }
 
     private void cleanupPool() {
@@ -196,7 +264,10 @@ public final class EdgeDBClient implements StatefulClient {
         this.clients.add(new PooledClient(client));
         var count = this.clientCount.incrementAndGet();
 
+        logger.debug("client {} returned to pool, client count: {}", client, count);
+
         if(count > this.clientAvailability) {
+            logger.debug("Cleaning up pool... {}/{} availability reached", count, this.clientAvailability);
             cleanupPool();
         }
     }
@@ -212,9 +283,11 @@ public final class EdgeDBClient implements StatefulClient {
     private CompletionStage<BaseEdgeDBClient> createClient() {
         return this.poolHolder.acquireContract()
                 .thenApply(contract -> {
+                    logger.trace("Contract acquired, remaining handles: {}", this.poolHolder.remaining());
                     var client = clientFactory.create(this.connection, this.config, contract);
                     contract.register(client, this::acceptClient);
                     client.onReady(this::onClientReady);
+                    logger.debug("client instance created: {}", client);
                     return client;
                 })
                 .thenApply(client -> client.withSession(this.session));

@@ -4,33 +4,79 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
+import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
+import com.edgedb.driver.binary.descriptors.common.ShapeElement;
+import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
+import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
 public final class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Object> {
+    public static final class Element {
+        public String name;
+        public Codec<?> codec;
+        public Cardinality cardinality;
+        public Element(String name, Codec<?> codec, Cardinality cardinality) {
+            this.name = name;
+            this.codec = codec;
+            this.cardinality = cardinality;
+        }
+    }
 
-    public final Codec[] innerCodecs;
-    public final String[] propertyNames;
+    public final Element[] elements;
     private TypeDeserializerFactory<?> factory;
+    private @Nullable TypeDeserializerInfo<?> deserializerInfo;
+    private @Nullable Class<?> initializedType;
 
     private final Object lock = new Object();
 
-    public ObjectCodec(Codec[] innerCodecs, String[] propertyNames) {
+    public ObjectCodec(Element... elements) {
         super(Object.class);
-        this.innerCodecs = innerCodecs;
-        this.propertyNames = propertyNames;
+        this.elements = elements;
+    }
+
+    public static ObjectCodec create(Function<Integer, Codec<?>> fetchCodec, ShapeElement[] shape) {
+        var elements = new Element[shape.length];
+
+        for (int i = 0; i < shape.length; i++) {
+            var shapeElement = shape[i];
+
+            elements[i] = new Element(
+                    shapeElement.name,
+                    fetchCodec.apply(shapeElement.typePosition.intValue()),
+                    shapeElement.cardinality
+            );
+        }
+
+        return new ObjectCodec(elements);
+    }
+
+    public @Nullable TypeDeserializerInfo<?> getDeserializerInfo() {
+        return this.deserializerInfo;
     }
 
     public void initialize(Class<?> cls) {
-        // TODO: get the deserialization factory for 'cls
+        if(cls.equals(initializedType)) {
+           return;
+        }
+
         if(cls.equals(Object.class)) {
             factory = (e, p) -> e.flatten();
+            return;
         }
+
+        this.deserializerInfo = TypeBuilder.getDeserializerInfo(cls);
+
+        if(this.deserializerInfo != null) {
+            this.factory = this.deserializerInfo.factory;
+        }
+
+        this.initializedType = cls;
     }
 
     public void initialize(TypeDeserializerInfo info) {
@@ -49,27 +95,25 @@ public final class ObjectCodec extends CodecBase<Object> implements ArgumentCode
         var visitor = context.getTypeVisitor();
 
         for(int i = 0; i != value.size(); i++) {
-            var propName = this.propertyNames[i];
+            var element = this.elements[i];
 
-            if(!value.containsKey(propName)) {
+            if(!value.containsKey(element.name)) {
                 writer.write(-1);
                 continue;
             }
 
-            var element = value.get(propName);
+            var elementValue = value.get(element.name);
 
-            if(element == null) {
+            if(elementValue == null) {
                 writer.write(-1);
                 continue;
             }
 
             visitor.setTargetType(element.getClass());
-            var codec = (Codec)visitor.visit(this.innerCodecs[i]);
+            var codec = (Codec)visitor.visit(element.codec);
             visitor.reset();
 
-
-            // TODO: codec visitor
-            writer.writeDelegateWithLength((v) -> codec.serialize(v, element, context));
+            writer.writeDelegateWithLength((v) -> codec.serialize(v, elementValue, context));
         }
     }
 

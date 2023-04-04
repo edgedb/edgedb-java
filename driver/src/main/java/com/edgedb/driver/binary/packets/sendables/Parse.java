@@ -48,14 +48,14 @@ public class Parse extends Sendable {
     @Override
     public int getDataSize() {
         return
-                LONG_SIZE +
-                LONG_SIZE +
                 SHORT_SIZE +
-                UUID_SIZE +
+                LONG_SIZE +
+                LONG_SIZE +
                 LONG_SIZE +
                 BYTE_SIZE +
                 BYTE_SIZE +
                 sizeOf(query) +
+                UUID_SIZE +
                 sizeOf(stateData);
     }
 

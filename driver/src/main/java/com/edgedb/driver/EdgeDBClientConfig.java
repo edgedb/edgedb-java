@@ -18,7 +18,7 @@ public class EdgeDBClientConfig {
     private boolean explicitObjectIds;
     private long implicitLimit;
     private NamingStrategy namingStrategy = NamingStrategy.defaultStrategy();
-    private boolean useFieldSetters = true;
+    private boolean useFieldSetters = false;
     private ClientType clientType = ClientType.TCP;
     private int clientAvailability = 10;
     private Duration clientMaxAge = Duration.of(10, ChronoUnit.MINUTES);
