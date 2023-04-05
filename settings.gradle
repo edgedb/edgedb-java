@@ -1,4 +1,5 @@
 rootProject.name = 'edgedb-java'
-include 'driver'
 include 'examples'
+include 'src:driver'
+include 'src:core'
 

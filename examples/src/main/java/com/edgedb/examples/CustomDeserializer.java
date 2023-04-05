@@ -1,9 +1,9 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.annotations.EdgeDBDeserializer;
-import com.edgedb.driver.annotations.EdgeDBName;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.annotations.EdgeDBDeserializer;
+import com.edgedb.annotations.EdgeDBName;
+import com.edgedb.annotations.EdgeDBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

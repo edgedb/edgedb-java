@@ -1,9 +1,9 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.exceptions.EdgeDBException;
-import com.edgedb.driver.namingstrategies.NamingStrategy;
+import com.edgedb.EdgeDBClientConfig;
+import com.edgedb.exceptions.EdgeDBException;
+import com.edgedb.namingstrategies.NamingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

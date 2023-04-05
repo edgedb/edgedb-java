@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.annotations.EdgeDBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
