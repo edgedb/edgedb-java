@@ -7,7 +7,6 @@ import java.util.Base64;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScramTests {
-    private static final String SCRAM_METHOD = "SCRAM-SHA-256";
     private static final String SCRAM_USERNAME = "user";
     private static final String SCRAM_PASSWORD = "pencil";
     private static final String SCRAM_CLIENT_NONCE = "rOprNGfwEbeRWgbNEkqO";

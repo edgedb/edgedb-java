@@ -33,10 +33,9 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-public class EdgeDBConnection {
+public class EdgeDBConnection implements Cloneable {
     private static final String EDGEDB_INSTANCE_ENV_NAME = "EDGEDB_INSTANCE";
     private static final String EDGEDB_DSN_ENV_NAME = "EDGEDB_DSN";
     private static final String EDGEDB_CREDENTIALS_FILE_ENV_NAME = "EDGEDB_CREDENTIALS_FILE";
@@ -128,7 +127,7 @@ public class EdgeDBConnection {
     }
 
     public TLSSecurityMode getTLSSecurity() {
-        return tlsSecurity;
+        return tlsSecurity == null ? TLSSecurityMode.STRICT : this.tlsSecurity;
     }
 
     public void setTLSSecurity(TLSSecurityMode value) {
@@ -137,7 +136,7 @@ public class EdgeDBConnection {
 
     public static EdgeDBConnection fromDSN(@NotNull String dsn) throws ConfigurationException, IOException {
         if (!dsn.startsWith("edgedb://")) {
-            throw new ConfigurationException("Invalid DSN protocol. the DSN schema 'edgedb://...' is expected");
+            throw new ConfigurationException(String.format("DSN schema 'edgedb' expected but got '%s'", dsn.split("://")[0]));
         }
 
         String database = null, username = null, port = null, host = null, password = null;
@@ -146,9 +145,9 @@ public class EdgeDBConnection {
 
         var formattedDSN = DSN_FORMATTER.matcher(dsn).replaceAll("");
 
-        var queryParams = DSN_QUERY_PARAMETERS.matcher((dsn));
+        var queryParams = DSN_QUERY_PARAMETERS.matcher(dsn);
 
-        if (queryParams.matches()){
+        if (queryParams.find()) {
             args = QueryParamUtils.splitQuery(queryParams.group(1).substring(1));
 
             // remove args from formatted dsn
@@ -188,14 +187,14 @@ public class EdgeDBConnection {
                 username = left[0];
             }
         }
-        else {
+        else if(!formattedDSN.endsWith("@")) {
             var sub = partB[0].split(":");
 
             if(sub.length == 2) {
                 host = sub[0];
                 port = sub[1];
             }
-            else {
+            else if(!StringsUtil.isNullOrEmpty(sub[0])) {
                 host = sub[0];
             }
         }
@@ -254,7 +253,7 @@ public class EdgeDBConnection {
                 value = System.getenv(entry.getValue());
 
                 if (value == null) {
-                    throw new ConfigurationException(String.format("Enviroment variable \"%s\" couldn't be found", entry.getValue()));
+                    throw new ConfigurationException(String.format("Environment variable \"%s\" couldn't be found", entry.getValue()));
                 }
             }
             else  {
@@ -329,53 +328,68 @@ public class EdgeDBConnection {
     }
 
     public static EdgeDBConnection parse(
-            Consumer<EdgeDBConnection> configure
+            ConfigureFunction configure
     ) throws ConfigurationException, IOException {
         return parse(null, configure, true);
     }
 
     public static EdgeDBConnection parse(
             String connection,
-            Consumer<EdgeDBConnection> configure
+            ConfigureFunction configure
     ) throws ConfigurationException, IOException {
         return parse(connection, configure, true);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static EdgeDBConnection parse(
+    public static EdgeDBConnection parse(
             @Nullable String connParam,
-            @Nullable Consumer<EdgeDBConnection> configure,
+            @Nullable ConfigureFunction configure,
             boolean autoResolve
     ) throws ConfigurationException, IOException {
-        EdgeDBConnection connection = new EdgeDBConnection();
+        var connection = new EdgeDBConnection();
+
+        boolean isDSN = false;
 
         if(autoResolve) {
             try {
-                resolveEdgeDBTOML().mergeInto(connection);
-            }
-            catch (IOException x) {
+                connection = connection.mergeInto(resolveEdgeDBTOML());
+            } catch (IOException x) {
                 // ignore
             }
         }
 
-        applyEnv(connection);
+        connection = applyEnv(connection);
 
         if(connParam != null) {
-            if(connParam.startsWith("edgedb://")) {
-                fromDSN(connParam).mergeInto(connection);
+            if(connParam.contains("://")) {
+                connection = connection.mergeInto(fromDSN(connParam));
+                isDSN = true;
             } else {
-                fromInstanceName(connParam).mergeInto(connection);
+                connection = connection.mergeInto(fromInstanceName(connParam));
             }
         }
 
         if(configure != null) {
-            configure.accept(connection);
+            EdgeDBConnection clone;
+            try {
+                clone = (EdgeDBConnection) connection.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new ConfigurationException("Failed to clone current connection arguments", e);
+            }
+
+            configure.accept(clone);
+
+            if(isDSN && clone.hostname != null) {
+                throw new ConfigurationException("Cannot specify DSN and 'Hostname'; they are mutually exclusive");
+            }
+
+            connection = connection.mergeInto(clone);
         }
 
         return connection;
     }
 
-    private static void applyEnv(EdgeDBConnection connection) throws ConfigurationException, IOException {
+    private static EdgeDBConnection applyEnv(EdgeDBConnection connection) throws ConfigurationException, IOException {
         var instanceName = System.getenv(EDGEDB_INSTANCE_ENV_NAME);
         var dsn = System.getenv(EDGEDB_DSN_ENV_NAME);
         var host = System.getenv(EDGEDB_HOST_ENV_NAME);
@@ -386,20 +400,29 @@ public class EdgeDBConnection {
         var db = System.getenv(EDGEDB_DATABASE_ENV_NAME);
 
         if(instanceName != null) {
-            fromInstanceName(instanceName).mergeInto(connection);
+            connection = connection.mergeInto(fromInstanceName(instanceName));
         }
 
         if(dsn != null) {
-            fromDSN(dsn).mergeInto(connection);
+            connection = connection.mergeInto(fromDSN(dsn));
         }
 
         if(host != null) {
-            connection.hostname = host;
+            try {
+                connection.setHostname(host);
+            }
+            catch (ConfigurationException x) {
+                if(x.getMessage().equals("DSN cannot contain more than one host")) {
+                    throw new ConfigurationException("Environment variable 'EDGEDB_HOST' cannot contain more than one host", x);
+                }
+
+                throw x;
+            }
         }
 
         if(port != null) {
             try {
-                connection.port = Integer.parseInt(port);
+                connection.setPort(Integer.parseInt(port));
             }
             catch (NumberFormatException x) {
                 throw new ConfigurationException(
@@ -423,23 +446,25 @@ public class EdgeDBConnection {
                 );
             }
 
-            fromJSON(Files.readString(path, StandardCharsets.UTF_8)).mergeInto(connection);
+            connection = connection.mergeInto(fromJSON(Files.readString(path, StandardCharsets.UTF_8)));
         }
 
         if(user != null) {
-            connection.user = user;
+            connection.setUsername(user);
         }
 
         if(pass != null) {
-            connection.password = pass;
+            connection.setPassword(pass);
         }
 
         if(db != null) {
-            connection.database = db;
+            connection.setDatabase(db);
         }
+
+        return connection;
     }
 
-    private void mergeInto(EdgeDBConnection other) {
+    private EdgeDBConnection mergeInto(EdgeDBConnection other) {
         if(other.tlsSecurity == null) {
             other.tlsSecurity = this.tlsSecurity;
         }
@@ -467,6 +492,8 @@ public class EdgeDBConnection {
         if(other.user == null) {
             other.user = this.user;
         }
+
+        return other;
     }
 
     public SSLContext getSSLContext() throws GeneralSecurityException, IOException {
@@ -610,5 +637,38 @@ public class EdgeDBConnection {
             default:
                 throw new IllegalArgumentException(String.format("Unexpected configuration option %s", name));
         }
+    }
+
+    @Override
+    public String toString() {
+        var sb = new StringBuilder("edgedb://");
+
+        if(this.getUsername() != null) {
+            sb.append(this.getUsername());
+        }
+
+        if(this.getPassword() != null) {
+            sb.append(":");
+            sb.append(this.getPassword());
+        }
+
+        if(this.getHostname() != null) {
+            sb.append("@");
+            sb.append(this.getHostname());
+            sb.append(":");
+            sb.append(this.getPort());
+        }
+
+        if(this.getDatabase() != null) {
+            sb.append("/");
+            sb.append(this.getDatabase());
+        }
+
+        return sb.toString();
+    }
+
+    @FunctionalInterface
+    public interface ConfigureFunction {
+        void accept(EdgeDBConnection connection) throws ConfigurationException;
     }
 }
