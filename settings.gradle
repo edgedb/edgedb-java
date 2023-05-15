@@ -1,5 +1,7 @@
 rootProject.name = 'edgedb-java'
 include 'examples'
 include 'src:driver'
-include 'src:core'
+include 'tools'
+include 'tools:testgen'
+findProject(':tools:testgen')?.name = 'testgen'
 

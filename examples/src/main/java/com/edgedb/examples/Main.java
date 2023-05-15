@@ -1,9 +1,9 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.EdgeDBClientConfig;
-import com.edgedb.exceptions.EdgeDBException;
-import com.edgedb.namingstrategies.NamingStrategy;
+import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.namingstrategies.NamingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +16,10 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, EdgeDBException, ExecutionException, InterruptedException {
+
+        var a = new ArrayList<>();
+        var b = new ArrayList<String>();
+
         var client = new EdgeDBClient(new EdgeDBClientConfig() {{
             setNamingStrategy(NamingStrategy.snakeCase());
             setUseFieldSetters(true);

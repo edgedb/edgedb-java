@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.EdgeDBType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;

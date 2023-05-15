@@ -14,7 +14,6 @@ repositories {
 
 dependencies {
     implementation project(path: ':src:driver')
-    implementation project(path: ':src:core')
     implementation 'ch.qos.logback:logback-classic:1.4.5'
     implementation 'ch.qos.logback:logback-core:1.4.5'
     implementation 'org.jooq:joou:0.9.4'
