@@ -12,7 +12,7 @@ import javax.naming.OperationNotSupportedException;
 
 import java.util.EnumSet;
 
-public final class RangeCodec<T extends Number> extends CodecBase<Range<T>> {
+public final class RangeCodec<T> extends CodecBase<Range<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")

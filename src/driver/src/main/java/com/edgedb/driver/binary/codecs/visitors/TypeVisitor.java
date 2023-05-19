@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.util.TypeUtils;
 
 import java.io.Closeable;
 import java.util.Stack;
@@ -38,7 +39,9 @@ public final class TypeVisitor implements CodecVisitor {
 
         var type = codec.getClass();
 
-        if(ObjectCodec.class.isAssignableFrom(type)) {
+        if(TupleCodec.class.isAssignableFrom(type)) {
+            return visitTupleCodec(this, (TupleCodec) codec);
+        } else if(ObjectCodec.class.isAssignableFrom(type)) {
             return visitObjectCodec(this, (ObjectCodec) codec);
         } else if (CompilableCodec.class.isAssignableFrom(type)) {
             return visitCompilableCodec(this, (CompilableCodec) codec);
@@ -46,6 +49,29 @@ public final class TypeVisitor implements CodecVisitor {
             return visitComplexCodec(this, (ComplexCodec<?>) codec);
         } else if (RuntimeCodec.class.isAssignableFrom(type)) {
             return visitRuntimeCodec(this, (RuntimeCodec<?>) codec);
+        }
+
+        return codec;
+    }
+
+    private static Codec<?> visitTupleCodec(TypeVisitor visitor, TupleCodec codec) throws EdgeDBException {
+        for(int i = 0; i != codec.innerCodecs.length; i++) {
+            var innerCodec = codec.innerCodecs[i];
+            try(var ignored = visitor.enterNewContext(c -> {
+                Class<?> type;
+
+                if(c.isDynamicType() || c.isRealType) {
+                    type = c.type;
+                } else if (innerCodec instanceof CompilableCodec) {
+                    type = ((CompilableCodec)innerCodec).getCompilableType();
+                } else {
+                    type = innerCodec.getConvertingClass();
+                }
+
+                c.type = type;
+            })) {
+                codec.innerCodecs[i] = visitor.visit(innerCodec);
+            }
         }
 
         return codec;
@@ -99,21 +125,33 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     public static Codec<?> visitCompilableCodec(TypeVisitor visitor, CompilableCodec codec) throws EdgeDBException {
-        // visit the inner codec
-        Codec compiledCodec;
-        try(var handle = visitor.enterNewContext(v -> {
-            v.type = visitor.getContext().isRealType
+        Codec innerCodec;
+
+        // context type control:
+        // inner codec:
+        try(var ignored = visitor.enterNewContext(v -> {
+            var innerType = TypeUtils.tryPullWrappingType(visitor.getContext().type);
+
+            if(innerType == null) {
+                innerType = codec.getInnerType();
+            }
+
+            v.type = visitor.getContext().isDynamicType()
                     ? visitor.getContext().type
-                    : codec.getInnerType();
+                    : innerType;
         })) {
-            compiledCodec = codec.compile(visitor.getContext().type, visitor.visit(codec.getInnerCodec()));
+            innerCodec = visitor.visit(codec.getInnerCodec());
         }
 
-        return visitor.visit(compiledCodec);
+        return visitor.visit(codec.compile(visitor.getContext().type, innerCodec));
     }
 
     public static Codec<?> visitComplexCodec(TypeVisitor visitor, ComplexCodec<?> codec) {
         codec.buildRuntimeCodecs();
+
+        if(visitor.getContext().isDynamicType())
+            return codec;
+
         return codec.getCodecFor(visitor.getContext().type);
     }
 
@@ -140,6 +178,10 @@ public final class TypeVisitor implements CodecVisitor {
     private static final class TypeResultContextFrame implements Cloneable {
         public Class<?> type;
         public boolean isRealType;
+
+        public boolean isDynamicType() {
+            return type.equals(Object.class);
+        }
 
         private TypeResultContextFrame(Class<?> type, boolean isRealType) {
             this.type = type;

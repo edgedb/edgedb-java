@@ -8,6 +8,7 @@ import com.edgedb.driver.util.BinaryProtocolUtils;
 import javax.naming.OperationNotSupportedException;
 
 public enum CompilationFlags implements SerializableData, BinaryEnum<Long> {
+    NONE                (0),
     IMPLICIT_TYPE_IDS   (1),
     IMPLICIT_TYPE_NAMES (1 << 1),
     EXPLICIT_OBJECT_IDS (1 << 2);

@@ -1,9 +1,6 @@
 package com.edgedb.driver.binary.builders.types;
 
-import com.edgedb.driver.annotations.EdgeDBDeserializer;
-import com.edgedb.driver.annotations.EdgeDBIgnore;
-import com.edgedb.driver.annotations.EdgeDBName;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.*;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
@@ -304,6 +301,8 @@ public class TypeDeserializerInfo<T> {
         public final Field field;
         private final @Nullable Method setMethod;
 
+        private final @Nullable EdgeDBLinkType linkType;
+
         public FieldInfo(Field field, Map<String, Method> setters) {
             this.field = field;
             this.fieldType = field.getType();
@@ -312,6 +311,8 @@ public class TypeDeserializerInfo<T> {
 
             // if there's a set method that isn't ignored, with the same type, use it.
             this.setMethod = setters.get("set" + field.getName());
+
+            this.linkType = field.getAnnotation(EdgeDBLinkType.class);
         }
 
         public Class<?> getType(@Nullable Cardinality cardinality) throws EdgeDBException {
@@ -325,6 +326,10 @@ public class TypeDeserializerInfo<T> {
         }
 
         private Class<?> extractCollectionInnerType(Class<?> cls) throws EdgeDBException {
+            if(linkType != null) {
+                return linkType.value();
+            }
+
             if (cls.isArray()) {
                 return fieldType.getComponentType();
             }

@@ -52,7 +52,7 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
                 continue;
             }
 
-            visitor.setTargetType(element.getClass());
+            visitor.setTargetType(element.getValue().getClass());
             var codec = (Codec)visitor.visit(innerCodecs[index]);
             visitor.reset();
 

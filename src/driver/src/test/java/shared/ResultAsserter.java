@@ -1,21 +1,20 @@
 package shared;
 
 import com.edgedb.driver.datatypes.Json;
+import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.datatypes.RelativeDuration;
 import com.edgedb.driver.datatypes.Tuple;
 import org.assertj.core.util.Lists;
 import org.opentest4j.AssertionFailedError;
 import shared.models.ResultNode;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -89,12 +88,17 @@ public class ResultAsserter {
                     new ReducerEntry<>(Period.class, v -> (long)((v.toTotalMonths() * 31 + v.getDays()) * 8.64e+10)),
                     new ReducerEntry<>(Duration.class, TimeUnit.MICROSECONDS::convert)
             ));
+
+            // json does this automatically, added here to fix assets from json->edgedb
+            add(new ReducerContainer<>(
+                    new ReducerEntry<>(BigDecimal.class, BigDecimal::stripTrailingZeros)
+            ));
         }};
     }
 
     public static void assertResult(Object expected, Object actual) {
         if(expected instanceof ResultNode[]) {
-            var collection = assertCollection(expected, actual);
+            var collection = assertCollection(expected, actual, true);
 
             for(var kvp : collection.entrySet()) {
                 assertNode(kvp.getKey(), kvp.getValue());
@@ -195,6 +199,44 @@ public class ResultAsserter {
                     return;
                 }
 
+                if(actual instanceof Range && expected instanceof Range) {
+                    var expRange = (Range<?>)expected;
+                    var actRange = (Range<?>)actual;
+
+                    assert expRange.doesIncludeLower() == actRange.doesIncludeLower();
+                    assert expRange.doesIncludeUpper() == actRange.doesIncludeUpper();
+                    assert expRange.isEmpty() == actRange.isEmpty();
+
+                    // reduce lower and upper to compare
+                    if(expRange.getLower() != null) {
+                        assert actRange.getLower() != null;
+
+                        var lowerReduced = reducers.stream().filter(v -> v.canReduce(expRange.getLower().getClass(), actRange.getLower().getClass())).findFirst();
+
+                        if(lowerReduced.isPresent()) {
+                            var reduced = lowerReduced.get().reduce(expRange.getLower(), actRange.getLower());
+                            assertThat(reduced.getValue()).isEqualTo(reduced.getKey());
+                        } else {
+                            assertThat(actRange.getLower()).isEqualTo(expRange.getLower());
+                        }
+                    }
+
+                    if(expRange.getUpper() != null) {
+                        assert actRange.getUpper() != null;
+
+                        var upperReduced = reducers.stream().filter(v -> v.canReduce(expRange.getUpper().getClass(), actRange.getUpper().getClass())).findFirst();
+
+                        if(upperReduced.isPresent()) {
+                            var reduced = upperReduced.get().reduce(expRange.getUpper(), actRange.getUpper());
+                            assertThat(reduced.getValue()).isEqualTo(reduced.getKey());
+                        } else {
+                            assertThat(actRange.getUpper()).isEqualTo(expRange.getUpper());
+                        }
+                    }
+
+                    return;
+                }
+
                 assertThat(actual).isEqualTo(expected);
                 break;
         }
@@ -249,7 +291,7 @@ public class ResultAsserter {
         throw new AssertionFailedError("expected object-like type, but got " + type.getName());
     }
 
-    private static Map<ResultNode, Object> assertCollection(Object expected, Object actual) {
+    private static Map<ResultNode, Object> assertCollection(Object expected, Object actual, boolean reverseActual) {
         assert expected != null;
         assert actual != null;
 
@@ -260,7 +302,7 @@ public class ResultAsserter {
         var actualList = actual instanceof Iterable<?>
                 ? Lists.newArrayList((Iterable<?>) actual)
                 : actual.getClass().isArray()
-                    ? List.of((Object[]) actual)
+                    ? new ArrayList<>(List.of((Object[]) actual))
                     : null;
 
         if(actualList == null) {
@@ -268,6 +310,10 @@ public class ResultAsserter {
         }
 
         assert expectedArr.length == actualList.size();
+
+        if(reverseActual) {
+            Collections.reverse(actualList);
+        }
 
         return IntStream.range(0, expectedArr.length)
                 .mapToObj(i -> Map.entry(expectedArr[i], actualList.get(i)))

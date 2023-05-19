@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class ISOFormatBase<T> extends StdDeserializer<T> {
-    protected ISOFormatBase(Class<?> vc) {
+public abstract class CFormatBase<T> extends StdDeserializer<T> {
+    protected CFormatBase(Class<?> vc) {
         super(vc);
     }
 
@@ -35,10 +35,15 @@ public abstract class ISOFormatBase<T> extends StdDeserializer<T> {
             if(i == 0 && spl.length == 3) {
                 var dh = component.split("\\.");
 
-                duration = duration.plus(Long.parseLong(dh[0]), ChronoUnit.DAYS);
+                if(dh.length == 2) {
+                    duration = duration.plus(Long.parseLong(dh[0]), ChronoUnit.DAYS);
 
-                if(!dh[1].equals("00")) {
-                    duration = duration.plus(Long.parseLong(dh[1]), ChronoUnit.HOURS);
+                    if(!dh[1].equals("00")) {
+                        duration = duration.plus(Long.parseLong(dh[1]), ChronoUnit.HOURS);
+                    }
+                }
+                else{
+                    duration = duration.plus(Long.parseLong(component), ChronoUnit.HOURS);
                 }
 
                 continue;

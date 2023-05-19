@@ -11,7 +11,7 @@ import javax.naming.OperationNotSupportedException;
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public final class TupleCodec extends CodecBase<Tuple> {
-    private final Codec<?>[] innerCodecs;
+    public final Codec<?>[] innerCodecs;
 
     public TupleCodec(Codec<?>[] codecs) {
         super(Tuple.class);
@@ -20,7 +20,30 @@ public final class TupleCodec extends CodecBase<Tuple> {
 
     @Override
     public void serialize(PacketWriter writer, @Nullable Tuple value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
-        throw new OperationNotSupportedException();
+        if(value == null || value.size() == 0) {
+            writer.write(-1);
+            return;
+        }
+
+        if(innerCodecs.length != value.size()) {
+            throw new IllegalArgumentException("Tuple length does not match descriptor length");
+        }
+
+        writer.write(value.size());
+
+        for(int i = 0; i != value.size(); i++) {
+            //noinspection unchecked
+            var codec = (Codec<Object>)innerCodecs[i];
+            var element = value.get(i, codec.getConvertingClass());
+
+            writer.write(0); // reserved
+
+            if(element == null) {
+                writer.write(-1);
+            } else {
+                writer.writeDelegateWithLength((w) -> codec.serialize(w, element, context));
+            }
+        }
     }
 
     @Override

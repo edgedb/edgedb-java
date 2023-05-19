@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.BiFunction;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.*;
 
@@ -145,33 +145,35 @@ public class PacketWriter implements AutoCloseable {
         this.buffer.writerIndex(position);
     }
 
-    private <T> void write(T value, int size, Consumer<T> writer) throws OperationNotSupportedException {
+    private <T> void write(T value, int size, BiFunction<ByteBuf, T, ByteBuf> writer) throws OperationNotSupportedException {
         ensureCanWrite(size);
-        writer.accept(value);
+        // we have to use a bi-func here, since 'ensureCanWrite' can rescale the buffer, changing the
+        // 'this.buffer' reference which the delegate can hold an old reference.
+        writer.apply(this.buffer, value);
     }
 
     public void write(double value) throws OperationNotSupportedException {
-        write(value, DOUBLE_SIZE, this.buffer::writeDouble);
+        write(value, DOUBLE_SIZE, ByteBuf::writeDouble);
     }
 
     public void write(float value) throws OperationNotSupportedException {
-        write(value, FLOAT_SIZE, this.buffer::writeFloat);
+        write(value, FLOAT_SIZE, ByteBuf::writeFloat);
     }
 
     public void write(long value) throws OperationNotSupportedException {
-        write(value, LONG_SIZE, this.buffer::writeLong);
+        write(value, LONG_SIZE, ByteBuf::writeLong);
     }
 
     public void write(int value) throws OperationNotSupportedException {
-        write(value, INT_SIZE, this.buffer::writeInt);
+        write(value, INT_SIZE, ByteBuf::writeInt);
     }
 
     public void write(short value) throws OperationNotSupportedException {
-        write((int)value, SHORT_SIZE, this.buffer::writeShort);
+        write((int)value, SHORT_SIZE, ByteBuf::writeShort);
     }
 
     public void write(byte value) throws OperationNotSupportedException {
-        write((int)value, BYTE_SIZE, this.buffer::writeByte);
+        write((int)value, BYTE_SIZE, ByteBuf::writeByte);
     }
 
     public void write(ULong value) throws OperationNotSupportedException {
@@ -191,11 +193,11 @@ public class PacketWriter implements AutoCloseable {
     }
 
     public void write(char value) throws OperationNotSupportedException {
-        write((int)value, CHAR_SIZE, this.buffer::writeChar);
+        write((int)value, CHAR_SIZE, ByteBuf::writeChar);
     }
 
     public void write(boolean value) throws OperationNotSupportedException {
-        write(value, BOOL_SIZE, this.buffer::writeBoolean);
+        write(value, BOOL_SIZE, ByteBuf::writeBoolean);
     }
 
     public void write(UUID uuid) throws OperationNotSupportedException {
@@ -272,7 +274,7 @@ public class PacketWriter implements AutoCloseable {
     }
 
     public void writeDelegateWithLength(WriterDelegate delegate) throws OperationNotSupportedException, EdgeDBException {
-        ensureCanWrite();
+        ensureCanWrite(INT_SIZE);
 
         var currentIndex = this.getPosition();
         this.advance(INT_SIZE);

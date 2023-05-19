@@ -42,7 +42,7 @@ public class SessionDeserializer extends StdDeserializer<Session> {
         var globals = Streams.stream(((ObjectNode)node.get("globals")).fields())
                 .collect(Collectors.toMap(Map.Entry::getKey, v -> {
                     try {
-                        return ResultTypeBuilder.toObject((ResultNode) ResultNodeDeserializer.INSTANCE.deserialize(v.getValue().traverse(), context));
+                        return ResultTypeBuilder.toObject((ResultNode) ResultNodeDeserializer.INSTANCE.deserialize(v.getValue().traverse(parser.getCodec()), context));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -73,7 +73,7 @@ public class SessionDeserializer extends StdDeserializer<Session> {
         );
         builder.withAllowBareDDL(node.path("ddl_policy").isMissingNode()
                 ? null
-                : ((IntNode)node.get("ddl_policy")).asInt() > 0
+                : ((IntNode)node.get("ddl_policy")).asInt() == 0
         );
 
         builder.withAllowDMLInFunctions(node.path("allow_dml_in_functions").isMissingNode()

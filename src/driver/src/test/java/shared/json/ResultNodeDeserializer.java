@@ -23,8 +23,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class ResultNodeDeserializer extends StdDeserializer<Object> {
     public static final ResultNodeDeserializer INSTANCE = new ResultNodeDeserializer();
@@ -76,16 +76,15 @@ public class ResultNodeDeserializer extends StdDeserializer<Object> {
                         Streams.stream(
                                 ((ObjectNode)tree.get("value")).fields()
                         ).collect(
-                                Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        v -> {
-                                            try {
-                                                return readNodeValue(v.getValue(), context);
-                                            } catch (IOException e) {
-                                                throw new RuntimeException(e);
-                                            }
-                                        }
-                                )
+                                LinkedHashMap::new,
+                                (m, v) -> {
+                                    try {
+                                        m.put(v.getKey(), readNodeValue(v.getValue(), context));
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                },
+                                HashMap::putAll
                         )
                 );
             case "tuple":
@@ -104,17 +103,23 @@ public class ResultNodeDeserializer extends StdDeserializer<Object> {
                         break;
                     case "std::int64":
                         elementClass = Long.class;
+                        break;
                     case "std::float32":
                         elementClass = Float.class;
+                        break;
                     case "std::float64":
                         elementClass = Double.class;
+                        break;
                     case "std::decimal":
                         elementClass = BigDecimal.class;
+                        break;
                     case "std::datetime":
                         elementClass = OffsetDateTime.class;
-                    case "std::local_datetime":
+                        break;
+                    case "cal::local_datetime":
                         elementClass = LocalDateTime.class;
-                    case "std::local_date":
+                        break;
+                    case "cal::local_date":
                         elementClass = LocalDate.class;
                         break;
                     default:

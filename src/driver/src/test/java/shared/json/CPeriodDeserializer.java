@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 
-public class ISOPeriodDeserializer extends ISOFormatBase<Period> {
-    public ISOPeriodDeserializer() {
+public class CPeriodDeserializer extends CFormatBase<Period> {
+    public CPeriodDeserializer() {
         super(Period.class);
     }
 

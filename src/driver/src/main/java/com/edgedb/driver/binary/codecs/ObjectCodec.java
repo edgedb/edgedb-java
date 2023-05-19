@@ -2,7 +2,6 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
-import com.edgedb.driver.binary.builders.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
@@ -162,6 +161,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         this.serialize(writer, value, context);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final void serialize(PacketWriter writer, @Nullable Object rawValue, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(rawValue == null) {
@@ -172,7 +172,6 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             throw new EdgeDBException("Expected map type for object serialization");
         }
 
-        @SuppressWarnings("unchecked")
         var value = (Map<String, ?>)rawValue;
 
         writer.write(value.size());
@@ -201,7 +200,8 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             visitor.reset();
 
             writer.writeDelegateWithLength((v) -> codec.serialize(v, elementValue, context));
-        }    }
+        }
+    }
 
     @Override
     public @Nullable Object deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {

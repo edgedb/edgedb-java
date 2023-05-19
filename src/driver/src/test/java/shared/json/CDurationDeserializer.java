@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-public class ISODurationDeserializer extends ISOFormatBase<Duration> {
-    public ISODurationDeserializer() {
+public class CDurationDeserializer extends CFormatBase<Duration> {
+    public CDurationDeserializer() {
         super(Duration.class);
     }
 

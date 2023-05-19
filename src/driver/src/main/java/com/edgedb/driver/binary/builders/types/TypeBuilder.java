@@ -20,6 +20,7 @@ public final class TypeBuilder {
     static {
         deserializerInfo = new ConcurrentHashMap<>() {{
             put(Map.class, new TypeDeserializerInfo<>(Map.class, (e, v) -> e.flatten()));
+            put(Object.class, new TypeDeserializerInfo<>(Object.class, (e, v) -> e.flatten()));
         }};
     }
 

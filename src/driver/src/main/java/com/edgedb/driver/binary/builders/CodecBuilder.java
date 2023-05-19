@@ -10,6 +10,7 @@ import com.edgedb.driver.binary.descriptors.*;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.binary.packets.shared.IOFormat;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.util.CollectionUtils;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -108,7 +110,8 @@ public final class CodecBuilder {
                                 new CompilableCodec(
                                         descriptor.getId(),
                                         codecs.get(arrayType.typePosition.intValue()),
-                                        ArrayCodec::new
+                                        ArrayCodec::new,
+                                        t -> Array.newInstance(t,0).getClass()
                                 )
                         );
                         break;
@@ -158,7 +161,9 @@ public final class CodecBuilder {
                                 new CompilableCodec(
                                         descriptor.getId(),
                                         codecs.get(rangeType.typePosition.intValue()),
-                                        RangeCodec::new)
+                                        RangeCodec::new,
+                                        t -> Range.empty(t).getClass()
+                                )
                         );
                         break;
                     case SCALAR_TYPE_NAME_ANNOTATION:
@@ -171,7 +176,8 @@ public final class CodecBuilder {
                                 new CompilableCodec(
                                         descriptor.getId(),
                                         codecs.get(setTypes.typePosition.intValue()),
-                                        SetCodec::new
+                                        SetCodec::new,
+                                        t -> Array.newInstance(t, 0).getClass()
                                 )
                         );
                         break;

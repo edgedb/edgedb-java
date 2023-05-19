@@ -17,6 +17,7 @@ public class EdgeDBClientConfig {
     private TimeUnit messageTimeoutUnit = TimeUnit.SECONDS;
     private boolean explicitObjectIds;
     private long implicitLimit;
+    private boolean implicitTypeIds;
     private NamingStrategy namingStrategy = NamingStrategy.defaultStrategy();
     private boolean useFieldSetters = false;
     private ClientType clientType = ClientType.TCP;
@@ -128,5 +129,13 @@ public class EdgeDBClientConfig {
 
     public void setClientMaxAge(@NotNull Duration clientMaxAge) {
         this.clientMaxAge = clientMaxAge;
+    }
+
+    public boolean getImplicitTypeIds() {
+        return implicitTypeIds;
+    }
+
+    public void setImplicitTypeIds(boolean implicitTypeIds) {
+        this.implicitTypeIds = implicitTypeIds;
     }
 }

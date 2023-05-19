@@ -99,6 +99,10 @@ public final class Tuple {
         return (T)element.value;
     }
 
+    public int size() {
+        return elements.size();
+    }
+
     public static final class TupleElement {
         public final Class<?> type;
         public final Object value;

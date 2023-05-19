@@ -11,13 +11,14 @@ import com.edgedb.driver.clients.BaseEdgeDBClient;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import shared.json.ISODurationDeserializer;
-import shared.json.ISOPeriodDeserializer;
-import shared.json.RelativeDurationDeserializer;
+import shared.json.CDurationDeserializer;
+import shared.json.CPeriodDeserializer;
+import shared.json.CRelativeDurationDeserializer;
 import shared.models.QueryExecutionArguments;
 import shared.models.Test;
 
@@ -42,11 +43,12 @@ import java.util.stream.IntStream;
 public class SharedTestsRunner {
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .registerModule(new JavaTimeModule())
             .registerModule(new SimpleModule(){{
-                addDeserializer(RelativeDuration.class, new RelativeDurationDeserializer());
-                addDeserializer(Period.class, new ISOPeriodDeserializer());
-                addDeserializer(Duration.class, new ISODurationDeserializer());
+                addDeserializer(RelativeDuration.class, new CRelativeDurationDeserializer());
+                addDeserializer(Period.class, new CPeriodDeserializer());
+                addDeserializer(Duration.class, new CDurationDeserializer());
             }});
 
     private static final EdgeDBClient CLIENT;
@@ -63,6 +65,9 @@ public class SharedTestsRunner {
     }
 
     public static void Run(String path) {
+        // since result type combinations are exponential, we set a hard coded limit as to not run out of memory.
+        final int maxResultTypes = 15;
+
         Test testDefinition;
 
         try {
@@ -99,7 +104,7 @@ public class SharedTestsRunner {
             }
         }
 
-        var resultTypes = ResultTypeBuilder.createResultTypes(testDefinition.result);
+        var resultTypes = ResultTypeBuilder.createResultTypes(testDefinition.result, maxResultTypes, !path.contains("deep_nesting"));
 
         for(int i = 0; i != results.size(); i++) {
             var executionResult = results.get(i);

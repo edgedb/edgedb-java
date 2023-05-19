@@ -1033,13 +1033,17 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
 
         public EnumSet<CompilationFlags> getCompilationFlags() {
-            var flags = EnumSet.of(CompilationFlags.IMPLICIT_TYPE_IDS);
+            var flags = EnumSet.of(CompilationFlags.NONE);
+
+            if(getConfig().getImplicitTypeIds()) {
+                flags.add(CompilationFlags.IMPLICIT_TYPE_IDS);
+            }
 
             if(implicitTypeNames) {
                 flags.add(CompilationFlags.IMPLICIT_TYPE_NAMES);
             }
 
-            if(getConfig().getExplicitObjectIds()) {
+            if(!getConfig().getExplicitObjectIds()) {
                 flags.add(CompilationFlags.EXPLICIT_OBJECT_IDS);
             }
 
