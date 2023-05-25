@@ -16,7 +16,7 @@ public final class MemoryCodec extends ScalarCodecBase<Memory> {
     @Override
     public void serialize(PacketWriter writer, @Nullable Memory value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
-            writer.write(value.bytes);
+            writer.write(value.getBytes());
         }
     }
 

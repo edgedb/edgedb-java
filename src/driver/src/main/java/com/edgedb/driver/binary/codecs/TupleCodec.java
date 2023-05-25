@@ -54,7 +54,7 @@ public final class TupleCodec extends CodecBase<Tuple> {
             throw new EdgeDBException("Codec count does not match number of elements in tuple");
         }
 
-        Tuple.TupleElement[] elements = new Tuple.TupleElement[numElements];
+        Tuple.Element[] elements = new Tuple.Element[numElements];
 
         for(int i = 0; i != numElements; i++) {
             var codec = innerCodecs[i];
@@ -64,13 +64,13 @@ public final class TupleCodec extends CodecBase<Tuple> {
             var data = reader.readByteArray();
 
             if(data == null) {
-                elements[i] = new Tuple.TupleElement(codec.getConvertingClass(), null);
+                elements[i] = Tuple.Element.of(null, codec.getConvertingClass());
                 continue;
             }
 
-            elements[i] = new Tuple.TupleElement(codec.getConvertingClass(), codec.deserialize(new PacketReader(data), context));
+            elements[i] = Tuple.Element.of(codec.deserialize(new PacketReader(data), context), codec.getConvertingClass());
         }
 
-        return new Tuple(elements);
+        return Tuple.of(elements);
     }
 }

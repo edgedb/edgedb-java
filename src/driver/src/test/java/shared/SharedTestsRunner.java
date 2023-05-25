@@ -55,10 +55,11 @@ public class SharedTestsRunner {
 
     static {
         try {
-            CLIENT = new EdgeDBClient(new EdgeDBClientConfig() {{
-                setMessageTimeout(1, TimeUnit.HOURS);
-                setExplicitObjectIds(true);
-            }});
+            CLIENT = new EdgeDBClient(EdgeDBClientConfig.builder()
+                    .withMessageTimeout(1, TimeUnit.HOURS)
+                    .withExplicitObjectIds(true)
+                    .build()
+            );
         } catch (IOException | EdgeDBException e) {
             throw new RuntimeException(e);
         }

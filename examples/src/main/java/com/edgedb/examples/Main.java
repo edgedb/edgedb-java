@@ -20,10 +20,11 @@ public class Main {
         var a = new ArrayList<>();
         var b = new ArrayList<String>();
 
-        var client = new EdgeDBClient(new EdgeDBClientConfig() {{
-            setNamingStrategy(NamingStrategy.snakeCase());
-            setUseFieldSetters(true);
-        }});
+        var client = new EdgeDBClient(EdgeDBClientConfig.builder()
+                .withNamingStrategy(NamingStrategy.snakeCase())
+                .useFieldSetters(true)
+                .build()
+        );
 
         // use the example module
         var exampleClient = client.withModule("examples");

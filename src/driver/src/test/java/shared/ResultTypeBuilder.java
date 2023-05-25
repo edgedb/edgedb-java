@@ -118,9 +118,9 @@ public class ResultTypeBuilder {
         else if (node instanceof ResultNodeImpl) {
             if(node.getName().equals("tuple")) {
                 assert node.getValue() != null;
-                return new Tuple(
+                return Tuple.of(
                         Arrays.stream(((ResultNode[]) node.getValue()))
-                        .map(ResultTypeBuilder::toObject).toArray()
+                                .map(ResultTypeBuilder::toObject).toArray()
                 );
             }
 

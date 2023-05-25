@@ -17,7 +17,7 @@ public final class GlobalsAndConfig implements Example {
         var configuredClient = client
                 .withConfig(config -> config
                         .withIdleTransactionTimeout(Duration.ZERO)
-                        .withApplyAccessPolicies(true))
+                        .applyAccessPolicies(true))
                 .withGlobals(new HashMap<>(){{
                     put("current_user_id", UUID.randomUUID());
                 }});

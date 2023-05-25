@@ -1,6 +1,7 @@
 package shared.models;
 
 import com.edgedb.driver.Capabilities;
+import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.state.Session;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,14 +24,14 @@ public class QueryExecutionArguments {
     public Session session;
 
     public Cardinality getCardinality() {
-        return Cardinality.valueOf(cardinality);
+        return PacketSerializer.getEnumValue(Cardinality.class, cardinality);
     }
 
     public EnumSet<Capabilities> getCapabilities() {
         return EnumSet.copyOf(Arrays.stream(Capabilities.values())
                 .map(Capabilities::getValue)
                 .filter(v -> (v & capabilities) == v)
-                .map(Capabilities::valueOf)
+                .map(v -> PacketSerializer.getEnumValue(Capabilities.class, v))
                 .collect(Collectors.toSet()));
     }
 }

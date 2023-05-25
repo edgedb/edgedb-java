@@ -12,6 +12,7 @@ import java.util.function.BiFunction;
 import static org.joou.Unsigned.ubyte;
 
 public final class TypeDescriptorBuilder {
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
 
     static {
@@ -33,7 +34,7 @@ public final class TypeDescriptorBuilder {
     }
 
     public static TypeDescriptorResult getDescriptor(final PacketReader reader) throws EdgeDBException {
-        var type = reader.readEnum(DescriptorType::valueOf, Byte.TYPE);
+        var type = reader.readEnum(DescriptorType.class, Byte.TYPE);
         var id = reader.readUUID();
 
         var factory = typeDescriptorFactories.get(type);
@@ -65,7 +66,7 @@ public final class TypeDescriptorBuilder {
         }
 
         @SuppressWarnings("unchecked")
-        public <T extends TypeDescriptor> T as(Class<T> cls) {
+        public <T extends TypeDescriptor> T as(Class<T> ignored) {
             return (T)descriptor;
         }
     }

@@ -1,7 +1,6 @@
 package shared.json;
 
 import com.edgedb.driver.state.Config;
-import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -58,34 +57,30 @@ public class SessionDeserializer extends StdDeserializer<Session> {
     }
 
     private Config readConfig(TreeNode node, DeserializationContext context) throws IOException {
-        var builder = new ConfigBuilder();
-
-        builder.withApplyAccessPolicies(
-                node.path("apply_access_policies").isMissingNode()
+        return Config.builder()
+                .applyAccessPolicies(
+                        node.path("apply_access_policies").isMissingNode()
+                                ? null
+                                : ((BooleanNode)node.get("apply_access_policies")).asBoolean()
+                )
+                .withIdleTransactionTimeout(
+                        node.path("idle_transaction_timeout").isMissingNode()
+                                ? null
+                                : context.readTreeAsValue((JsonNode) node.get("idle_transaction_timeout"), Duration.class)
+                )
+                .allowBareDDL(
+                        node.path("ddl_policy").isMissingNode()
+                                ? null
+                                : ((IntNode)node.get("ddl_policy")).asInt() == 0
+                )
+                .allowDMLInFunctions(node.path("allow_dml_in_functions").isMissingNode()
                         ? null
-                        : ((BooleanNode)node.get("apply_access_policies")).asBoolean()
-        );
-
-        builder.withIdleTransactionTimeout(
-                node.path("idle_transaction_timeout").isMissingNode()
+                        : ((BooleanNode)node.get("allow_dml_in_functions")).asBoolean()
+                )
+                .withQueryExecutionTimeout(node.path("query_execution_timeout").isMissingNode()
                         ? null
-                        : context.readTreeAsValue((JsonNode) node.get("idle_transaction_timeout"), Duration.class)
-        );
-        builder.withAllowBareDDL(node.path("ddl_policy").isMissingNode()
-                ? null
-                : ((IntNode)node.get("ddl_policy")).asInt() == 0
-        );
-
-        builder.withAllowDMLInFunctions(node.path("allow_dml_in_functions").isMissingNode()
-                ? null
-                : ((BooleanNode)node.get("allow_dml_in_functions")).asBoolean()
-        );
-
-        builder.withQueryExecutionTimeout(node.path("query_execution_timeout").isMissingNode()
-                ? null
-                : context.readTreeAsValue((JsonNode) node.get("query_execution_timeout"), Duration.class)
-        );
-
-        return builder.build();
+                        : context.readTreeAsValue((JsonNode) node.get("query_execution_timeout"), Duration.class)
+                )
+                .build();
     }
 }

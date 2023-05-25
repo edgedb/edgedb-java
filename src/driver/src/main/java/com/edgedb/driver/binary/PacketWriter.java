@@ -13,9 +13,7 @@ import javax.naming.OperationNotSupportedException;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.*;
@@ -25,7 +23,11 @@ public class PacketWriter implements AutoCloseable {
     private final boolean isDynamic;
     private boolean canWrite;
 
-    private static final Map<Class<?>, BiConsumer<PacketWriter, Number>> primitiveNumberWriters;
+    private interface PrimitiveWriter {
+        void write(PacketWriter writer, Number value) throws OperationNotSupportedException;
+    }
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private static final HashMap<Class<?>, PrimitiveWriter> primitiveNumberWriters;
 
     public PacketWriter(int size, boolean isDynamic) {
         this.isDynamic = isDynamic;
@@ -34,71 +36,16 @@ public class PacketWriter implements AutoCloseable {
     }
 
     static {
-        primitiveNumberWriters = new HashMap<>();
-
-        primitiveNumberWriters.put(Byte.TYPE, (p, v) -> {
-            try {
-                p.write((byte)v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(Short.TYPE, (p, v) -> {
-            try {
-                p.write((short)v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(Integer.TYPE, (p, v) -> {
-            try {
-                p.write((int) v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(Long.TYPE, (p, v) -> {
-            try {
-                p.write((long) v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(UByte.class, (p, v) -> {
-            try {
-                p.write((byte)v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(UShort.class, (p, v) -> {
-            try {
-                p.write((short)v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(UInteger.class, (p, v) -> {
-            try {
-                p.write((int) v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        primitiveNumberWriters.put(ULong.class, (p, v) -> {
-            try {
-                p.write((long) v);
-            } catch (OperationNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        primitiveNumberWriters = new HashMap<>() {{
+            put(Byte.TYPE, (p, v) -> p.write((byte)v));
+            put(Short.TYPE, (p, v) -> p.write((short)v));
+            put(Integer.TYPE, (p, v) -> p.write((int) v));
+            put(Long.TYPE, (p, v) -> p.write((long) v));
+            put(UByte.class, (p, v) -> p.write((byte)v));
+            put(UShort.class, (p, v) -> p.write((short)v));
+            put(UInteger.class, (p, v) -> p.write((int) v));
+            put(ULong.class, (p, v) -> p.write((long) v));
+        }};
     }
 
     public PacketWriter() {
@@ -209,6 +156,10 @@ public class PacketWriter implements AutoCloseable {
         writeArray(value.getBytes(StandardCharsets.UTF_8));
     }
 
+    public <T extends Number> void writePrimitive(T value) throws OperationNotSupportedException {
+        primitiveNumberWriters.get(value.getClass()).write(this, value);
+    }
+
     public void writeArray(ByteBuf buffer) throws OperationNotSupportedException {
         // TODO: ensure that this is the correct way to write a buff to this one
 
@@ -251,7 +202,7 @@ public class PacketWriter implements AutoCloseable {
 
         var len = BinaryProtocolUtils.castNumber(serializableArray.length, lengthPrimitive);
 
-        primitiveNumberWriters.get(lengthPrimitive).accept(this, len);
+        primitiveNumberWriters.get(lengthPrimitive).write(this, len);
 
         for (T serializable : serializableArray) {
             write(serializable);
@@ -265,11 +216,11 @@ public class PacketWriter implements AutoCloseable {
             flags |= v.getValue().longValue();
         }
 
-        primitiveNumberWriters.get(primitive).accept(this, BinaryProtocolUtils.castNumber(flags, primitive));
+        primitiveNumberWriters.get(primitive).write(this, BinaryProtocolUtils.castNumber(flags, primitive));
     }
 
     @FunctionalInterface
-    public static interface WriterDelegate {
+    public interface WriterDelegate {
         void consume(PacketWriter writer) throws OperationNotSupportedException, EdgeDBException;
     }
 

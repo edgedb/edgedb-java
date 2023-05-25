@@ -22,8 +22,8 @@ public class CommandDataDescription implements Receivable {
 
     public CommandDataDescription(PacketReader reader) {
         annotations = reader.readAnnotations();
-        capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE, Capabilities::valueOf);
-        cardinality = reader.readEnum(Cardinality::valueOf, Byte.TYPE);
+        capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE);
+        cardinality = reader.readEnum(Cardinality.class, Byte.TYPE);
         inputTypeDescriptorId = reader.readUUID();
         inputTypeDescriptorBuffer = reader.readByteArray();
         outputTypeDescriptorId = reader.readUUID();

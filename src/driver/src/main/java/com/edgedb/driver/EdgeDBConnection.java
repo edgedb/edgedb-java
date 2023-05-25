@@ -11,15 +11,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.netty.handler.ssl.SslContextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,14 +21,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * A class containing information on how to connect to a EdgeDB instance.
+ */
+@SuppressWarnings("CloneableClassWithoutClone")
 public class EdgeDBConnection implements Cloneable {
     private static final String EDGEDB_INSTANCE_ENV_NAME = "EDGEDB_INSTANCE";
     private static final String EDGEDB_DSN_ENV_NAME = "EDGEDB_DSN";
@@ -76,23 +70,51 @@ public class EdgeDBConnection implements Cloneable {
     @JsonProperty("tls_security")
     private @Nullable TLSSecurityMode tlsSecurity;
 
+    /**
+     * Gets the current connections' username field.
+     * @return The username part of the connection.
+     */
     public String getUsername() {
         return user == null ? "edgedb" : user;
     }
+
+    /**
+     * Sets the current connections username field
+     * @param value The new username.
+     */
     public void setUsername(String value) {
         user = value;
     }
 
+    /**
+     * Gets the current connections' password field.
+     * @return The password part of the connection.
+     */
     public String getPassword() {
         return password;
     }
+
+    /**
+     * Sets the current connections password field.
+     * @param value The new password.
+     */
     public void setPassword(String value) {
         password = value;
     }
 
+    /**
+     * Gets the current connections' hostname field.
+     * @return The hostname part of the connection.
+     */
     public String getHostname() {
         return hostname == null ? "127.0.0.1" : hostname;
     }
+
+    /**
+     * Sets the current connections hostname field.
+     * @param value The new hostname
+     * @throws ConfigurationException The hostname is invalid
+     */
     public void setHostname(String value) throws ConfigurationException {
         if (value.contains("/")) {
             throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
@@ -105,35 +127,79 @@ public class EdgeDBConnection implements Cloneable {
         hostname = value;
     }
 
+    /**
+     * Gets the current connections' port field.
+     * @return The port of the connection.
+     */
     public int getPort() {
         return port == null ? 5656 : port;
     }
+
+    /**
+     * Sets the current connections port field.
+     * @param value The new port.
+     */
     public void setPort(int value) {
         port = value;
     }
 
+    /**
+     * Gets the current connections' database field.
+     * @return The database part of the connection.
+     */
     public String getDatabase() {
         return database == null ? "edgedb" : database;
     }
+
+    /**
+     * Sets the current connections database field.
+     * @param value The new database
+     */
     public void setDatabase(String value) {
         database = value;
     }
 
+    /**
+     * Gets the current connections' TLS certificate authority.
+     * @return The TLS certificate authority of the connection.
+     */
     public String getTLSCertificateAuthority() {
         return tlsca;
     }
+
+    /**
+     * Sets the current connections TLS certificate authority.
+     * @param value The new TLS certificate authority.
+     */
     public void setTLSCertificateAuthority(String value) {
         tlsca = value;
     }
 
+    /**
+     * Gets the current connections' TLS security mode.
+     * @return The TLS security mode of the connection.
+     * @see TLSSecurityMode
+     */
     public TLSSecurityMode getTLSSecurity() {
         return tlsSecurity == null ? TLSSecurityMode.STRICT : this.tlsSecurity;
     }
 
+    /**
+     * Sets the current connections TLS security mode.
+     * @param value The new TLS security mode.
+     * @see TLSSecurityMode
+     */
     public void setTLSSecurity(TLSSecurityMode value) {
         tlsSecurity = value;
     }
 
+    /**
+     * Creates a {@linkplain EdgeDBConnection} from a given DSN string.
+     * @param dsn The DSN to create the connection from.
+     * @return A {@linkplain EdgeDBConnection} representing the parameters within the provided DSN string.
+     * @throws ConfigurationException The DSN is not properly formatted.
+     * @throws IOException A file argument within the DSN cannot be found or be read.
+     */
     public static EdgeDBConnection fromDSN(@NotNull String dsn) throws ConfigurationException, IOException {
         if (!dsn.startsWith("edgedb://")) {
             throw new ConfigurationException(String.format("DSN schema 'edgedb' expected but got '%s'", dsn.split("://")[0]));
@@ -267,13 +333,35 @@ public class EdgeDBConnection implements Cloneable {
         return connection;
     }
 
+    /**
+     * Creates a {@linkplain EdgeDBConnection} from a project files path.
+     * @param path The path to the {@code edgedb.toml} file
+     * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
+     * {@code edgedb.toml} file.
+     * @throws IOException The project file or one of its dependants doesn't exist
+     */
     public static EdgeDBConnection fromProjectFile(Path path) throws IOException {
         return fromProjectFile(path.toFile());
     }
+
+    /**
+     * Creates a {@linkplain EdgeDBConnection} from a project files path.
+     * @param path The path to the {@code edgedb.toml} file
+     * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
+     * {@code edgedb.toml} file.
+     * @throws IOException The project file or one of its dependants doesn't exist
+     */
     public static EdgeDBConnection fromProjectFile(String path) throws IOException {
         return fromProjectFile(new File(path));
     }
 
+    /**
+     * Creates a {@linkplain EdgeDBConnection} from a project file.
+     * @param file The {@code edgedb.toml} file
+     * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
+     * {@code edgedb.toml} file.
+     * @throws IOException The project file or one of its dependants doesn't exist
+     */
     public static EdgeDBConnection fromProjectFile(File file) throws IOException {
         if(!file.exists()) {
             throw new FileNotFoundException("Couldn't find the specified project file");
@@ -294,6 +382,12 @@ public class EdgeDBConnection implements Cloneable {
         return fromInstanceName(instanceName);
     }
 
+    /**
+     * Creates a new {@linkplain EdgeDBConnection} from an instance name.
+     * @param instanceName The name of the instance.
+     * @return A {@linkplain EdgeDBConnection} that targets the specified instance.
+     * @throws IOException The instance could not be found or one of its configuration files cannot be read.
+     */
     public static EdgeDBConnection fromInstanceName(String instanceName) throws IOException {
         var configPath = Paths.get(ConfigUtils.getCredentialsDir(), instanceName + ".json");
 
@@ -303,6 +397,12 @@ public class EdgeDBConnection implements Cloneable {
         return fromJSON(Files.readString(configPath, StandardCharsets.UTF_8));
     }
 
+    /**
+     * Resolves a connection by traversing the current working directory and its parents to find a {@code edgedb.toml}
+     * file to use to create the {@linkplain EdgeDBConnection}.
+     * @return A resolved {@linkplain EdgeDBConnection}.
+     * @throws IOException No {@code edgedb.toml} file could be found, or one of its configuration files cannot be read.
+     */
     public static EdgeDBConnection resolveEdgeDBTOML() throws IOException {
         var dir = Paths.get(System.getProperty("user.dir"));
 
@@ -323,16 +423,41 @@ public class EdgeDBConnection implements Cloneable {
         }
     }
 
+    /**
+     * Parses a connection from disc, and/or the connection argument as a DSN or instance name, then applying
+     * environment variables to the connection.
+     * @param connection The connection argument, usually a DSN or instance name.
+     * @return A parsed {@linkplain EdgeDBConnection}.
+     * @throws ConfigurationException One of the arguments is invalid.
+     * @throws IOException One on the file arguments doesn't exist or cannot be read.
+     */
     public static EdgeDBConnection parse(String connection) throws ConfigurationException, IOException {
         return parse(connection, null, true);
     }
 
+    /**
+     * Parses a connection from disc and/or environment variables, then applies the specified delegate to the
+     * connection.
+     * @param configure The delegate used to configure the resolved connection.
+     * @return A parsed {@linkplain EdgeDBConnection}.
+     * @throws ConfigurationException One of the arguments is invalid.
+     * @throws IOException One on the file arguments doesn't exist or cannot be read.
+     */
     public static EdgeDBConnection parse(
             ConfigureFunction configure
     ) throws ConfigurationException, IOException {
         return parse(null, configure, true);
     }
 
+    /**
+     * Parses a connection from disc, and/or the connection argument as a DSN or instance name, applying
+     * environment variables to the connection, then calling the specified delegate with the parsed connection.
+     * @param connection The connection argument, usually a DSN or instance name.
+     * @param configure The delegate used to configure the resolved connection.
+     * @return A parsed {@linkplain EdgeDBConnection}.
+     * @throws ConfigurationException One of the arguments is invalid.
+     * @throws IOException One on the file arguments doesn't exist or cannot be read.
+     */
     public static EdgeDBConnection parse(
             String connection,
             ConfigureFunction configure
@@ -340,7 +465,16 @@ public class EdgeDBConnection implements Cloneable {
         return parse(connection, configure, true);
     }
 
-    @SuppressWarnings("SameParameterValue")
+    /**
+     * Parses a connection from disc, and/or the connection argument as a DSN or instance name, applying
+     * environment variables to the connection, then calling the specified delegate with the parsed connection.
+     * @param connParam The connection argument, usually a DSN or instance name.
+     * @param configure The delegate used to configure the resolved connection.
+     * @param autoResolve Whether to resolve the connection from disc.
+     * @return A parsed {@linkplain EdgeDBConnection}.
+     * @throws ConfigurationException One of the arguments is invalid.
+     * @throws IOException One on the file arguments doesn't exist or cannot be read.
+     */
     public static EdgeDBConnection parse(
             @Nullable String connParam,
             @Nullable ConfigureFunction configure,
@@ -496,76 +630,6 @@ public class EdgeDBConnection implements Cloneable {
         return other;
     }
 
-    public SSLContext getSSLContext() throws GeneralSecurityException, IOException {
-        return getSSLContext("SSL");
-    }
-    public SSLContext getSSLContext(String instanceName) throws GeneralSecurityException, IOException {
-        SSLContext sc = SSLContext.getInstance(instanceName);
-        TrustManager[] trustManagers;
-
-        if(this.tlsSecurity == TLSSecurityMode.INSECURE) {
-            trustManagers = new TrustManager[] { new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-                public void checkClientTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-                public void checkServerTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-            }};
-        }
-        else {
-            trustManagers = getTrustManagerFactory().getTrustManagers();
-        }
-
-        sc.init(null, trustManagers , new SecureRandom());
-        return sc;
-    }
-
-    public void applyTrustManager(SslContextBuilder builder) throws GeneralSecurityException, IOException {
-        if(this.tlsSecurity == TLSSecurityMode.INSECURE) {
-            builder.trustManager(new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-                public void checkClientTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-                public void checkServerTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-            });
-        }
-        else {
-            builder.trustManager(getTrustManagerFactory());
-        }
-    }
-
-    private TrustManagerFactory getTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
-        var authority = getTLSCertificateAuthority();
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-
-        if (StringsUtil.isNullOrEmpty(authority)) {
-            // use default trust store
-            trustManagerFactory.init((KeyStore)null);
-            //throw new ConfigurationException("TLSCertificateAuthority cannot be null when TLSSecurity is STRICT");
-        }
-        else {
-            var cert = CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(getTLSCertificateAuthority().getBytes(StandardCharsets.US_ASCII)));
-
-            var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("server", cert);
-
-            trustManagerFactory.init(keyStore);
-        }
-
-        return trustManagerFactory;
-    }
-
     private static EdgeDBConnection fromJSON(String json) throws JsonProcessingException {
         return mapper.readValue(json, EdgeDBConnection.class);
     }
@@ -639,6 +703,10 @@ public class EdgeDBConnection implements Cloneable {
         }
     }
 
+    /**
+     * Turns this connection into a valid DSN string.
+     * @return A DSN string representing the parameters within the current {@linkplain EdgeDBConnection}.
+     */
     @Override
     public String toString() {
         var sb = new StringBuilder("edgedb://");

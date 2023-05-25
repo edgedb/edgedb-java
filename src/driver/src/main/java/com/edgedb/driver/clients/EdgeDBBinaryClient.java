@@ -284,7 +284,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             result.finishDuplexing();
         }
         else {
-            result.finishExceptionally(err, args.query, EdgeDBErrorException::fromError);
+            result.finishExceptionally(err, args.query, ErrorResponse::toException);
         }
     }
 
@@ -670,7 +670,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 var error = (ErrorResponse)packet;
 
                 logger.error("{} - {}: {}", error.severity, error.errorCode, error.message);
-                var exc = EdgeDBErrorException.fromError(error);
+
+                var exc = error.toException();
 
                 if(!readyPromise.isDone()) {
                     readyPromise.completeExceptionally(exc);
@@ -828,7 +829,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                             }
                             break;
                         case ERROR_RESPONSE:
-                            throw EdgeDBErrorException.fromError((ErrorResponse)state.packet);
+                            throw ((ErrorResponse)state.packet).toException();
                         default:
                             logger.error(
                                     "Unexpected message. expected: {} actual: {}",

@@ -18,7 +18,7 @@ public class CommandComplete implements Receivable {
 
     public CommandComplete(PacketReader reader) {
         this.annotations = reader.readAnnotations();
-        this.capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE, Capabilities::valueOf);
+        this.capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE);
         this.status = reader.readString();
         this.stateTypeDescriptorId = reader.readUUID();
         this.stateData = reader.readByteArray();

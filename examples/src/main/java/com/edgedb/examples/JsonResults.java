@@ -26,7 +26,7 @@ public final class JsonResults implements Example {
         return client.queryJson("select Person { name, age }")
                 .thenApply(result -> {
                     try {
-                        return mapper.readValue(result.value, Person[].class);
+                        return mapper.readValue(result.getValue(), Person[].class);
                     } catch (JsonProcessingException e) {
                         throw new CompletionException(e);
                     }

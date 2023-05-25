@@ -3,7 +3,7 @@ package com.edgedb.driver.namingstrategies;
 import com.edgedb.driver.util.StringsUtil;
 
 final class SnakeCaseNamingStrategy implements NamingStrategy {
-    public static final SnakeCaseNamingStrategy instance = new SnakeCaseNamingStrategy();
+    public static final SnakeCaseNamingStrategy INSTANCE = new SnakeCaseNamingStrategy();
 
     @Override
     public String convert(String name) {

@@ -2,9 +2,6 @@ package com.edgedb.driver.binary.descriptors;
 
 import com.edgedb.driver.binary.BinaryEnum;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public enum DescriptorType implements BinaryEnum<Byte> {
     SET_DESCRIPTOR              (0x00),
     OBJECT_SHAPE_DESCRIPTOR     (0x01),
@@ -19,18 +16,9 @@ public enum DescriptorType implements BinaryEnum<Byte> {
     SCALAR_TYPE_NAME_ANNOTATION (0xff);
 
     private final byte value;
-    private final static Map<Byte, DescriptorType> map = new HashMap<>();
+
     DescriptorType(int value) {
         this.value = (byte)value;
-    }
-
-    static {
-        for (DescriptorType v : DescriptorType.values()) {
-            map.put(v.value, v);
-        }
-    }
-    public static DescriptorType valueOf(byte raw) {
-        return map.get(raw);
     }
 
     @Override

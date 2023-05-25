@@ -1,13 +1,10 @@
 module com.edgedb.driver {
     exports com.edgedb.driver;
     exports com.edgedb.driver.datatypes;
-    exports com.edgedb.driver.clients;
     exports com.edgedb.driver.exceptions;
-    exports com.edgedb.driver.util;
     exports com.edgedb.driver.namingstrategies;
     exports com.edgedb.driver.annotations;
     exports com.edgedb.driver.state;
-    exports com.edgedb.driver.binary.builders;
 
     requires org.jetbrains.annotations;
     requires com.fasterxml.jackson.core;

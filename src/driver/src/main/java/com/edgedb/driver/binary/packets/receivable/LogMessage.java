@@ -14,8 +14,8 @@ public class LogMessage implements Receivable {
 
 
     public LogMessage(PacketReader reader) {
-        severity = reader.readEnum(LogSeverity::valueOf, Byte.TYPE);
-        code = reader.readEnum(ErrorCode::valueOf, Integer.TYPE);
+        severity = reader.readEnum(LogSeverity.class, Byte.TYPE);
+        code = reader.readEnum(ErrorCode.class, Integer.TYPE);
         content = reader.readString();
         annotations = reader.readAnnotations();
     }

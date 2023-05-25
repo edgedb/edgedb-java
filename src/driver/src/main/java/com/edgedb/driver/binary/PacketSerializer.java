@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.naming.OperationNotSupportedException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.BYTE_SIZE;
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
@@ -25,6 +26,7 @@ import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 public class PacketSerializer {
     private static final Logger logger = LoggerFactory.getLogger(PacketSerializer.class);
     private static final Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
+    private static final Map<Class<?>, Map<Number, Enum<?>>> binaryEnumMap = new HashMap<>();
 
     static {
         deserializerMap = new HashMap<>();
@@ -45,6 +47,18 @@ public class PacketSerializer {
         deserializerMap.put(ServerMessageType.STATE_DATA_DESCRIPTION, StateDataDescription::new);
     }
 
+    public static <T extends Enum<?> & BinaryEnum<U>, U extends Number> void registerBinaryEnum(Class<T> cls, T[] values) {
+        binaryEnumMap.put(cls, Arrays.stream(values).collect(Collectors.toMap(BinaryEnum::getValue, v -> v)));
+    }
+
+    public static <T extends Enum<T> & BinaryEnum<U>, U extends Number> T getEnumValue(Class<T> enumCls, U raw) {
+        if(!binaryEnumMap.containsKey(enumCls)) {
+            registerBinaryEnum(enumCls, enumCls.getEnumConstants());
+        }
+
+        //noinspection unchecked
+        return (T)binaryEnumMap.get(enumCls).get(raw);
+    }
 
     public static MessageToMessageDecoder<ByteBuf> createDecoder() {
         return new MessageToMessageDecoder<ByteBuf>() {

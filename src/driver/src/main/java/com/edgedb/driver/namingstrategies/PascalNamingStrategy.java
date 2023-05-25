@@ -3,7 +3,7 @@ package com.edgedb.driver.namingstrategies;
 import com.edgedb.driver.util.StringsUtil;
 
 final class PascalNamingStrategy implements NamingStrategy {
-    public static final PascalNamingStrategy instance = new PascalNamingStrategy();
+    public static final PascalNamingStrategy INSTANCE = new PascalNamingStrategy();
 
     @Override
     public String convert(String name) {

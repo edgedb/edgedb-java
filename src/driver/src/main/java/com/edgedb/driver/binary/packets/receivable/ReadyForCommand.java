@@ -11,7 +11,7 @@ public class ReadyForCommand implements Receivable {
 
     public ReadyForCommand(PacketReader reader) {
         annotations = reader.readAnnotations();
-        transactionState = reader.readEnum(TransactionState::valueOf, Byte.TYPE);
+        transactionState = reader.readEnum(TransactionState.class, Byte.TYPE);
     }
 
     @Override

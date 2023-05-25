@@ -253,7 +253,7 @@ public class ResultAsserter {
         }
 
         if(value instanceof Tuple) {
-            return List.of(((Tuple)value).toValueArray());
+            return List.of(((Tuple)value).toArray());
         }
 
         if(value instanceof List)

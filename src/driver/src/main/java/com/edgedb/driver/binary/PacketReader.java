@@ -2,7 +2,6 @@ package com.edgedb.driver.binary;
 
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
-import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
@@ -10,17 +9,20 @@ import org.joou.UInteger;
 import org.joou.ULong;
 import org.joou.UShort;
 
+import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.joou.Unsigned.*;
 
 public class PacketReader {
     private final ByteBuf buffer;
-    private static final Map<Class<?>, Function<PacketReader, ?>> numberReaderMap;
+    private static final Map<Class<?>, Function<PacketReader, ? extends Number>> numberReaderMap;
 
     private final int initPos;
 
@@ -173,22 +175,21 @@ public class PacketReader {
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> T readEnum(Function<U, T> mapper, Class<U> primitive) {
-        var value = (U)numberReaderMap.get(primitive).apply(this);
-        return mapper.apply(value);
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> T readEnum(Class<T> cls, Class<U> primitive) {
+        return PacketSerializer.getEnumValue(cls, (U)numberReaderMap.get(primitive).apply(this));
     }
 
-    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> EnumSet<T> readEnumSet(Class<T> cls, Class<U> primitive, Function<U, T> map) {
-        var value = BinaryProtocolUtils.castNumber((Number) numberReaderMap.get(primitive).apply(this), primitive);
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> EnumSet<T> readEnumSet(Class<T> cls, Class<U> primitive) {
+        var value = numberReaderMap.get(primitive).apply(this).longValue();
 
-        var flagBits = Arrays.stream(cls.getEnumConstants())
-                .map(BinaryEnum::getValue)
-                .filter((u) -> {
-                    // assume we can use 64 bit here, should not be any IEEE float/double numbers ever :)
-                    return (u.longValue() & value.longValue()) == u.longValue();
-                })
-                .map(map);
+        var set = EnumSet.noneOf(cls);
 
-        return EnumSet.copyOf(flagBits.collect(Collectors.toSet()));
+        for (var enumConstant : cls.getEnumConstants()) {
+            if((value & enumConstant.getValue().longValue()) >= 0) {
+                set.add(enumConstant);
+            }
+        }
+
+        return set;
     }
 }

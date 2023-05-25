@@ -1,19 +1,16 @@
 package com.edgedb.driver.exceptions;
 
 import com.edgedb.driver.ErrorCode;
-import com.edgedb.driver.annotations.ShouldReconnect;
-import com.edgedb.driver.annotations.ShouldRetry;
-import com.edgedb.driver.binary.packets.receivable.ErrorResponse;
 import com.edgedb.driver.util.StringsUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-@SuppressWarnings("ClassEscapesDefinedScope")
+/**
+ * Represents an exception that was caused by an error from EdgeDB.
+ */
 public class EdgeDBErrorException extends EdgeDBException {
     private static final short DETAILS_ATTRIBUTE = 0x0002;
     private static final short TRACEBACK_ATTRIBUTE = 0x0101;
@@ -29,58 +26,66 @@ public class EdgeDBErrorException extends EdgeDBException {
 
     private final @Nullable String query;
 
-    public static EdgeDBErrorException fromError(ErrorResponse err) {
-        return fromError(err, null);
-    }
-    public static EdgeDBErrorException fromError(ErrorResponse error, String query) {
-        boolean shouldRetry, shouldReconnect;
-        try {
-            shouldRetry = ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldRetry.class);
-            shouldReconnect = ErrorCode.class.getField(error.errorCode.name()).isAnnotationPresent(ShouldReconnect.class);
-        }
-        catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * Constructs a new {@linkplain EdgeDBErrorException}.
+     * @param attributes The attributes of the error, received by EdgeDB.
+     * @param message The error message.
+     * @param errorCode The error code.
+     * @param query The optional query that caused this error.
+     */
+    public EdgeDBErrorException(Map<Short, byte[]> attributes, String message, ErrorCode errorCode, @Nullable String query) {
+        super(errorCode.shouldRetry(), errorCode.shouldReconnect());
 
-        return new EdgeDBErrorException(error, query, shouldRetry, shouldReconnect);
-    }
-
-
-    private EdgeDBErrorException(ErrorResponse error, @Nullable String query, boolean shouldRetry, boolean shouldReconnect) {
-        super(shouldRetry, shouldReconnect);
-
-        this.attributes = Arrays.stream(error.attributes)
-                .collect(Collectors.toMap((v) -> v.code, (v) -> {
-                    var arr = new byte[v.value.readableBytes()];
-                    v.value.readBytes(arr);
-                    return arr;
-                }));
-
-        this.errorCode = error.errorCode;
-        this.message = error.message;
+        this.attributes = attributes;
+        this.errorCode = errorCode;
+        this.message = message;
         this.query = query;
     }
 
+    /**
+     * Gets the error message of this exception.
+     * @return The error message returned from EdgeDB.
+     */
     public String getErrorMessage() {
         return this.message;
     }
 
+    /**
+     * Gets the error code of this exception.
+     * @return The error code returned by EdgeDB.
+     */
     public ErrorCode getErrorCode() {
         return this.errorCode;
     }
 
+    /**
+     * Gets the details of this exception.
+     * @return The details of this error returned by EdgeDB if present; otherwise {@code null}.
+     */
     public @Nullable String getDetails() {
         return getAttributeString(DETAILS_ATTRIBUTE);
     }
 
+    /**
+     * Gets the EdgeDB traceback of this exception.
+     * @return The traceback of this error returned by EdgeDB if present; otherwise {@code null}.
+     */
     public @Nullable String getTraceback() {
         return getAttributeString(TRACEBACK_ATTRIBUTE);
     }
 
+    /**
+     * Gets the hint of this exception.
+     * @return The hint of this error returned by EdgeDB if present; otherwise {@code null}.
+     */
     public @Nullable String getHint() {
         return getAttributeString(HINT_ATTRIBUTE);
     }
 
+    /**
+     * Gets the query that was being executed as this error was thrown.
+     * @return The query that was executed if present; otherwise {@code null}.
+     */
     public @Nullable String getQuery() {
         return this.query;
     }
@@ -97,6 +102,11 @@ public class EdgeDBErrorException extends EdgeDBException {
         return null;
     }
 
+    /**
+     * Formats this exception into a detailed format outlining where in the query the error was caused if this
+     * errors query is present, or formats the error code and message.
+     * @return A string representing the current exception.
+     */
     @Override
     public String toString() {
         var pretty = prettify();

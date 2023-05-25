@@ -6,9 +6,9 @@ import com.edgedb.driver.clients.EdgeDBTCPClient;
 import com.edgedb.driver.clients.StatefulClient;
 import com.edgedb.driver.clients.TransactableClient;
 import com.edgedb.driver.datatypes.Json;
+import com.edgedb.driver.exceptions.ConfigurationException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.state.Config;
-import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
 import com.edgedb.driver.util.ClientPoolHolder;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Represents a client pool used to interact with EdgeDB.
+ */
 public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
 
@@ -61,7 +64,13 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
     private final Session session;
     private final int clientAvailability;
 
-    public EdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config) throws EdgeDBException {
+    /**
+     * Constructs a new {@linkplain EdgeDBClient}.
+     * @param connection The connection parameters used to connect this client to EdgeDB.
+     * @param config The configuration for this client.
+     * @throws ConfigurationException A configuration parameter is invalid.
+     */
+    public EdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -71,24 +80,40 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientAvailability = config.getClientAvailability();
     }
 
-    private ClientFactory createClientFactory() throws EdgeDBException {
+    private ClientFactory createClientFactory() throws ConfigurationException {
         if(config.getClientType() == ClientType.TCP) {
             return EdgeDBTCPClient::new;
         }
 
-        throw new EdgeDBException(String.format("No such implementation for client type %s found", this.config.getClientType()));
+        throw new ConfigurationException(String.format("No such implementation for client type %s found", this.config.getClientType()));
     }
 
+    /**
+     * Constructs a new {@linkplain EdgeDBClient}.
+     * @param connection The connection parameters used to connect this client to EdgeDB.
+     * @throws ConfigurationException A configuration parameter is invalid.
+     */
     public EdgeDBClient(EdgeDBConnection connection) throws EdgeDBException {
-        this(connection, EdgeDBClientConfig.getDefault());
+        this(connection, EdgeDBClientConfig.DEFAULT);
     }
 
-    public EdgeDBClient(EdgeDBClientConfig config) throws IOException, EdgeDBException {
+    /**
+     * Constructs a new {@linkplain EdgeDBClient}.
+     * @param config The configuration for this client.
+     * @throws IOException The connection arguments couldn't be automatically resolved.
+     * @throws ConfigurationException A configuration parameter is invalid.
+     */
+    public EdgeDBClient(EdgeDBClientConfig config) throws IOException, ConfigurationException {
         this(EdgeDBConnection.resolveEdgeDBTOML(), config);
     }
 
+    /**
+     * Constructs a new {@linkplain EdgeDBClient}.
+     * @throws IOException The connection arguments couldn't be automatically resolved.
+     * @throws ConfigurationException A configuration parameter is invalid.
+     */
     public EdgeDBClient() throws IOException, EdgeDBException {
-        this(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.getDefault());
+        this(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.DEFAULT);
     }
 
     private EdgeDBClient(EdgeDBClient other, Session session) {
@@ -101,46 +126,107 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientAvailability = other.clientAvailability;
     }
 
+    /**
+     * Gets whether this client supports transactions.
+     * @return {@code true} if the client supports transactions; otherwise {@code false}.
+     */
     public boolean supportsTransactions() {
         return this.config.getClientType() == ClientType.TCP;
     }
 
+    /**
+     * Initializes a transaction and executes the callback with the transaction object.
+     * @param settings The transaction settings to use.
+     * @param func The callback to execute with the transaction.
+     * @return A {@linkplain CompletionStage} that represents the asynchronous operation of creating and executing the
+     * transaction. The result of the {@linkplain CompletionStage} is the result of the supplied callback.
+     * @param <T> The result of the query.
+     */
     public <T> CompletionStage<T> transaction(
-            Transaction.TransactionSettings settings,
+            TransactionSettings settings,
             Function<Transaction, CompletionStage<T>> func
     ) {
         return getTransactableClient().thenCompose(client -> client.transaction(settings, func));
     }
 
+    /**
+     * Initializes a transaction and executes the callback with the transaction object.
+     * @param func The callback to execute with the transaction.
+     * @return A {@linkplain CompletionStage} that represents the asynchronous operation of creating and executing the
+     * transaction. The result of the {@linkplain CompletionStage} is the result of the supplied callback.
+     * @param <T> The result of the query.
+     */
     public <T> CompletionStage<T> transaction(Function<Transaction, CompletionStage<T>> func) {
         return getTransactableClient().thenCompose(client -> client.transaction(func));
     }
 
+    /**
+     * Creates a new client instance with the specified {@linkplain Session}.
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param session The session for the new client.
+     * @return A new client instance with the applied session, sharing the same underlying client pool.
+     */
     @Override
     public EdgeDBClient withSession(@NotNull Session session) {
         return new EdgeDBClient(this, session);
     }
 
+    /**
+     * Creates a new client instance with the specified module aliases.
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param aliases The module aliases for the new client.
+     * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
+     */
     @Override
     public EdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
         return new EdgeDBClient(this, this.session.withModuleAliases(aliases));
     }
 
+    /**
+     * Creates a new client instance with the specified config.
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param config The config for the new client.
+     * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
+     */
     @Override
     public EdgeDBClient withConfig(@NotNull Config config) {
         return new EdgeDBClient(this, this.session.withConfig(config));
     }
 
+    /**
+     * Creates a new client instance with the specified config builder.
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param func A delegate that populates the config builder.
+     * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
+     */
     @Override
-    public EdgeDBClient withConfig(@NotNull Consumer<ConfigBuilder> func) {
+    public EdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
         return new EdgeDBClient(this, this.session.withConfig(func));
     }
 
+    /**
+     * Creates a new client instance with the specified globals.
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param globals The globals for the new client.
+     * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
+     */
     @Override
     public EdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
         return new EdgeDBClient(this, this.session.withGlobals(globals));
     }
 
+    /**
+     * Creates a new client instance with the specified module
+     * <br/><br/>
+     * The returned client shares the same underlying client pool as this client.
+     * @param module The module for the new client.
+     * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
+     */
     @Override
     public EdgeDBClient withModule(@NotNull String module) {
         return new EdgeDBClient(this, this.session.withModule(module));

@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
 import com.edgedb.driver.*;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
+import com.edgedb.driver.util.SslUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -65,7 +66,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                                         "edgedb-binary"
                                 ));
 
-                        connection.applyTrustManager(builder);
+                        SslUtils.applyTrustManager(connection, builder);
 
                         pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
 
@@ -89,7 +90,6 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
     @Override
     protected CompletionStage<Void> openConnection() {
-        verifyReflectionModeForNetty();
         final var connection = getConnectionArguments();
 
         try {
@@ -103,18 +103,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                         }
 
                         return CompletableFuture.failedFuture( e);
-                    });
+                    })
+                    .orTimeout(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit());
         }
         catch (Exception err) {
             logger.error("Failed to open connection", err);
             return CompletableFuture.failedFuture(err);
-        }
-    }
-
-    private static synchronized void verifyReflectionModeForNetty() {
-        var v = System.getProperty("Dio.netty.tryReflectionSetAccessible");
-        if(v == null || v.equals("false")){
-            System.setProperty("Dio.netty.tryReflectionSetAccessible", "true");
         }
     }
 

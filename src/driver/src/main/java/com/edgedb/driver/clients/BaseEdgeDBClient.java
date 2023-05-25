@@ -5,7 +5,6 @@ import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.driver.async.AsyncEvent;
 import com.edgedb.driver.state.Config;
-import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,7 +77,7 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     }
 
     @Override
-    public BaseEdgeDBClient withConfig(@NotNull Consumer<ConfigBuilder> func) {
+    public BaseEdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
         this.session = this.session.withConfig(func);
         return this;
     }

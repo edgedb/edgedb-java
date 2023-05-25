@@ -1,7 +1,6 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.state.Config;
-import com.edgedb.driver.state.ConfigBuilder;
 import com.edgedb.driver.state.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +12,6 @@ public interface StatefulClient {
     StatefulClient withSession(@NotNull Session session);
     StatefulClient withModuleAliases(@NotNull Map<String, String> aliases);
     StatefulClient withConfig(@NotNull Config config);
-    StatefulClient withConfig(@NotNull Consumer<ConfigBuilder> func);
+    StatefulClient withConfig(@NotNull Consumer<Config.Builder> func);
     StatefulClient withGlobals(@NotNull Map<String, Object> globals);
 }

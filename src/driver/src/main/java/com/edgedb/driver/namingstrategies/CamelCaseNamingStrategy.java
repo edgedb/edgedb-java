@@ -3,7 +3,7 @@ package com.edgedb.driver.namingstrategies;
 import com.edgedb.driver.util.StringsUtil;
 
 final class CamelCaseNamingStrategy implements NamingStrategy {
-    public static final CamelCaseNamingStrategy instance = new CamelCaseNamingStrategy();
+    public static final CamelCaseNamingStrategy INSTANCE = new CamelCaseNamingStrategy();
 
     @Override
     public String convert(String name) {

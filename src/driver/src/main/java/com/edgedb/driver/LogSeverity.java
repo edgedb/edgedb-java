@@ -2,9 +2,9 @@ package com.edgedb.driver;
 
 import com.edgedb.driver.binary.BinaryEnum;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Represents the message severity within a log message sent by the server.
+ */
 public enum LogSeverity implements BinaryEnum<Byte> {
     DEBUG   (0x14),
     INFO    (0x28),
@@ -12,19 +12,9 @@ public enum LogSeverity implements BinaryEnum<Byte> {
     WARNING (0x50);
 
     private final byte value;
-    private final static Map<Byte, LogSeverity> map = new HashMap<>();
+
     LogSeverity(int value){
         this.value = (byte)value;
-    }
-
-    static {
-        for (LogSeverity v : LogSeverity.values()) {
-            map.put(v.value, v);
-        }
-    }
-
-    public static LogSeverity valueOf(byte raw) {
-        return map.get(raw);
     }
 
     @Override

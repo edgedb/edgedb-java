@@ -64,7 +64,7 @@ public final class RangeCodec<T> extends CodecBase<Range<T>> {
 
     @Override
     public @Nullable Range<T> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
-        var flags = reader.readEnumSet(RangeFlags.class, Byte.TYPE, RangeFlags::valueOf);
+        var flags = reader.readEnumSet(RangeFlags.class, Byte.TYPE);
 
         if(flags.contains(RangeFlags.EMPTY)) {
             return Range.empty();

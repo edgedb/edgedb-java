@@ -1,10 +1,24 @@
 package com.edgedb.driver.datatypes;
 
-// TODO: flesh out
+/**
+ * A class representing the {@code cfg::memory} type.
+ */
 public final class Memory {
-    public final long bytes;
+    private final long bytes;
 
+    /**
+     * Constructs a new {@linkplain Memory} type.
+     * @param bytes The number of bytes describing this {@linkplain Memory} class.
+     */
     public Memory(long bytes) {
         this.bytes = bytes;
+    }
+
+    /**
+     * Gets the number of bytes within this {@linkplain Memory}.
+     * @return The total number of bytes.
+     */
+    public long getBytes() {
+        return bytes;
     }
 }

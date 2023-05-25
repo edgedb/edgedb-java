@@ -14,8 +14,8 @@ public final class ShapeElement {
     public final UShort typePosition;
 
     public ShapeElement(final PacketReader reader) {
-        this.flags = reader.readEnumSet(ShapeElementFlags.class, UInteger.class, ShapeElementFlags::valueOf);
-        this.cardinality = reader.readEnum(Cardinality::valueOf, Byte.TYPE);
+        this.flags = reader.readEnumSet(ShapeElementFlags.class, UInteger.class);
+        this.cardinality = reader.readEnum(Cardinality.class, Byte.TYPE);
         this.name = reader.readString();
         this.typePosition = reader.readUInt16();
     }
