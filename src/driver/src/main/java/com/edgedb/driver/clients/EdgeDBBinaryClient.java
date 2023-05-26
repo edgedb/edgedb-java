@@ -925,6 +925,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         try {
             return exceptionallyCompose(this.openConnection(), err -> {
                 if(err.getCause() instanceof ConnectionFailedTemporarilyException) {
+                    if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
+                        return CompletableFuture.failedFuture(new ConnectionFailedException(err));
+                    }
+
                     if(this.connectionAttempts < getConfig().getMaxConnectionRetries()) {
                         this.connectionAttempts++;
 

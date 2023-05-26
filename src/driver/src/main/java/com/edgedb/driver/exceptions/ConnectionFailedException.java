@@ -10,6 +10,14 @@ public class ConnectionFailedException extends EdgeDBException {
      * @param cause The inner cause of this exception.
      */
     public ConnectionFailedException(int attempts, Throwable cause) {
-        super("THe connection failed to be established after " + attempts + " attempt(s)", cause, false, false);
+        super("The connection failed to be established after " + attempts + " attempt(s)", cause, false, false);
+    }
+
+    /**
+     * Constructs a new {@linkplain ConnectionFailedException}.
+     * @param cause The inner cause of this exception.
+     */
+    public ConnectionFailedException(Throwable cause) {
+        super("The connection failed to be established", cause, false, false);
     }
 }
