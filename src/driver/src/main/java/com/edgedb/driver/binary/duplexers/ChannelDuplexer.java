@@ -198,8 +198,7 @@ public class ChannelDuplexer extends Duplexer {
             return send(new Terminate())
                     .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
-        return CompletableFuture.completedFuture(null);
 
-        //return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
+        return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
     }
 }
