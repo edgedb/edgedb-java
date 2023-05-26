@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 public class ChannelDuplexer extends Duplexer {
@@ -36,6 +37,7 @@ public class ChannelDuplexer extends Duplexer {
     private @Nullable Channel channel;
 
 
+    @io.netty.channel.ChannelHandler.Sharable
     public class ChannelHandler extends ChannelInboundHandlerAdapter {
         private CompletableFuture<Void> channelActivePromise;
 
@@ -44,26 +46,25 @@ public class ChannelDuplexer extends Duplexer {
         }
 
         @Override
-        public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        public void channelActive(@NotNull ChannelHandlerContext ctx) {
             isConnected = true;
-            super.channelActive(ctx);
             channelActivePromise.complete(null);
         }
 
         @Override
-        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
             if(evt.equals("RESET")) {
                 channelActivePromise = new CompletableFuture<>();
             }
         }
 
         @Override
-        public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        public void channelInactive(@NotNull ChannelHandlerContext ctx) {
             isConnected = false;
         }
 
         @Override
-        public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) throws Exception {
+        public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
             synchronized (messageEnqueueReference) {
                 if(readPromises.isEmpty()) {
                     messageQueue.add((Receivable)msg);
@@ -77,7 +78,7 @@ public class ChannelDuplexer extends Duplexer {
         }
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             logger.error("Channel failed", cause);
         }
 
@@ -197,6 +198,7 @@ public class ChannelDuplexer extends Duplexer {
             return send(new Terminate())
                     .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
+
         return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
     }
 }

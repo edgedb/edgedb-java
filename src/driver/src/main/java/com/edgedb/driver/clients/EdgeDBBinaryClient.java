@@ -924,7 +924,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> retryableConnect() {
         try {
             return exceptionallyCompose(this.openConnection(), err -> {
-                if(err instanceof ConnectionFailedTemporarilyException) {
+                if(err.getCause() instanceof ConnectionFailedTemporarilyException) {
+                    if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
+                        return CompletableFuture.failedFuture(new ConnectionFailedException(err));
+                    }
+
                     if(this.connectionAttempts < getConfig().getMaxConnectionRetries()) {
                         this.connectionAttempts++;
 
@@ -935,6 +939,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     } else {
                         logger.error("Failed to establish a connection after {} attempts", this.connectionAttempts, err);
                         this.connectionAttempts = 0;
+                        return CompletableFuture.failedFuture(new ConnectionFailedException(this.connectionAttempts, err));
                     }
                 }
 
