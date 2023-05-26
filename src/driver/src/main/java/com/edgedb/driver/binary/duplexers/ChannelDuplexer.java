@@ -100,7 +100,12 @@ public class ChannelDuplexer extends Duplexer {
     public CompletionStage<Receivable> readNext() {
         synchronized (messageEnqueueReference) {
             if(this.messageQueue.isEmpty()) {
-                var promise = new CompletableFuture<Receivable>();
+                var promise = new CompletableFuture<Receivable>()
+                        .orTimeout(
+                                client.getConfig().getMessageTimeoutValue(),
+                                client.getConfig().getMessageTimeoutUnit()
+                        );
+
                 readPromises.add(promise);
                 return promise;
             } else {
