@@ -1,13 +1,15 @@
 package com.edgedb.driver.clients;
 
+import com.edgedb.driver.*;
 import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
-import com.edgedb.driver.*;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
 import com.edgedb.driver.util.SslUtils;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -35,21 +37,21 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     private static final long CONNECTION_TIMEOUT = 5000;
 
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
-    private static final NioEventLoopGroup nettyTcpGroup = new NioEventLoopGroup();
-    private static final EventExecutorGroup duplexerGroup = new DefaultEventExecutorGroup(8);
+    private static final NioEventLoopGroup NETTY_TCP_GROUP = new NioEventLoopGroup();
+    private static final EventExecutorGroup DUPLEXER_GROUP = new DefaultEventExecutorGroup(8);
 
-    private final Bootstrap bootstrap;
     private final ChannelDuplexer duplexer;
+    private final Bootstrap bootstrap;
     private TransactionState transactionState;
 
     public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
-
         this.duplexer = new ChannelDuplexer(this);
         setDuplexer(this.duplexer);
 
         this.bootstrap = new Bootstrap()
-                .group(nettyTcpGroup)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .group(NETTY_TCP_GROUP)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -66,7 +68,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                                         "edgedb-binary"
                                 ));
 
-                        SslUtils.applyTrustManager(connection, builder);
+                        SslUtils.applyTrustManager(getConnectionArguments(), builder);
 
                         pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
 
@@ -76,13 +78,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                                 PacketSerializer.createEncoder()
                         );
 
-                        pipeline.addLast(duplexerGroup, duplexer.channelHandler);
+                        pipeline.addLast(DUPLEXER_GROUP, duplexer.channelHandler);
 
                         duplexer.init(ch);
                     }
                 });
     }
-
     @Override
     protected void setTransactionState(TransactionState state) {
         this.transactionState = state;
@@ -92,18 +93,23 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     protected CompletionStage<Void> openConnection() {
         final var connection = getConnectionArguments();
 
+
         try {
-            return exceptionallyCompose(ChannelCompletableFuture.completeFrom(
-                    bootstrap.connect(
+            return exceptionallyCompose(
+                    ChannelCompletableFuture.completeFrom(
+                        bootstrap.connect(
                             connection.getHostname(),
                             connection.getPort()
-                    )), e -> {
-                        if(e instanceof CompletionException && e.getCause() instanceof ConnectException) {
-                            return CompletableFuture.failedFuture(new ConnectionFailedTemporarilyException(e));
-                        }
+                        )
+                    ),
+                        e -> {
+                            if(e instanceof CompletionException && e.getCause() instanceof ConnectException) {
+                                return CompletableFuture.failedFuture(new ConnectionFailedTemporarilyException(e));
+                            }
 
-                        return CompletableFuture.failedFuture( e);
-                    })
+                            return CompletableFuture.failedFuture(e);
+                        }
+                    )
                     .orTimeout(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit());
         }
         catch (Exception err) {
