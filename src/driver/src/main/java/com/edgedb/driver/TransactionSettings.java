@@ -14,11 +14,8 @@ public final class TransactionSettings {
 
     /**
      * Gets the default transaction settings.
-     * @return A new {@linkplain TransactionSettings} initialized with default values.
      */
-    public static TransactionSettings getDefault() {
-        return new TransactionSettings();
-    }
+    public static TransactionSettings DEFAULT = new TransactionSettings();
 
     TransactionSettings() { }
 
@@ -73,10 +70,10 @@ public final class TransactionSettings {
      * @see TransactionSettings
      */
     public static final class Builder {
-        private TransactionIsolation isolation = TransactionIsolation.SERIALIZABLE;
-        private boolean isReadOnly;
-        private boolean isDeferrable;
-        private int retryAttempts = 3;
+        private TransactionIsolation isolation = DEFAULT.isolation;
+        private boolean isReadOnly = DEFAULT.isReadOnly;
+        private boolean isDeferrable = DEFAULT.isDeferrable;
+        private int retryAttempts = DEFAULT.retryAttempts;
 
         /**
          * Sets the current builders isolation settings.

@@ -191,10 +191,10 @@ public final class Session {
      * Represents a builder used to construct {@linkplain Session}s.
      */
     public static final class Builder {
-        private String module;
-        private Map<String, String> aliases;
-        private Config config;
-        private Map<String, Object> globals;
+        private String module = DEFAULT.module;
+        private Map<String, String> aliases = DEFAULT.aliases;
+        private Config config = Config.DEFAULT;
+        private Map<String, Object> globals = DEFAULT.globals;
 
         /**
          * Sets the module for this builder.

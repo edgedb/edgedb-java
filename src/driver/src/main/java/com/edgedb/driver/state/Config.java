@@ -139,11 +139,11 @@ public final class Config {
      * Represents a builder used to construct a {@linkplain Config}.
      */
     public static final class Builder {
-        private @Nullable Duration idleTransactionTimeout;
-        private @Nullable Duration queryExecutionTimeout;
-        private @Nullable Boolean allowDMLInFunctions;
-        private @Nullable Boolean allowBareDDL;
-        private @Nullable Boolean applyAccessPolicies;
+        private @Nullable Duration idleTransactionTimeout = DEFAULT.idleTransactionTimeout;
+        private @Nullable Duration queryExecutionTimeout = DEFAULT.queryExecutionTimeout;
+        private @Nullable Boolean allowDMLInFunctions = DEFAULT.allowDMLInFunctions;
+        private @Nullable Boolean allowBareDDL = DEFAULT.allowBareDDL;
+        private @Nullable Boolean applyAccessPolicies = DEFAULT.applyAccessPolicies;
 
         /**
          * Sets the current builders idle transaction timeout.

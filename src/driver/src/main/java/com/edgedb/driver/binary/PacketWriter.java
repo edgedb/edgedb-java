@@ -38,13 +38,17 @@ public class PacketWriter implements AutoCloseable {
     static {
         primitiveNumberWriters = new HashMap<>() {{
             put(Byte.TYPE, (p, v) -> p.write((byte)v));
+            put(Byte.class, (p, v) -> p.write((Byte)v));
             put(Short.TYPE, (p, v) -> p.write((short)v));
-            put(Integer.TYPE, (p, v) -> p.write((int) v));
-            put(Long.TYPE, (p, v) -> p.write((long) v));
+            put(Short.class, (p, v) -> p.write((Short)v));
+            put(Integer.TYPE, (p, v) -> p.write((int)v));
+            put(Integer.class, (p, v) -> p.write((Integer)v));
+            put(Long.TYPE, (p, v) -> p.write((long)v));
+            put(Long.class, (p, v) -> p.write((Long)v));
             put(UByte.class, (p, v) -> p.write((byte)v));
             put(UShort.class, (p, v) -> p.write((short)v));
-            put(UInteger.class, (p, v) -> p.write((int) v));
-            put(ULong.class, (p, v) -> p.write((long) v));
+            put(UInteger.class, (p, v) -> p.write((int)v));
+            put(ULong.class, (p, v) -> p.write((long)v));
         }};
     }
 

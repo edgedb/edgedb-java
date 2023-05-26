@@ -41,7 +41,6 @@ import java.util.function.Predicate;
 import static com.edgedb.driver.async.ExceptionallyCompose.exceptionallyCompose;
 import static org.joou.Unsigned.ushort;
 
-@SuppressWarnings("ClassEscapesDefinedScope")
 public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
 

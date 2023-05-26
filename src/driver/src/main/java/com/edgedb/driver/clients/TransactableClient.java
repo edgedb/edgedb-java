@@ -10,7 +10,7 @@ public interface TransactableClient extends EdgeDBQueryable {
     TransactionState getTransactionState();
 
     default <T> CompletionStage<T> transaction(Function<Transaction, CompletionStage<T>> func) {
-        return transaction(TransactionSettings.getDefault(), func);
+        return transaction(TransactionSettings.DEFAULT, func);
     }
 
     default <T> CompletionStage<T> transaction(

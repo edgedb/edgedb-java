@@ -175,21 +175,21 @@ public class EdgeDBClientConfig {
      * A builder class used to construct {@linkplain EdgeDBClientConfig}s.
      */
     public static final class Builder {
-        private int poolSize;
-        private ConnectionRetryMode retryMode;
-        private int maxConnectionRetries;
-        private long connectionTimeout;
-        private TimeUnit connectionTimeoutUnit;
-        private long messageTimeout;
-        private TimeUnit messageTimeoutUnit;
-        private boolean explicitObjectIds;
-        private long implicitLimit;
-        private boolean implicitTypeIds;
-        private NamingStrategy namingStrategy;
-        private boolean useFieldSetters;
-        private ClientType clientType;
-        private int clientAvailability;
-        private Duration clientMaxAge;
+        private int poolSize = DEFAULT.poolSize;
+        private ConnectionRetryMode retryMode = DEFAULT.retryMode;
+        private int maxConnectionRetries = DEFAULT.maxConnectionRetries;
+        private long connectionTimeout = DEFAULT.connectionTimeout;
+        private TimeUnit connectionTimeoutUnit = DEFAULT.connectionTimeoutUnit;
+        private long messageTimeout = DEFAULT.messageTimeout;
+        private TimeUnit messageTimeoutUnit = DEFAULT.messageTimeoutUnit;
+        private boolean explicitObjectIds = DEFAULT.explicitObjectIds;
+        private long implicitLimit = DEFAULT.implicitLimit;
+        private boolean implicitTypeIds = DEFAULT.implicitTypeIds;
+        private NamingStrategy namingStrategy = DEFAULT.namingStrategy;
+        private boolean useFieldSetters = DEFAULT.useFieldSetters;
+        private ClientType clientType = DEFAULT.clientType;
+        private int clientAvailability = DEFAULT.clientAvailability;
+        private Duration clientMaxAge = DEFAULT.clientMaxAge;
 
         /**
          * Sets the pool size of the current builder.
