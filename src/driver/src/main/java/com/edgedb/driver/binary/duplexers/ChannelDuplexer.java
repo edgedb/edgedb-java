@@ -20,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+import static com.edgedb.driver.util.ComposableUtil.composeWith;
+
 public class ChannelDuplexer extends Duplexer {
     private static final Logger logger = LoggerFactory.getLogger(ChannelDuplexer.class);
 
@@ -155,9 +157,8 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     private CompletionStage<Void> processDuplexStep(Function<DuplexResult, CompletionStage<Void>> func, CompletableFuture<Void> promise) {
-        return readNext()
-                .thenCompose((packet) -> func.apply(new DuplexResult(packet, promise)))
-                .thenCompose((v) -> {
+        return composeWith(readNext(), (packet) -> func.apply(new DuplexResult(packet, promise)))
+                .thenCompose(v -> {
                     if(promise.isDone()) {
                         if(promise.isCompletedExceptionally() || promise.isCancelled()) {
                             return promise;
@@ -168,7 +169,8 @@ public class ChannelDuplexer extends Duplexer {
 
 
                     return processDuplexStep(func, promise);
-                });
+                }
+        );
     }
 
     public void init(Channel channel) {

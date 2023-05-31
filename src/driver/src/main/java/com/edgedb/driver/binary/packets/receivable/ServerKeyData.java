@@ -14,6 +14,13 @@ public class ServerKeyData implements Receivable {
     }
 
     @Override
+    public void close() {
+        if(keyData != null) {
+            keyData.release();
+        }
+    }
+
+    @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.SERVER_KEY_DATA;
     }

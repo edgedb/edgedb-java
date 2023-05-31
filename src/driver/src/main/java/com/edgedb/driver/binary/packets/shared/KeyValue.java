@@ -5,16 +5,17 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.sizeOf;
 
-public class KeyValue implements SerializableData {
+public class KeyValue implements SerializableData, AutoCloseable {
     public final short code;
-    public final ByteBuf value;
+    public final @Nullable ByteBuf value;
 
-    public KeyValue(short code, ByteBuf value) {
+    public KeyValue(short code, @Nullable ByteBuf value) {
         this.code = code;
         this.value = value;
     }
@@ -33,5 +34,12 @@ public class KeyValue implements SerializableData {
     @Override
     public int getSize() {
         return BinaryProtocolUtils.SHORT_SIZE + BinaryProtocolUtils.sizeOf(value);
+    }
+
+    @Override
+    public void close() throws Exception {
+        if(value != null) {
+            value.release();
+        }
     }
 }

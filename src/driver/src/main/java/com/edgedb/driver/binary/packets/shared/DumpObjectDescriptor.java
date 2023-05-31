@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.util.UUID;
 
-public class DumpObjectDescriptor {
+public class DumpObjectDescriptor implements AutoCloseable {
     public final UUID objectId;
     public final ByteBuf description;
     public final UUID[] dependencies;
@@ -16,4 +16,10 @@ public class DumpObjectDescriptor {
         dependencies = reader.readArrayOf(UUID.class, PacketReader::readUUID, Short.class);
     }
 
+    @Override
+    public void close() throws Exception {
+        if(description != null) {
+            description.release();
+        }
+    }
 }

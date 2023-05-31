@@ -26,6 +26,12 @@ public class DumpHeader implements Receivable {
     }
 
     @Override
+    public void close() throws Exception {
+        release(attributes);
+        release(descriptors);
+    }
+
+    @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.DUMP_HEADER;
     }

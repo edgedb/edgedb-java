@@ -38,7 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.edgedb.driver.async.ExceptionallyCompose.exceptionallyCompose;
+import static com.edgedb.driver.util.ComposableUtil.composeWith;
+import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 import static org.joou.Unsigned.ushort;
 
 public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
@@ -639,93 +640,98 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     private CompletionStage<Void> handlePacket(
             Receivable packet
-    ) throws SSLException, EdgeDBException, OperationNotSupportedException {
-        switch (packet.getMessageType()) {
-            case SERVER_HANDSHAKE:
-                var handshake = (ServerHandshake)packet;
+    ) {
+        try {
+            switch (packet.getMessageType()) {
+                case SERVER_HANDSHAKE:
+                    var handshake = (ServerHandshake)packet;
 
-                if(handshake.majorVersion.compareTo(PROTOCOL_MAJOR_VERSION) != 0 ||
-                        handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) < 0
-                ) {
-                    logger.error(
-                            "The server requested protocol version {}.{} but the currently installed client only " +
-                            "supports {}.{}. Please switch to a different client version that supports the " +
-                            "requested protocol.",
-                            handshake.majorVersion, handshake.majorVersion,
-                            PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
-                    );
-                    return this.disconnect();
-                } else if(handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) > 0) {
-                    logger.warn(
-                            "The server requested protocol version {}.{} but the currently installed client only " +
-                            "supports {}.{}. Functionality may be limited and bugs may arise, please switch to " +
-                            "a different client version that supports the requested protocol.",
-                            handshake.majorVersion, handshake.majorVersion,
-                            PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
-                    );
-                }
-                break;
-            case ERROR_RESPONSE:
-                var error = (ErrorResponse)packet;
+                    if(handshake.majorVersion.compareTo(PROTOCOL_MAJOR_VERSION) != 0 ||
+                            handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) < 0
+                    ) {
+                        logger.error(
+                                "The server requested protocol version {}.{} but the currently installed client only " +
+                                        "supports {}.{}. Please switch to a different client version that supports the " +
+                                        "requested protocol.",
+                                handshake.majorVersion, handshake.majorVersion,
+                                PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
+                        );
+                        return this.disconnect();
+                    } else if(handshake.minorVersion.compareTo(PROTOCOL_MINOR_VERSION) > 0) {
+                        logger.warn(
+                                "The server requested protocol version {}.{} but the currently installed client only " +
+                                        "supports {}.{}. Functionality may be limited and bugs may arise, please switch to " +
+                                        "a different client version that supports the requested protocol.",
+                                handshake.majorVersion, handshake.majorVersion,
+                                PROTOCOL_MAJOR_VERSION, PROTOCOL_MINOR_VERSION
+                        );
+                    }
+                    break;
+                case ERROR_RESPONSE:
+                    var error = (ErrorResponse)packet;
 
-                logger.error("{} - {}: {}", error.severity, error.errorCode, error.message);
+                    logger.error("{} - {}: {}", error.severity, error.errorCode, error.message);
 
-                var exc = error.toException();
+                    var exc = error.toException();
 
-                if(!readyPromise.isDone()) {
-                    readyPromise.completeExceptionally(exc);
-                }
-                return CompletableFuture.failedFuture(exc);
-            case AUTHENTICATION:
-                var auth = (AuthenticationStatus)packet;
-                if(auth.authStatus == AuthStatus.AUTHENTICATION_REQUIRED_SASL_MESSAGE) {
-                    return startSASLAuthentication(auth);
-                } else if (auth.authStatus != AuthStatus.AUTHENTICATION_OK) {
-                    throw new UnexpectedMessageException(
-                            "Expected AuthenticationRequiredSASLMessage, got " + auth.authStatus
-                    );
-                }
-                break;
-            case SERVER_KEY_DATA:
-                this.serverKey = new byte[32];
-                ((ServerKeyData)packet).keyData.readBytes(this.serverKey);
-                break;
-            case STATE_DATA_DESCRIPTION:
-                var stateDescriptor = (StateDataDescription)packet;
+                    if(!readyPromise.isDone()) {
+                        readyPromise.completeExceptionally(exc);
+                    }
+                    return CompletableFuture.failedFuture(exc);
+                case AUTHENTICATION:
+                    var auth = (AuthenticationStatus)packet;
+                    if(auth.authStatus == AuthStatus.AUTHENTICATION_REQUIRED_SASL_MESSAGE) {
+                        return startSASLAuthentication(auth);
+                    } else if (auth.authStatus != AuthStatus.AUTHENTICATION_OK) {
+                        throw new UnexpectedMessageException(
+                                "Expected AuthenticationRequiredSASLMessage, got " + auth.authStatus
+                        );
+                    }
+                    break;
+                case SERVER_KEY_DATA:
+                    this.serverKey = new byte[32];
+                    ((ServerKeyData)packet).keyData.readBytes(this.serverKey);
+                    break;
+                case STATE_DATA_DESCRIPTION:
+                    var stateDescriptor = (StateDataDescription)packet;
 
-                var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
+                    var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
 
-                if(codec == null) {
-                    assert stateDescriptor.typeDescriptorBuffer != null;
+                    if(codec == null) {
+                        assert stateDescriptor.typeDescriptorBuffer != null;
 
-                    var reader = new PacketReader(stateDescriptor.typeDescriptorBuffer);
-                    codec = CodecBuilder.buildCodec(this, stateDescriptor.typeDescriptorId, reader, Map.class);
-                }
+                        var reader = new PacketReader(stateDescriptor.typeDescriptorBuffer);
+                        codec = CodecBuilder.buildCodec(this, stateDescriptor.typeDescriptorId, reader, Map.class);
+                    }
 
-                this.stateCodec = codec;
-                this.stateDescriptorId = stateDescriptor.typeDescriptorId;
-                break;
-            case PARAMETER_STATUS:
-                // TODO: parameters
-                parseServerSettings((ParameterStatus) packet);
+                    this.stateCodec = codec;
+                    this.stateDescriptorId = stateDescriptor.typeDescriptorId;
+                    break;
+                case PARAMETER_STATUS:
+                    // TODO: parameters
+                    parseServerSettings((ParameterStatus) packet);
 
-                break;
-            case LOG_MESSAGE:
-                var msg = (LogMessage)packet;
-                var formatted = msg.format();
-                switch (msg.severity) {
-                    case INFO:
-                    case NOTICE:
-                        logger.info(formatted);
-                        break;
-                    case DEBUG:
-                        logger.debug(formatted);
-                        break;
-                    case WARNING:
-                        logger.warn(formatted);
-                        break;
-                }
-                break;
+                    break;
+                case LOG_MESSAGE:
+                    var msg = (LogMessage)packet;
+                    var formatted = msg.format();
+                    switch (msg.severity) {
+                        case INFO:
+                        case NOTICE:
+                            logger.info(formatted);
+                            break;
+                        case DEBUG:
+                            logger.debug(formatted);
+                            break;
+                        case WARNING:
+                            logger.warn(formatted);
+                            break;
+                    }
+                    break;
+            }
+        }
+        catch (Exception x) {
+            return CompletableFuture.failedFuture(x);
         }
 
         return CompletableFuture.completedFuture(null);
@@ -887,7 +893,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     }
 
                     try {
-                        return handlePacket(packet)
+                        return composeWith(packet, this::handlePacket)
                                 .thenCompose((v) -> doClientHandshake());
                     } catch (Throwable e) {
                         throw new CompletionException(e);

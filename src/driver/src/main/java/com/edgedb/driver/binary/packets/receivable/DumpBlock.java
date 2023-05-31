@@ -11,6 +11,10 @@ public class DumpBlock implements Receivable {
         attributes = reader.readAttributes();
     }
 
+    @Override
+    public void close() throws Exception {
+        release(attributes);
+    }
 
     @Override
     public ServerMessageType getMessageType() {

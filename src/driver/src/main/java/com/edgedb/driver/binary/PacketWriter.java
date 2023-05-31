@@ -4,6 +4,7 @@ import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
 import org.joou.UInteger;
 import org.joou.ULong;
@@ -164,9 +165,13 @@ public class PacketWriter implements AutoCloseable {
         primitiveNumberWriters.get(value.getClass()).write(this, value);
     }
 
-    public void writeArray(ByteBuf buffer) throws OperationNotSupportedException {
-        // TODO: ensure that this is the correct way to write a buff to this one
+    public void writeArray(@Nullable ByteBuf buffer) throws OperationNotSupportedException {
+        if(buffer == null) {
+            write(0);
+            return;
+        }
 
+        // TODO: ensure that this is the correct way to write a buff to this one
         ensureCanWrite(buffer.writerIndex() + INT_SIZE); // arr length (i32)
 
         write(buffer.writerIndex());

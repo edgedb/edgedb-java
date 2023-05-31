@@ -19,17 +19,27 @@ public abstract class Duplexer {
     public abstract CompletionStage<Void> disconnect();
     public abstract CompletionStage<Receivable> readNext();
     public abstract CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets);
-    public abstract CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException;
+    public abstract CompletionStage<Void> duplex(
+            Function<DuplexResult, CompletionStage<Void>> func,
+            @NotNull Sendable packet,
+            @Nullable Sendable... packets
+    ) throws SSLException;
 
     public final CompletionStage<Void> send(Sendable packet) {
         return this.send(packet, (Sendable[]) null);
     }
 
-    public final CompletionStage<Void> duplex(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
+    public final CompletionStage<Void> duplex(
+            Sendable packet,
+            Function<DuplexResult, CompletionStage<Void>> func
+    ) throws SSLException {
         return this.duplex(func, packet);
     }
 
-    public final CompletionStage<Void> duplexAndSync(Sendable packet, Function<DuplexResult, CompletionStage<Void>> func) throws SSLException {
+    public final CompletionStage<Void> duplexAndSync(
+            Sendable packet,
+            Function<DuplexResult, CompletionStage<Void>> func
+    ) throws SSLException {
         return duplex(func, packet, new Sync());
     }
 

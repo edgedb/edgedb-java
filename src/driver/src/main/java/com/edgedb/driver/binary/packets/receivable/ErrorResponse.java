@@ -30,6 +30,10 @@ public class ErrorResponse implements Receivable {
     public EdgeDBErrorException toException(@Nullable String query) {
         return new EdgeDBErrorException(
                 Arrays.stream(attributes).collect(Collectors.toMap(v -> v.code, v -> {
+                    if(v.value == null) {
+                        return new byte[0];
+                    }
+
                     var arr = new byte[v.value.readableBytes()];
                     v.value.readBytes(arr);
                     return arr;
@@ -38,6 +42,11 @@ public class ErrorResponse implements Receivable {
                 errorCode,
                 query
         );
+    }
+
+    @Override
+    public void close() throws Exception {
+        release(attributes);
     }
 
     @Override

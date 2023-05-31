@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 
-import static com.edgedb.driver.async.ExceptionallyCompose.exceptionallyCompose;
+import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
     // placeholders

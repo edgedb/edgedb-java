@@ -16,6 +16,13 @@ public class StateDataDescription implements Receivable {
     }
 
     @Override
+    public void close() {
+        if(typeDescriptorBuffer != null) {
+            typeDescriptorBuffer.release();
+        }
+    }
+
+    @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.STATE_DATA_DESCRIPTION;
     }

@@ -34,6 +34,13 @@ public class AuthenticationStatus implements Receivable {
     }
 
     @Override
+    public void close() {
+        if(saslData != null) {
+            saslData.release();
+        }
+    }
+
+    @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.AUTHENTICATION;
     }

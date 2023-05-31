@@ -31,6 +31,17 @@ public class CommandDataDescription implements Receivable {
     }
 
     @Override
+    public void close() {
+        if(inputTypeDescriptorBuffer != null) {
+            inputTypeDescriptorBuffer.release();
+        }
+
+        if(outputTypeDescriptorBuffer != null) {
+            outputTypeDescriptorBuffer.release();
+        }
+    }
+
+    @Override
     public ServerMessageType getMessageType() {
         return ServerMessageType.COMMAND_DATA_DESCRIPTION;
     }
