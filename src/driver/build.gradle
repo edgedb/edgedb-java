@@ -12,7 +12,7 @@ repositories {
 dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
     implementation 'org.jetbrains:annotations:23.1.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.1'
     implementation 'org.slf4j:slf4j-api:2.0.5'
 
     implementation platform('io.netty:netty-bom:4.1.89.Final')
