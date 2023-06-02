@@ -20,7 +20,7 @@ public class EdgeDBClientConfig {
     private TimeUnit connectionTimeoutUnit = TimeUnit.SECONDS;
     private long messageTimeout = 15;
     private TimeUnit messageTimeoutUnit = TimeUnit.SECONDS;
-    private boolean explicitObjectIds;
+    private boolean explicitObjectIds = true;
     private long implicitLimit;
     private boolean implicitTypeIds;
     private NamingStrategy namingStrategy = NamingStrategy.defaultStrategy();
