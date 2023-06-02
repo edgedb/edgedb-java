@@ -16,10 +16,6 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, EdgeDBException, ExecutionException, InterruptedException {
-
-        var a = new ArrayList<>();
-        var b = new ArrayList<String>();
-
         var client = new EdgeDBClient(EdgeDBClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)

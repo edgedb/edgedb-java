@@ -14,7 +14,7 @@ public class EdgeDBClientConfig {
     }
 
     private int poolSize = 50;
-    private ConnectionRetryMode retryMode;
+    private ConnectionRetryMode retryMode = ConnectionRetryMode.ALWAYS_RETRY;
     private int maxConnectionRetries = 5;
     private long connectionTimeout = 5;
     private TimeUnit connectionTimeoutUnit = TimeUnit.SECONDS;
@@ -212,7 +212,7 @@ public class EdgeDBClientConfig {
          * @param retryMode The value to set.
          * @return The current builder.
          */
-        public Builder withRetryMode(ConnectionRetryMode retryMode) {
+        public Builder withRetryMode(@NotNull ConnectionRetryMode retryMode) {
             this.retryMode = retryMode;
             return this;
         }
