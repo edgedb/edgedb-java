@@ -313,7 +313,7 @@ public class EdgeDBClientConfig {
          * @return The current builder.
          * @see ClientType
          */
-        public Builder withClientType(ClientType clientType) {
+        public Builder withClientType(@NotNull ClientType clientType) {
             this.clientType = clientType;
             return this;
         }
@@ -339,7 +339,7 @@ public class EdgeDBClientConfig {
          * @param clientMaxAge The value to set.
          * @return The current builder.
          */
-        public Builder withClientMaxAge(Duration clientMaxAge) {
+        public Builder withClientMaxAge(@NotNull Duration clientMaxAge) {
             this.clientMaxAge = clientMaxAge;
             return this;
         }

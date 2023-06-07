@@ -1,5 +1,6 @@
 package com.edgedb.driver.binary.builders;
 
+import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,7 +1,7 @@
 package com.edgedb.driver.binary.builders.internal;
 
 import com.edgedb.driver.binary.PacketReader;
-import com.edgedb.driver.binary.builders.ObjectEnumerator;
+import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
@@ -53,10 +53,10 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
             var data = reader.readByteArray();
 
             if(data == null || data.readableBytes() == 0) {
-                return new com.edgedb.driver.binary.builders.ObjectEnumerator.ObjectElement(element.name, null, element.codec.getConvertingClass());
+                return new ObjectEnumerator.ObjectElement(element.name, null, element.codec.getConvertingClass());
             }
 
-            return new com.edgedb.driver.binary.builders.ObjectEnumerator.ObjectElement(
+            return new ObjectEnumerator.ObjectElement(
                     element.name,
                     element.codec.deserialize(new PacketReader(data), context),
                     element.codec.getConvertingClass()
@@ -71,9 +71,9 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
     public Map<String, Object> flatten() throws EdgeDBException, OperationNotSupportedException {
         return new HashMap<>() {
             {
-                com.edgedb.driver.binary.builders.ObjectEnumerator.ObjectElement element;
+                ObjectEnumerator.ObjectElement element;
                 while(hasRemaining() && (element = next()) != null) {
-                    put(element.name, element.value);
+                    put(element.getName(), element.getValue());
                 }
             }
         };

@@ -2,7 +2,7 @@ package com.edgedb.driver.binary.builders.types;
 
 import com.edgedb.driver.annotations.*;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
-import com.edgedb.driver.binary.builders.ObjectEnumerator;
+import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
@@ -173,10 +173,10 @@ public class TypeDeserializerInfo<T> {
                 var unhandled = new Vector<ObjectEnumerator.ObjectElement>(params.length);
 
                 while(enumerator.hasRemaining() && (element = enumerator.next()) != null) {
-                    if(namingStrategyEntry.map.containsKey(element.name)) {
-                        var i = namingStrategyEntry.nameIndexMap.get(element.name);
+                    if(namingStrategyEntry.map.containsKey(element.getName())) {
+                        var i = namingStrategyEntry.nameIndexMap.get(element.getName());
                         inverseIndexer.set(i);
-                        params[i] = element.value;
+                        params[i] = element.getValue();
                     } else {
                         unhandled.add(element);
                     }
@@ -223,20 +223,20 @@ public class TypeDeserializerInfo<T> {
                 }
 
                 //noinspection SpellCheckingInspection
-                if(!element.name.equals("__tname__")) {
+                if(!element.getName().equals("__tname__")) {
                     throw new EdgeDBException("Type introspection is required for deserializing abstract classes or interfaces");
                 }
 
-                var split = ((String)element.value).split("::");
+                var split = ((String)element.getValue()).split("::");
 
                 for (var child : children.entrySet()) {
                     var module = child.getValue().getModuleName();
 
                     if((module == null || split[0] == module) && child.getKey().equals(split[1])) {
                         return child.getValue().factory.deserialize(enumerator, (i, v) -> {
-                            if(namingStrategyEntry.map.containsKey(v.name)) {
-                                var fieldInfo = namingStrategyEntry.map.get(v.name);
-                                fieldInfo.convertAndSet(((ObjectEnumeratorImpl)enumerator).getClient().getConfig().useFieldSetters(), i, v.value);
+                            if(namingStrategyEntry.map.containsKey(v.getName())) {
+                                var fieldInfo = namingStrategyEntry.map.get(v.getName());
+                                fieldInfo.convertAndSet(((ObjectEnumeratorImpl)enumerator).getClient().getConfig().useFieldSetters(), i, v.getValue());
                             } else if(parent != null) {
                                 parent.accept(i, v);
                             }
@@ -267,9 +267,9 @@ public class TypeDeserializerInfo<T> {
             ObjectEnumerator.ObjectElement element;
 
             while (enumerator.hasRemaining() && (element = enumerator.next()) != null) {
-                if(namingStrategyEntry.map.containsKey(element.name)) {
-                    var fieldInfo = namingStrategyEntry.map.get(element.name);
-                    fieldInfo.convertAndSet(((ObjectEnumeratorImpl)enumerator).getClient().getConfig().useFieldSetters(), instance, element.value);
+                if(namingStrategyEntry.map.containsKey(element.getName())) {
+                    var fieldInfo = namingStrategyEntry.map.get(element.getName());
+                    fieldInfo.convertAndSet(((ObjectEnumeratorImpl)enumerator).getClient().getConfig().useFieldSetters(), instance, element.getValue());
                 } else if(parent != null) {
                     parent.accept(instance, element);
                 }

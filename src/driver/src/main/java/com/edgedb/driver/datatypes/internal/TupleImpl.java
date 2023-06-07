@@ -2,7 +2,7 @@ package com.edgedb.driver.datatypes.internal;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBType;
-import com.edgedb.driver.binary.builders.ObjectEnumerator;
+import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ public final class TupleImpl implements Tuple {
 
             assert enumerationElement != null;
 
-            elements.add(new ElementImpl(enumerationElement.type, enumerationElement.value));
+            elements.add(new ElementImpl(enumerationElement.getType(), enumerationElement.getValue()));
         }
     }
 
