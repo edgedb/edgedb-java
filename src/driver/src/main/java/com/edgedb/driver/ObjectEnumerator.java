@@ -1,6 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -36,17 +37,17 @@ public interface ObjectEnumerator {
      * Represents an element read from a {@linkplain ObjectEnumerator}.
      */
     final class ObjectElement {
-        private final String name;
+        private final @NotNull String name;
         private final Object value;
-        private final Class<?> type;
+        private final @NotNull Class<?> type;
 
-        public ObjectElement(String name, Object value, Class<?> type) {
+        public ObjectElement(@NotNull String name, Object value, @NotNull Class<?> type) {
             this.name = name;
             this.value = value;
             this.type = type;
         }
 
-        public String getName() {
+        public @NotNull String getName() {
             return name;
         }
 
@@ -54,7 +55,7 @@ public interface ObjectEnumerator {
             return value;
         }
 
-        public Class<?> getType() {
+        public @NotNull Class<?> getType() {
             return type;
         }
     }

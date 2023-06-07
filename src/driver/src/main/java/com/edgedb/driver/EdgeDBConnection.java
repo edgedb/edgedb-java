@@ -30,6 +30,15 @@ import java.util.regex.Pattern;
  */
 @SuppressWarnings("CloneableClassWithoutClone")
 public class EdgeDBConnection implements Cloneable {
+
+    /**
+     * Gets a {@linkplain Builder} used to construct a new {@linkplain EdgeDBConnection}.
+     * @return A new builder instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
     private static final String EDGEDB_INSTANCE_ENV_NAME = "EDGEDB_INSTANCE";
     private static final String EDGEDB_DSN_ENV_NAME = "EDGEDB_DSN";
     private static final String EDGEDB_CREDENTIALS_FILE_ENV_NAME = "EDGEDB_CREDENTIALS_FILE";
@@ -48,6 +57,35 @@ public class EdgeDBConnection implements Cloneable {
             .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .build();
+
+    /**
+     * Constructs a new {@linkplain EdgeDBConnection}.
+     * @param user The connections' user.
+     * @param password The connections' password.
+     * @param database The connections' database name.
+     * @param hostname The connections' hostname.
+     * @param port The connections' port.
+     * @param tlsca The connections' tls certificate authority.
+     * @param tlsSecurity The connections' tls security policy.
+     */
+    public EdgeDBConnection(
+            String user, String password, String database,
+            String hostname, Integer port, String tlsca,
+            @Nullable TLSSecurityMode tlsSecurity
+    ) {
+        this.user = user;
+        this.password = password;
+        this.database = database;
+        this.hostname = hostname;
+        this.port = port;
+        this.tlsca = tlsca;
+        this.tlsSecurity = tlsSecurity;
+    }
+
+    /**
+     * Constructs an empty {@linkplain EdgeDBConnection}
+     */
+    public EdgeDBConnection() { }
 
     @JsonProperty("user")
     private String user;
@@ -82,7 +120,7 @@ public class EdgeDBConnection implements Cloneable {
      * Sets the current connections username field
      * @param value The new username.
      */
-    public void setUsername(String value) {
+    protected void setUsername(String value) {
         user = value;
     }
 
@@ -98,7 +136,7 @@ public class EdgeDBConnection implements Cloneable {
      * Sets the current connections password field.
      * @param value The new password.
      */
-    public void setPassword(String value) {
+    protected void setPassword(String value) {
         password = value;
     }
 
@@ -115,7 +153,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param value The new hostname
      * @throws ConfigurationException The hostname is invalid
      */
-    public void setHostname(String value) throws ConfigurationException {
+    protected void setHostname(String value) throws ConfigurationException {
         if (value.contains("/")) {
             throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
         }
@@ -139,7 +177,7 @@ public class EdgeDBConnection implements Cloneable {
      * Sets the current connections port field.
      * @param value The new port.
      */
-    public void setPort(int value) {
+    protected void setPort(int value) {
         port = value;
     }
 
@@ -155,7 +193,7 @@ public class EdgeDBConnection implements Cloneable {
      * Sets the current connections database field.
      * @param value The new database
      */
-    public void setDatabase(String value) {
+    protected void setDatabase(String value) {
         database = value;
     }
 
@@ -171,7 +209,7 @@ public class EdgeDBConnection implements Cloneable {
      * Sets the current connections TLS certificate authority.
      * @param value The new TLS certificate authority.
      */
-    public void setTLSCertificateAuthority(String value) {
+    protected void setTLSCertificateAuthority(String value) {
         tlsca = value;
     }
 
@@ -189,7 +227,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param value The new TLS security mode.
      * @see TLSSecurityMode
      */
-    public void setTLSSecurity(TLSSecurityMode value) {
+    protected void setTLSSecurity(TLSSecurityMode value) {
         tlsSecurity = value;
     }
 
@@ -268,20 +306,20 @@ public class EdgeDBConnection implements Cloneable {
         var connection = new EdgeDBConnection();
 
         if(database != null)
-            connection.setDatabase(database);
+            connection.database = database;
 
         if(host != null)
             connection.setHostname(host);
 
         if(username != null)
-            connection.setUsername(username);
+            connection.user = username;
 
         if(password != null)
-            connection.setPassword(password);
+            connection.password = password;
 
         if(port != null) {
             try{
-                connection.setPort(Integer.parseInt(port));
+                connection.port = Integer.parseInt(port);
             }
             catch (NumberFormatException e) {
                 throw new ConfigurationException("port was not in the correct format", e);
@@ -504,20 +542,15 @@ public class EdgeDBConnection implements Cloneable {
         }
 
         if(configure != null) {
-            EdgeDBConnection clone;
-            try {
-                clone = (EdgeDBConnection) connection.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new ConfigurationException("Failed to clone current connection arguments", e);
-            }
+            var builder = builder();
 
-            configure.accept(clone);
+            configure.accept(builder);
 
-            if(isDSN && clone.hostname != null) {
+            if(isDSN && builder.hostname != null) {
                 throw new ConfigurationException("Cannot specify DSN and 'Hostname'; they are mutually exclusive");
             }
 
-            connection = connection.mergeInto(clone);
+            connection = connection.mergeInto(builder.build());
         }
 
         return connection;
@@ -556,7 +589,7 @@ public class EdgeDBConnection implements Cloneable {
 
         if(port != null) {
             try {
-                connection.setPort(Integer.parseInt(port));
+                connection.port = Integer.parseInt(port);
             }
             catch (NumberFormatException x) {
                 throw new ConfigurationException(
@@ -584,15 +617,15 @@ public class EdgeDBConnection implements Cloneable {
         }
 
         if(user != null) {
-            connection.setUsername(user);
+            connection.user = user;
         }
 
         if(pass != null) {
-            connection.setPassword(pass);
+            connection.password = pass;
         }
 
         if(db != null) {
-            connection.setDatabase(db);
+            connection.database = db;
         }
 
         return connection;
@@ -645,7 +678,7 @@ public class EdgeDBConnection implements Cloneable {
                 }
 
                 try {
-                    connection.setPort(Integer.parseInt(value));
+                    connection.port = Integer.parseInt(value);
                 }
                 catch (NumberFormatException e) {
                     throw new ConfigurationException("port was not in the correct format", e);
@@ -663,14 +696,14 @@ public class EdgeDBConnection implements Cloneable {
                     throw new IllegalArgumentException("User ambiguity mismatch");
                 }
 
-                connection.setUsername(value);
+                connection.user = value;
                 break;
             case "password":
                 if (connection.password != null) {
                     throw new IllegalArgumentException("Password ambiguity mismatch");
                 }
 
-                connection.setPassword(value);
+                connection.password = value;
                 break;
             case "tls_cert_file":
                 var file = new File(value);
@@ -687,7 +720,7 @@ public class EdgeDBConnection implements Cloneable {
                     throw new IllegalArgumentException("The specified tls_cert_file cannot be read: missing permissions");
                 }
 
-                connection.setTLSCertificateAuthority(Files.readString(file.toPath(), StandardCharsets.UTF_8));
+                connection.tlsca = Files.readString(file.toPath(), StandardCharsets.UTF_8);
                 break;
             case "tls_security":
                 var security = EnumsUtil.searchEnum(TLSSecurityMode.class, value);
@@ -696,7 +729,7 @@ public class EdgeDBConnection implements Cloneable {
                     throw new IllegalArgumentException(String.format("\"%s\" must be a value of edgedb.driver.TLSSecurityMode", value));
                 }
 
-                connection.setTLSSecurity(security);
+                connection.tlsSecurity = security;
                 break;
             default:
                 throw new IllegalArgumentException(String.format("Unexpected configuration option %s", name));
@@ -737,6 +770,111 @@ public class EdgeDBConnection implements Cloneable {
 
     @FunctionalInterface
     public interface ConfigureFunction {
-        void accept(EdgeDBConnection connection) throws ConfigurationException;
+        void accept(EdgeDBConnection.Builder connection) throws ConfigurationException;
+    }
+
+    /**
+     * A builder class used to construct a {@linkplain EdgeDBConnection}
+     */
+    public static final class Builder {
+        private String user;
+        private String password;
+        private String database;
+        private String hostname;
+        private Integer port;
+        private String tlsca;
+        private @Nullable TLSSecurityMode tlsSecurity;
+
+        /**
+         * Sets the connections' username.
+         * @param user The new username.
+         * @return The current builder.
+         */
+        public Builder withUser(String user) {
+            this.user = user;
+            return this;
+        }
+
+        /**
+         * Sets the connections' password.
+         * @param password The new password.
+         * @return The current builder.
+         */
+        public Builder withPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        /**
+         * Sets the connections' database.
+         * @param database The new database for the connection.
+         * @return The current builder.
+         */
+        public Builder withDatabase(String database) {
+            this.database = database;
+            return this;
+        }
+
+        /**
+         * Sets the connections' hostname
+         * @param hostname The new hostname for the connection.
+         * @return The current builder
+         * @throws ConfigurationException The hostnames format is invalid.
+         */
+        public Builder withHostname(String hostname) throws ConfigurationException {
+            if (hostname.contains("/")) {
+                throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
+            }
+
+            if (hostname.contains(",")) {
+                throw new ConfigurationException("DSN cannot contain more than one host");
+            }
+            this.hostname = hostname;
+
+            return this;
+        }
+
+        /**
+         * Sets the connections' port.
+         * @param port The new port for the connection.
+         * @return The current builder.
+         */
+        public Builder withPort(Integer port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * Sets the connections' tls certificate authority.
+         * @param tlsca The new tls certificate authority.
+         * @return The current builder.
+         */
+        public Builder withTlsca(String tlsca) {
+            this.tlsca = tlsca;
+            return this;
+        }
+
+        /**
+         * Sets the connections' tls security policy.
+         * @param tlsSecurity The new tls security policy.
+         * @return The current builder.
+         */
+        public Builder withTlsSecurity(TLSSecurityMode tlsSecurity) {
+            this.tlsSecurity = tlsSecurity;
+            return this;
+        }
+
+        /**
+         * Constructs a {@linkplain EdgeDBConnection} from the current builder.
+         * @return A {@linkplain EdgeDBConnection} that represents the current builder.
+         */
+        public EdgeDBConnection build() {
+            return new EdgeDBConnection(
+                    this.user, this.password,
+                    this.database, this.hostname,
+                    this.port, this.tlsca,
+                    this.tlsSecurity
+            );
+        }
     }
 }

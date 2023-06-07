@@ -18,8 +18,8 @@ public class ConnectionTests {
     @Test
     public void hostAndUser() throws ConfigurationException {
         expect(parse(c -> {
-            c.setUsername("user");
-            c.setHostname("localhost");
+            c.withUser("user");
+            c.withHostname("localhost");
         }), new EdgeDBConnection(){{
             setHostname("localhost");
             setPort(5656);
@@ -51,11 +51,11 @@ public class ConnectionTests {
     @Test
     public void optionsBeforeEnv() throws ConfigurationException {
         expect(parse(c -> {
-            c.setHostname("host2");
-            c.setPort(456);
-            c.setUsername("user2");
-            c.setPassword("passw2");
-            c.setDatabase("db2");
+            c.withHostname("host2");
+            c.withPort(456);
+            c.withUser("user2");
+            c.withPassword("passw2");
+            c.withDatabase("db2");
         }, new HashMap<>() {{
             put("EDGEDB_USER", "user");
             put("EDGEDB_DATABASE", "testdb");
@@ -145,7 +145,7 @@ public class ConnectionTests {
     public void multipleCompoundOptions() {
         expect(parse(
                 "edgedb:///db",
-                c -> c.setHostname("host1"),
+                c -> c.withHostname("host1"),
                 new HashMap<>() {{
                     put("EDGEDB_USER", "foo");
                 }}
