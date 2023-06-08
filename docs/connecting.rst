@@ -4,12 +4,12 @@
 Connection Parameters
 =====================
 
-The ``EdgeDBClient``'s constructor can consume a ``EdgeDBConnection`` class, 
+The ``EdgeDBClient`` constructor can consume an ``EdgeDBConnection`` class 
 containing connection arguments for the client.
 
 Most of the time, the connection arguments are implicitly resolved via 
-:ref:`projects <ref_intro_projects>`. In other cases, the ``EdgeDBConnection`` class exposes
-ways of constructing connection arguments.
+:ref:`projects <ref_intro_projects>`. In other cases, the ``EdgeDBConnection``
+class exposes ways to construct connection arguments.
 
 Connection builder
 ------------------
@@ -51,7 +51,7 @@ arguments from different sources.
 fromDSN
 ^^^^^^^
 
-This method parses a :ref:`DSN <ref_dsn>` string into a ``EdgeDBConnection``.
+This method parses a :ref:`DSN <ref_dsn>` string into an ``EdgeDBConnection``.
 
 .. code-block:: java
 
@@ -61,7 +61,7 @@ This method parses a :ref:`DSN <ref_dsn>` string into a ``EdgeDBConnection``.
 fromProjectFile
 ^^^^^^^^^^^^^^^
 
-This method resolves connection arguments from a ``edgedb.toml`` 
+This method resolves connection arguments from an ``edgedb.toml`` 
 :ref:`project file <ref_intro_projects>`.
 
 .. code-block:: java

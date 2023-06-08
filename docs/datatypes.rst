@@ -4,7 +4,7 @@
 Datatypes
 =========
 
-The java binding maps the following EdgeDB types to the corresponding JVM types:
+The Java binding maps the following EdgeDB types to corresponding JVM types:
 
 +------------------------------------+-----------------------------------------------------+
 | EdgeDB Type                        | JVM Type                                            |

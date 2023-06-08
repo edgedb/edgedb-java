@@ -4,7 +4,7 @@
 Data modeling
 =============
 
-The Java driver allows you to structure your query results as classes
+The Java driver allows you to structure your query results as classes.
 
 Basic representation
 --------------------
@@ -36,22 +36,22 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
 There are a few requirements with the class representation:
 
 * All classes that represent data need to be marked with the 
-  ``@EdgeDBType`` annotation;
+  ``@EdgeDBType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
-  ``@EdgeDBLinkType`` annotation;
+  ``@EdgeDBLinkType`` annotation.
 
-* A field must be public OR have a valid setter if 
-  ``useFieldSetters`` is ``true`` in the client configuration;
+* A field must be public *or* have a valid setter if
+  ``useFieldSetters`` is ``true`` in the client configuration.
 
-If a field cannot be mapped from a value within a result, it is simply ignored;
-this allows the same Java type to be used for queries with different shapes.
+If a field cannot be mapped from a value within a result, it is simply ignored.
+This allows the same Java type to be used for queries with different shapes.
 
 Naming strategies
 -----------------
 
 Naming strategies control the map between Java names and schema names. By 
-default, no mutation is applied to the field names of the java class; this means
+default, no mutation is applied to the field names of the Java class. This means
 ``myFieldName`` is directly mapped to ``myFieldName``.
 
 Default implementations of ``NamingStrategy`` are available as static methods
@@ -74,11 +74,11 @@ if present with the ``useFieldSetters`` configuration option. When this is
 ``true``, the binding will attempt to find methods in your class that meet
 the following requirements:
 
-* Prefixed with ``set`` followed by the field name in ``PascalCase``;
+* Is prefixed with ``set`` followed by the field name in ``PascalCase``
 
-* Contain one parameter with the same type of the field;
+* Contain one parameter with the same type of the field
 
-* The method is public and non-static;
+* Is public and non-static
 
 For example, creating a bean that represents the ``Person`` schema type:
 
@@ -154,7 +154,7 @@ around this, you must specify the type of the collection with the
             }
         }
 
-The binding accepts any collection type that is: an array, a ``List<?>``, 
+The binding accepts any collection type that is an array, a ``List<?>``, 
 assignable from a ``List<?>``, or a ``HashSet<?>``.
 
 Custom deserializers
@@ -162,7 +162,7 @@ Custom deserializers
 
 You can specify a constructor as a target for deserialization with the
 ``@EdgeDBDeserializer`` annotation. A deserializer has 2 valid modes of 
-operation: enumeration consumers, and value consumers.
+operation: enumeration consumers or value consumers.
 
 Enumerator consumer
 ^^^^^^^^^^^^^^^^^^^
@@ -309,9 +309,9 @@ schema types in code. For example:
             }
         }
 
-You can then specify ``Media`` as a result of a query; the binding will
-then discover any subclasses of ``Media`` and deserialize the subclasses as a 
-result.
+With this schema, you can specify ``Media`` as a result of a query. The binding
+will then discover any subclasses of ``Media`` and deserialize the subclasses
+as a result.
 
 .. code-block:: java
 
