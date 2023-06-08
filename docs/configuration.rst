@@ -37,7 +37,7 @@ with the builder subclass like so:
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withImplicitTypeIds``      | ``boolean``             | Whether or not ``__tid__`` will be included implicitly on all objects.                      |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| ``withNamingStrategy``       | ``NamingStrategy``      | The naming strategy used to corialate field names to schema field names.                    |
+| ``withNamingStrategy``       | ``NamingStrategy``      | The naming strategy used to correlate field names to schema field names.                    |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``useFieldSetters``          | ``boolean``             | Whether or not to try to use a setter method for a field being deserialized.                |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
