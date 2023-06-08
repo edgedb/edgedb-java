@@ -162,7 +162,7 @@ Custom deserializers
 
 You can specify a constructor as a target for deserialization with the
 ``@EdgeDBDeserializer`` annotation. A deserializer has 2 valid modes of 
-operation: enumeration consumers, and value consumers.
+operation: enumeration consumers or value consumers.
 
 Enumerator consumer
 ^^^^^^^^^^^^^^^^^^^
