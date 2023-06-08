@@ -76,7 +76,7 @@ the following requirements:
 
 * Is prefixed with ``set`` followed by the field name in ``PascalCase``
 
-* Contain one parameter with the same type of the field;
+* Contain one parameter with the same type of the field
 
 * The method is public and non-static;
 
