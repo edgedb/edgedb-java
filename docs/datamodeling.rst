@@ -154,7 +154,7 @@ around this, you must specify the type of the collection with the
             }
         }
 
-The binding accepts any collection type that is: an array, a ``List<?>``, 
+The binding accepts any collection type that is an array, a ``List<?>``, 
 assignable from a ``List<?>``, or a ``HashSet<?>``.
 
 Custom deserializers
