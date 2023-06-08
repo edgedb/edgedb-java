@@ -17,6 +17,7 @@ with the builder subclass like so:
 
     var config = builder.build();
 
+These are the following methods exposed on the configuration builder:
 
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | Name                         | Type                    | Description                                                                                 |
