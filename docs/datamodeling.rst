@@ -167,11 +167,11 @@ operation: enumeration consumers, and value consumers.
 Enumerator consumer
 ^^^^^^^^^^^^^^^^^^^
 
-An enumerator consumer takes only one parameter, an ``ObjectEnumerator``, 
-which provides a direct handle to the deserialization pipeline. Calling
-``next()`` preforms the deserialization step for one element and returns
-an ``ObjectEnumerator.ObjectElement``, containing the name, type, and 
-value.
+An enumerator consumer takes only one parameter, an ``ObjectEnumerator``
+interface, which provides a direct handle to the deserialization pipeline. 
+Calling the ``next()`` method preforms the deserialization step for one
+element and returns an ``ObjectEnumerator.ObjectElement`` class, containing 
+the name, type, and value.
 
 .. code-block:: java
 
