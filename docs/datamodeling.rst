@@ -36,7 +36,7 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
 There are a few requirements with the class representation:
 
 * All classes that represent data need to be marked with the 
-  ``@EdgeDBType`` annotation;
+  ``@EdgeDBType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
   ``@EdgeDBLinkType`` annotation;
