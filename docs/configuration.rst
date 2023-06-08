@@ -4,9 +4,9 @@
 Configuration
 =============
 
-The driver can be configured by passing in a ``EdgeDBClientConfig`` object 
+The driver can be configured by passing an ``EdgeDBClientConfig`` object 
 into the ``EdgeDBClient`` constructor. The client config contains immutable 
-settings for client behaviour. You can construct a new ``EdgeDBClientConfig``
+settings for client behavior. You can construct a new ``EdgeDBClientConfig``
 with the builder subclass like so:
 
 .. code-block:: java
@@ -34,11 +34,11 @@ These are the following methods exposed on the configuration builder:
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withExplicitObjectIds``    | ``boolean``             | Whether or not the ``id`` property of objects need to be explicitly included in shapes.     |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| ``withImplicitLimit``        | ``long``                | The implicit result limit.                                                                  |
+| ``withImplicitLimit``        | ``long``                | Set an implicit result limit.                                                               |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withImplicitTypeIds``      | ``boolean``             | Whether or not ``__tid__`` will be included implicitly on all objects.                      |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| ``withNamingStrategy``       | ``NamingStrategy``      | The naming strategy used to corialate field names to schema field names.                    |
+| ``withNamingStrategy``       | ``NamingStrategy``      | The naming strategy used to correlate field names to schema field names.                    |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``useFieldSetters``          | ``boolean``             | Whether or not to try to use a setter method for a field being deserialized.                |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
