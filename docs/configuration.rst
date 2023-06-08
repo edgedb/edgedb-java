@@ -52,10 +52,10 @@ These are the following methods exposed on the configuration builder:
 This configuration object can then be passed into the constructor of 
 a ``EdgeDBClient``.
 
-Ontop of client-level configuration, there is session-level configuration. 
-This type of configuration is controlled with methods prefixed with ``with``.
-These methods return a new client instance that shares the same connection,
-pool, and client configuration.
+In addition to client-level configuration, the driver offers session-level
+configuration. This type of configuration is controlled using methods prefixed
+by ``with``. These methods return a new client instance which shares the same
+connection, pool, and client configuration.
 
 .. code-block:: java
 
