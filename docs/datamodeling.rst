@@ -74,7 +74,7 @@ if present with the ``useFieldSetters`` configuration option. When this is
 ``true``, the binding will attempt to find methods in your class that meet
 the following requirements:
 
-* Prefixed with ``set`` followed by the field name in ``PascalCase``;
+* Is prefixed with ``set`` followed by the field name in ``PascalCase``
 
 * Contain one parameter with the same type of the field;
 
