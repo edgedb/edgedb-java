@@ -61,7 +61,7 @@ This method parses a :ref:`DSN <ref_dsn>` string into an ``EdgeDBConnection``.
 fromProjectFile
 ^^^^^^^^^^^^^^^
 
-This method resolves connection arguments from a ``edgedb.toml`` 
+This method resolves connection arguments from an ``edgedb.toml`` 
 :ref:`project file <ref_intro_projects>`.
 
 .. code-block:: java
