@@ -39,7 +39,7 @@ There are a few requirements with the class representation:
   ``@EdgeDBType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
-  ``@EdgeDBLinkType`` annotation;
+  ``@EdgeDBLinkType`` annotation.
 
 * A field must be public *or* have a valid setter if
   ``useFieldSetters`` is ``true`` in the client configuration;
