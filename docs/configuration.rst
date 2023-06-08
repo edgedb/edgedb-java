@@ -4,7 +4,7 @@
 Configuration
 =============
 
-The driver can be configured by passing in a ``EdgeDBClientConfig`` object 
+The driver can be configured by passing an ``EdgeDBClientConfig`` object 
 into the ``EdgeDBClient`` constructor. The client config contains immutable 
 settings for client behaviour. You can construct a new ``EdgeDBClientConfig``
 with the builder subclass like so:
