@@ -51,7 +51,7 @@ Naming strategies
 -----------------
 
 Naming strategies control the map between Java names and schema names. By 
-default, no mutation is applied to the field names of the java class; this means
+default, no mutation is applied to the field names of the Java class. This means
 ``myFieldName`` is directly mapped to ``myFieldName``.
 
 Default implementations of ``NamingStrategy`` are available as static methods
