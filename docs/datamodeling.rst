@@ -309,9 +309,9 @@ schema types in code. For example:
             }
         }
 
-You can then specify ``Media`` as a result of a query; the binding will
-then discover any subclasses of ``Media`` and deserialize the subclasses as a 
-result.
+With this schema, you can specify ``Media`` as a result of a query. The binding
+will then discover any subclasses of ``Media`` and deserialize the subclasses
+as a result.
 
 .. code-block:: java
 
