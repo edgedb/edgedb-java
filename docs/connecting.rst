@@ -4,7 +4,7 @@
 Connection Parameters
 =====================
 
-The ``EdgeDBClient``'s constructor can consume a ``EdgeDBConnection`` class, 
+The ``EdgeDBClient`` constructor can consume an ``EdgeDBConnection`` class 
 containing connection arguments for the client.
 
 Most of the time, the connection arguments are implicitly resolved via 
