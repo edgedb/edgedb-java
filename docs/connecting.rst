@@ -8,8 +8,8 @@ The ``EdgeDBClient`` constructor can consume an ``EdgeDBConnection`` class
 containing connection arguments for the client.
 
 Most of the time, the connection arguments are implicitly resolved via 
-:ref:`projects <ref_intro_projects>`. In other cases, the ``EdgeDBConnection`` class exposes
-ways of constructing connection arguments.
+:ref:`projects <ref_intro_projects>`. In other cases, the ``EdgeDBConnection``
+class exposes ways to construct connection arguments.
 
 Connection builder
 ------------------
