@@ -4,7 +4,7 @@
 Data modeling
 =============
 
-The Java driver allows you to structure your query results as classes
+The Java driver allows you to structure your query results as classes.
 
 Basic representation
 --------------------
