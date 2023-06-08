@@ -51,7 +51,7 @@ arguments from different sources.
 fromDSN
 ^^^^^^^
 
-This method parses a :ref:`DSN <ref_dsn>` string into a ``EdgeDBConnection``.
+This method parses a :ref:`DSN <ref_dsn>` string into an ``EdgeDBConnection``.
 
 .. code-block:: java
 
