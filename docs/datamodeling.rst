@@ -44,8 +44,8 @@ There are a few requirements with the class representation:
 * A field must be public *or* have a valid setter if
   ``useFieldSetters`` is ``true`` in the client configuration.
 
-If a field cannot be mapped from a value within a result, it is simply ignored;
-this allows the same Java type to be used for queries with different shapes.
+If a field cannot be mapped from a value within a result, it is simply ignored.
+This allows the same Java type to be used for queries with different shapes.
 
 Naming strategies
 -----------------
