@@ -78,7 +78,7 @@ the following requirements:
 
 * Contain one parameter with the same type of the field
 
-* The method is public and non-static;
+* Is public and non-static
 
 For example, creating a bean that represents the ``Person`` schema type:
 
