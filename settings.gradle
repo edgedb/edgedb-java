@@ -3,5 +3,4 @@ include 'examples'
 include 'src:driver'
 include 'tools'
 include 'tools:testgen'
-findProject(':tools:testgen')?.name = 'testgen'
 

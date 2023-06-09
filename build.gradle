@@ -1,20 +1,188 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
-group 'com.edgedb'
-version '1.0-SNAPSHOT'
+ext {
+    github_org = 'edgedb'
+    project_name = 'edgedb-java'
+    artifact_group = 'com.edgedb'
+    project_version = "$version".toString()
+    project_description = 'Java binding for the EdgeDB database'
+    project_url = "https://edgedb.com"
+    project_jdk = '11'
+    jdk = JavaVersion.current().majorVersion
+    jdk_javadoc = "https://docs.oracle.com/javase/$jdk/docs/api/".toString()
+    if (JavaVersion.current().isJava11Compatible()) {
+        jdk_javadoc = "https://docs.oracle.com/en/java/javase/$jdk/docs/api/".toString()
+    }
 
-repositories {
-    mavenCentral()
+    // dependencies
+    jackson_version = '2.15.2'
+    slf4j_version = '2.0.5'
+    netty_version = '4.1.89.Final'
+    joou_version = '0.9.4'
+    reflections_version = '0.10.2'
+
+    // test dependencies
+    junit_version = '5.9.2'
+    assertj_version = '3.24.2'
+    logback_version = '1.4.5'
+
+    isRelease = !version.toString().endsWith('-SNAPSHOT')
 }
 
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation 'junit:junit:4.13.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    
+    if (isRelease) {
+        apply plugin: 'signing'
+    }
+
+    group = artifact_group
+    version = project_version
+    description = project_description
+
+    sourceCompatibility = project_jdk
+    targetCompatibility = project_jdk
+
+    dependencies {
+        implementation platform("io.netty:netty-bom:$netty_version")
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        if (!isRelease) {
+            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+            maven { url 'https://oss.sonatype.org/content/repositories/staging' }
+        }
+
+        maven { url 'https://s01.oss.sonatype.org/' }
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.cacheChangingModulesFor 60, 'seconds'
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options {
+            encoding = 'UTF-8'
+            tags = ["apiNote:a:API Note:",
+                    "implSpec:a:Implementation Requirements:",
+                    "implNote:a:Implementation Note:"]
+            addStringOption 'Xdoclint:none', '-quiet'
+            addStringOption 'encoding', 'UTF-8'
+        }
+        if (JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.incremental = true
+    }
+
+    tasks.register('downloadDependencies') {
+        description 'Download all dependencies to the Gradle cache'
+        doLast {
+            configurations.findAll { it.canBeResolved }.files
+        }
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
 }
 
-test {
-    useJUnitPlatform()
+subprojects {
+    archivesBaseName = "com.edgedb.$project.name"
+
+    tasks.withType(Javadoc).configureEach {
+        title = "$archivesBaseName ${version} API"
+        options.windowTitle = "$archivesBaseName ($version)"
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifactId archivesBaseName
+
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+
+                pom {
+                    name = 'EdgeDB Java'
+                    description = 'A JVM-based binding for the EdgeDB database'
+                    url = 'https://github.com/edgedb/edgedb-java'
+                    organization {
+                        name = 'EdgeDB'
+                        url = 'https://edgedb.com'
+                    }
+                    issueManagement {
+                        system = 'GitHub'
+                        url = 'https://github.com/edgedb/edgedb-java/issues'
+                    }
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                        }
+                    }
+                    scm {
+                        url = 'https://github.com/edgedb/edgedb-java'
+                        connection = 'scm:git:git://github.com/edgedb/edgedb-java.git'
+                        developerConnection = 'scm:git:ssh://git@github.com:edgedb/edgedb-java.git'
+                    }
+                    developers {
+                        developer {
+                            name = 'MagicStack Inc. and the EdgeDB authors'
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+                maven {
+                    if (isRelease) {
+                        url 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+                    } else {
+                        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+                    }
+                    def sonatypeUsername = findProperty('sonatypeUsername')
+                    def sonatypePassword = findProperty('sonatypePassword')
+                    if (sonatypeUsername != null && sonatypePassword != null) {
+                        credentials {
+                            username sonatypeUsername
+                            password sonatypePassword
+                        }
+                    }
+                }
+            }
+    }
+
+    if (isRelease) {
+        signing {
+            def signingKey = findProperty("signingKey")
+            def signingPassword = findProperty("signingPassword")
+            if (signingKey != null && signingPassword != null) {
+                useInMemoryPgpKeys(new String(signingKey.decodeBase64()), signingPassword as String)
+            }
+            sign publishing.publications.mavenJava
+        }
+    }
 }

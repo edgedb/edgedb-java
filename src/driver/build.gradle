@@ -1,37 +1,32 @@
-plugins {
-    id 'java'
-}
-
-group 'com.edgedb.driver'
-version '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
-    implementation 'org.jetbrains:annotations:23.1.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-    implementation 'org.slf4j:slf4j-api:2.0.5'
+    api "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    api "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    api 'org.jetbrains:annotations:23.1.0'
+    
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
 
-    implementation platform('io.netty:netty-bom:4.1.89.Final')
     implementation 'io.netty:netty-buffer'
     implementation 'io.netty:netty-codec'
     implementation 'io.netty:netty-common'
     implementation 'io.netty:netty-transport'
     implementation 'io.netty:netty-handler'
-    implementation 'org.jooq:joou:0.9.4'
-    implementation 'org.reflections:reflections:0.10.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testImplementation 'org.assertj:assertj-core:3.24.2'
+
+    implementation "org.jooq:joou:$joou_version"
+    implementation "org.reflections:reflections:$reflections_version"
+    
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
+    testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation 'org.burningwave:core:12.62.6'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testImplementation 'ch.qos.logback:logback-classic:1.4.5'
-    testImplementation 'ch.qos.logback:logback-core:1.4.5'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_databind_version'
+    testImplementation "ch.qos.logback:logback-classic:$logback_version"
+    testImplementation "ch.qos.logback:logback-core:$logback_version"
 }
 
-test {
-    useJUnitPlatform()
+jar {
+    manifest {
+        attributes 'Implementation-Title': archivesBaseName,
+                'Implementation-Version': archiveVersion,
+                'Automatic-Module-Name': 'com.edgedb.driver'
+    }
 }
