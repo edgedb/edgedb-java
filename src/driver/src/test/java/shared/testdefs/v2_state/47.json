@@ -1,0 +1,76 @@
+{
+  "name": "Global of type std::datetime",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global GNJPVLFABIXGYFQ -> std::datetime",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type std::datetime",
+      "cardinality": 109,
+      "value": "select global GNJPVLFABIXGYFQ",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "GNJPVLFABIXGYFQ": {
+            "type": "std::datetime",
+            "value": "3861-01-26T10:58:52.06308-04:00"
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::datetime",
+      "value": "3861-01-26T10:58:52.06308-04:00"
+    }
+  ]
+}

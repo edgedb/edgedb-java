@@ -1,0 +1,473 @@
+{
+  "name": "Query result of type namedtuple<array<std::str>, array<std::float64>, array<std::int32>, array<std::decimal>, array<cal::local_time>, array<cal::local_time>, std::int16, std::bytes, std::float64, cal::date_duration, namedtuple<std::decimal, std::float64, std::bigint, std::json>, namedtuple<std::float64, std::bigint, std::json, std::decimal>, namedtuple<std::bigint, std::json, std::decimal, std::float64>, namedtuple<std::json, std::decimal, std::float64, std::bigint>, namedtuple<std::decimal, std::float64, std::bigint, std::json>, cal::local_time>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (KNQSSMVNWLBWZMA := ['FVZTTFODHBDEGCG', 'TJCVBOZSJQWPWJH', 'WCTQBUOUAFCKRDV', 'QNKGSJTRWGJDJYH', 'UMHEIPKZUHUVLOB', 'VBYIYAYNICTVKLL', 'YEQEWRLADLLKPXF', 'EEHHZZYTNUVFVOO', 'VSXGYWJEQYENPNX', 'XLQGDECYFXQBVFE', 'WBPXZZKIUDQBULE', 'WJIKXHGRQYAAFII'], TPQNYAMXBILANAE := [<float64>-39.30414844737581n, <float64>37.43195319195834n, <float64>-24.634062997826405n, <float64>-33.67462011877197n, <float64>38.44843513213491n, <float64>-4.614700364235183n, <float64>-3.242164022867644n, <float64>37.42717933581545n, <float64>49.72760051196795n, <float64>-8.06907428292049n, <float64>-7.016307514634127n, <float64>11.330581089169987n, <float64>-93.24880050413721n, <float64>-2.0211278293380177n, <float64>-42.5767029526535n, <float64>-22.552643370140643n], TAACPIOLLBTPURG := [<int32>1122438639, <int32>768654081, <int32>1956110851, <int32>1385045973, <int32>658960622, <int32>460205188, <int32>1498737058, <int32>2093202837, <int32>27230123, <int32>287377228, <int32>1027360214, <int32>928685419, <int32>1430492488, <int32>772006984, <int32>1872974049], VWTFFZVIDOXIBGB := [<std::decimal>43.29934063055521n, <std::decimal>20.12709347443984n, <std::decimal>34.061726367595458n, <std::decimal>3.227555646201390n, <std::decimal>9.885581381100044n, <std::decimal>0.065765069362598n, <std::decimal>53.797605919557430n], PYVMMVONONTIJXT := [<cal::local_time>'03:59:19.3801720', <cal::local_time>'20:56:53.1328520', <cal::local_time>'01:53:42.1874380', <cal::local_time>'06:51:45.9325940', <cal::local_time>'12:43:30.7183750', <cal::local_time>'17:15:09.7690310'], ZXCKQHCUEMMHGSU := [<cal::local_time>'10:56:01.2360080', <cal::local_time>'08:25:50.0855620', <cal::local_time>'06:26:59.7092260', <cal::local_time>'22:26:56.3089380', <cal::local_time>'17:28:16.2269060', <cal::local_time>'06:02:37.0266250', <cal::local_time>'05:13:45.3407500', <cal::local_time>'11:49:32.1884060', <cal::local_time>'14:50:29.4640350', <cal::local_time>'01:43:09.8642190', <cal::local_time>'02:11:16.2464380', <cal::local_time>'15:45:53.4002500', <cal::local_time>'18:22:27.5434360', <cal::local_time>'07:22:48.3118120', <cal::local_time>'10:59:33.2345620', <cal::local_time>'20:51:48.5211560'], NPTDXHKZDWKLVPJ := <int16>8759, EZZTNXXOOMGBDWQ := b'5GHBAGP1YLD3NJ', NLOKWVQARVPIUEY := <float64>1.1478192401806913n, ZKDFMZOGBEVCEHI := <cal::date_duration>'-23705 days', MUQFENFLVQOTIDA := (HUJGCKHOOVWSKBM := <std::decimal>14.616915426504288n, NZIUFQAADYSHWSC := <float64>-0n, JLBMBQIRMAUDCLW := <std::bigint>-113706657469493092545158n, ZEQRBYCZAMMGDWZ := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}')), ZJVPWZCBQNZQDJU := (FJJNWJSFZMWDOWI := <float64>-51.62428960745422n, XNGKABPAOYMVQSI := <std::bigint>-143230919n, QQQKDZNTEIWLHWR := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), YJLGJEGNQGKFVOD := <std::decimal>1.548524981620035n), GWQAWCCGJQQKIVR := (VEAKGLKCTXOHXQE := <std::bigint>1398330747461377667349n, VPXGXPOTSYHQEUM := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), HZNUITLCAMFWTXS := <std::decimal>14.250736676273284n, QUFMZZTDYFGSRVI := <float64>-52.5371045975653n), KUCEUGKJSAUGQLA := (SHUZOBEUFWHVKOY := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), FUVJNPLGPPADDZP := <std::decimal>18.276781791950016n, PMWNHIPHYYYPZDB := <float64>-0.5769353739809875n, RQCWOKYABRFGZFT := <std::bigint>-2496235954809000042674753206586419n), ZTSYAMPICJIOPSS := (KGEPFHJCXJLKGKI := <std::decimal>12.140331035545248n, GMHGSMWAQDEEQYU := <float64>21.406260831936383n, MIRKPBQAFCRAEPL := <std::bigint>-324444214025677446089n, STNQXVZLMVPCREC := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}')), QXYDZPEMPSLVZTC := <cal::local_time>'11:11:39.7535000')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "KNQSSMVNWLBWZMA": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::str",
+              "value": "FVZTTFODHBDEGCG"
+            },
+            {
+              "type": "std::str",
+              "value": "TJCVBOZSJQWPWJH"
+            },
+            {
+              "type": "std::str",
+              "value": "WCTQBUOUAFCKRDV"
+            },
+            {
+              "type": "std::str",
+              "value": "QNKGSJTRWGJDJYH"
+            },
+            {
+              "type": "std::str",
+              "value": "UMHEIPKZUHUVLOB"
+            },
+            {
+              "type": "std::str",
+              "value": "VBYIYAYNICTVKLL"
+            },
+            {
+              "type": "std::str",
+              "value": "YEQEWRLADLLKPXF"
+            },
+            {
+              "type": "std::str",
+              "value": "EEHHZZYTNUVFVOO"
+            },
+            {
+              "type": "std::str",
+              "value": "VSXGYWJEQYENPNX"
+            },
+            {
+              "type": "std::str",
+              "value": "XLQGDECYFXQBVFE"
+            },
+            {
+              "type": "std::str",
+              "value": "WBPXZZKIUDQBULE"
+            },
+            {
+              "type": "std::str",
+              "value": "WJIKXHGRQYAAFII"
+            }
+          ],
+          "element_type": "std::str"
+        },
+        "TPQNYAMXBILANAE": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::float64",
+              "value": -39.30414844737581
+            },
+            {
+              "type": "std::float64",
+              "value": 37.43195319195834
+            },
+            {
+              "type": "std::float64",
+              "value": -24.634062997826405
+            },
+            {
+              "type": "std::float64",
+              "value": -33.67462011877197
+            },
+            {
+              "type": "std::float64",
+              "value": 38.44843513213491
+            },
+            {
+              "type": "std::float64",
+              "value": -4.614700364235183
+            },
+            {
+              "type": "std::float64",
+              "value": -3.242164022867644
+            },
+            {
+              "type": "std::float64",
+              "value": 37.42717933581545
+            },
+            {
+              "type": "std::float64",
+              "value": 49.72760051196795
+            },
+            {
+              "type": "std::float64",
+              "value": -8.06907428292049
+            },
+            {
+              "type": "std::float64",
+              "value": -7.016307514634127
+            },
+            {
+              "type": "std::float64",
+              "value": 11.330581089169987
+            },
+            {
+              "type": "std::float64",
+              "value": -93.24880050413721
+            },
+            {
+              "type": "std::float64",
+              "value": -2.0211278293380177
+            },
+            {
+              "type": "std::float64",
+              "value": -42.5767029526535
+            },
+            {
+              "type": "std::float64",
+              "value": -22.552643370140643
+            }
+          ],
+          "element_type": "std::float64"
+        },
+        "TAACPIOLLBTPURG": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::int32",
+              "value": 1122438639
+            },
+            {
+              "type": "std::int32",
+              "value": 768654081
+            },
+            {
+              "type": "std::int32",
+              "value": 1956110851
+            },
+            {
+              "type": "std::int32",
+              "value": 1385045973
+            },
+            {
+              "type": "std::int32",
+              "value": 658960622
+            },
+            {
+              "type": "std::int32",
+              "value": 460205188
+            },
+            {
+              "type": "std::int32",
+              "value": 1498737058
+            },
+            {
+              "type": "std::int32",
+              "value": 2093202837
+            },
+            {
+              "type": "std::int32",
+              "value": 27230123
+            },
+            {
+              "type": "std::int32",
+              "value": 287377228
+            },
+            {
+              "type": "std::int32",
+              "value": 1027360214
+            },
+            {
+              "type": "std::int32",
+              "value": 928685419
+            },
+            {
+              "type": "std::int32",
+              "value": 1430492488
+            },
+            {
+              "type": "std::int32",
+              "value": 772006984
+            },
+            {
+              "type": "std::int32",
+              "value": 1872974049
+            }
+          ],
+          "element_type": "std::int32"
+        },
+        "VWTFFZVIDOXIBGB": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::decimal",
+              "value": 43.29934063055521
+            },
+            {
+              "type": "std::decimal",
+              "value": 20.12709347443984
+            },
+            {
+              "type": "std::decimal",
+              "value": 34.061726367595458
+            },
+            {
+              "type": "std::decimal",
+              "value": 3.227555646201390
+            },
+            {
+              "type": "std::decimal",
+              "value": 9.885581381100044
+            },
+            {
+              "type": "std::decimal",
+              "value": 0.065765069362598
+            },
+            {
+              "type": "std::decimal",
+              "value": 53.797605919557430
+            }
+          ],
+          "element_type": "std::decimal"
+        },
+        "PYVMMVONONTIJXT": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::local_time",
+              "value": "03:59:19.3801720"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "20:56:53.1328520"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "01:53:42.1874380"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "06:51:45.9325940"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "12:43:30.7183750"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "17:15:09.7690310"
+            }
+          ],
+          "element_type": "cal::local_time"
+        },
+        "ZXCKQHCUEMMHGSU": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::local_time",
+              "value": "10:56:01.2360080"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "08:25:50.0855620"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "06:26:59.7092260"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "22:26:56.3089380"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "17:28:16.2269060"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "06:02:37.0266250"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "05:13:45.3407500"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "11:49:32.1884060"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "14:50:29.4640350"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "01:43:09.8642190"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "02:11:16.2464380"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "15:45:53.4002500"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "18:22:27.5434360"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "07:22:48.3118120"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "10:59:33.2345620"
+            },
+            {
+              "type": "cal::local_time",
+              "value": "20:51:48.5211560"
+            }
+          ],
+          "element_type": "cal::local_time"
+        },
+        "NPTDXHKZDWKLVPJ": {
+          "type": "std::int16",
+          "value": 8759
+        },
+        "EZZTNXXOOMGBDWQ": {
+          "type": "std::bytes",
+          "value": "NUdIQkFHUDFZTEQzTko="
+        },
+        "NLOKWVQARVPIUEY": {
+          "type": "std::float64",
+          "value": 1.1478192401806913
+        },
+        "ZKDFMZOGBEVCEHI": {
+          "type": "cal::date_duration",
+          "value": "-23705.00:00:00"
+        },
+        "MUQFENFLVQOTIDA": {
+          "type": "namedtuple",
+          "value": {
+            "HUJGCKHOOVWSKBM": {
+              "type": "std::decimal",
+              "value": 14.616915426504288
+            },
+            "NZIUFQAADYSHWSC": {
+              "type": "std::float64",
+              "value": 0.0
+            },
+            "JLBMBQIRMAUDCLW": {
+              "type": "std::bigint",
+              "value": -113706657469493092545158
+            },
+            "ZEQRBYCZAMMGDWZ": {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            }
+          }
+        },
+        "ZJVPWZCBQNZQDJU": {
+          "type": "namedtuple",
+          "value": {
+            "FJJNWJSFZMWDOWI": {
+              "type": "std::float64",
+              "value": -51.62428960745422
+            },
+            "XNGKABPAOYMVQSI": {
+              "type": "std::bigint",
+              "value": -143230919
+            },
+            "QQQKDZNTEIWLHWR": {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            "YJLGJEGNQGKFVOD": {
+              "type": "std::decimal",
+              "value": 1.548524981620035
+            }
+          }
+        },
+        "GWQAWCCGJQQKIVR": {
+          "type": "namedtuple",
+          "value": {
+            "VEAKGLKCTXOHXQE": {
+              "type": "std::bigint",
+              "value": 1398330747461377667349
+            },
+            "VPXGXPOTSYHQEUM": {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            "HZNUITLCAMFWTXS": {
+              "type": "std::decimal",
+              "value": 14.250736676273284
+            },
+            "QUFMZZTDYFGSRVI": {
+              "type": "std::float64",
+              "value": -52.5371045975653
+            }
+          }
+        },
+        "KUCEUGKJSAUGQLA": {
+          "type": "namedtuple",
+          "value": {
+            "SHUZOBEUFWHVKOY": {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            "FUVJNPLGPPADDZP": {
+              "type": "std::decimal",
+              "value": 18.276781791950016
+            },
+            "PMWNHIPHYYYPZDB": {
+              "type": "std::float64",
+              "value": -0.5769353739809875
+            },
+            "RQCWOKYABRFGZFT": {
+              "type": "std::bigint",
+              "value": -2496235954809000042674753206586419
+            }
+          }
+        },
+        "ZTSYAMPICJIOPSS": {
+          "type": "namedtuple",
+          "value": {
+            "KGEPFHJCXJLKGKI": {
+              "type": "std::decimal",
+              "value": 12.140331035545248
+            },
+            "GMHGSMWAQDEEQYU": {
+              "type": "std::float64",
+              "value": 21.406260831936383
+            },
+            "MIRKPBQAFCRAEPL": {
+              "type": "std::bigint",
+              "value": -324444214025677446089
+            },
+            "STNQXVZLMVPCREC": {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            }
+          }
+        },
+        "QXYDZPEMPSLVZTC": {
+          "type": "cal::local_time",
+          "value": "11:11:39.7535000"
+        }
+      }
+    }
+  ]
+}

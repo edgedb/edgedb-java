@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<std::int32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<int32>1836501494, <int32>1905373727)",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 1836501494,
+        "upper": 1905373727,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::int32"
+    }
+  ]
+}

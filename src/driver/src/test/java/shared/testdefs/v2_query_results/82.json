@@ -1,0 +1,73 @@
+{
+  "name": "Query result of type array<std::int64>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<std::int64>7733368487018875698, <std::int64>4931304340547399918, <std::int64>6418954383898570375, <std::int64>8948492986447133603, <std::int64>8172046372040799034, <std::int64>3947619853428754802, <std::int64>101790139850640365, <std::int64>359220579717475857, <std::int64>5533319829945048321, <std::int64>6157870107590645121, <std::int64>4423037604707005022, <std::int64>6179019042543695282]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::int64",
+          "value": 7733368487018875698
+        },
+        {
+          "type": "std::int64",
+          "value": 4931304340547399918
+        },
+        {
+          "type": "std::int64",
+          "value": 6418954383898570375
+        },
+        {
+          "type": "std::int64",
+          "value": 8948492986447133603
+        },
+        {
+          "type": "std::int64",
+          "value": 8172046372040799034
+        },
+        {
+          "type": "std::int64",
+          "value": 3947619853428754802
+        },
+        {
+          "type": "std::int64",
+          "value": 101790139850640365
+        },
+        {
+          "type": "std::int64",
+          "value": 359220579717475857
+        },
+        {
+          "type": "std::int64",
+          "value": 5533319829945048321
+        },
+        {
+          "type": "std::int64",
+          "value": 6157870107590645121
+        },
+        {
+          "type": "std::int64",
+          "value": 4423037604707005022
+        },
+        {
+          "type": "std::int64",
+          "value": 6179019042543695282
+        }
+      ],
+      "element_type": "std::int64"
+    }
+  ]
+}

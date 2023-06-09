@@ -1,0 +1,95 @@
+{
+  "name": "Query result of type set<std::uuid>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <uuid>'d965aaae-5a7f-12c2-cf3b-4e8ebc5e2fc2', <uuid>'2fbf01d8-ba53-df14-ec79-eb3a47562972', <uuid>'4961ff5d-832b-064d-93a0-f76cbd449a67', <uuid>'a8ad589e-8915-f3ad-9585-ed056f87ca79', <uuid>'bd30db11-e5fc-5496-b4b8-9bb2c3a822a8', <uuid>'ee9c83de-81a8-d35d-526e-b4a69648960b', <uuid>'e15b7ed6-dd13-b96b-c258-f45ceefa30ec', <uuid>'eb264562-dbeb-8fd0-7e5c-6a8e30f0bd6c', <uuid>'44dc8f22-404d-0194-17e3-2c508c00e558', <uuid>'5143c73d-aa21-fa20-aecb-62b673dd88d1', <uuid>'5e3a889b-ec1d-219f-b025-d408ae80037e', <uuid>'69501277-6cad-774a-6fe1-9682dedd8e3a', <uuid>'03b55a5a-86c5-513a-2821-a0fcd6174c2e', <uuid>'603fe4c7-1f8c-2e24-3dc3-ef3c551c43d3', <uuid>'54ad9997-ffca-f0b8-d7ff-408ccb4ea057', <uuid>'fabb6895-2d9e-3bad-3686-c50297fefb0b', <uuid>'3c65cddd-f769-c763-2b4e-888dde9863ef', <uuid>'eda69722-4961-6935-ec71-1e4439b659d9' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::uuid",
+        "value": "d965aaae-5a7f-12c2-cf3b-4e8ebc5e2fc2"
+      },
+      {
+        "type": "std::uuid",
+        "value": "2fbf01d8-ba53-df14-ec79-eb3a47562972"
+      },
+      {
+        "type": "std::uuid",
+        "value": "4961ff5d-832b-064d-93a0-f76cbd449a67"
+      },
+      {
+        "type": "std::uuid",
+        "value": "a8ad589e-8915-f3ad-9585-ed056f87ca79"
+      },
+      {
+        "type": "std::uuid",
+        "value": "bd30db11-e5fc-5496-b4b8-9bb2c3a822a8"
+      },
+      {
+        "type": "std::uuid",
+        "value": "ee9c83de-81a8-d35d-526e-b4a69648960b"
+      },
+      {
+        "type": "std::uuid",
+        "value": "e15b7ed6-dd13-b96b-c258-f45ceefa30ec"
+      },
+      {
+        "type": "std::uuid",
+        "value": "eb264562-dbeb-8fd0-7e5c-6a8e30f0bd6c"
+      },
+      {
+        "type": "std::uuid",
+        "value": "44dc8f22-404d-0194-17e3-2c508c00e558"
+      },
+      {
+        "type": "std::uuid",
+        "value": "5143c73d-aa21-fa20-aecb-62b673dd88d1"
+      },
+      {
+        "type": "std::uuid",
+        "value": "5e3a889b-ec1d-219f-b025-d408ae80037e"
+      },
+      {
+        "type": "std::uuid",
+        "value": "69501277-6cad-774a-6fe1-9682dedd8e3a"
+      },
+      {
+        "type": "std::uuid",
+        "value": "03b55a5a-86c5-513a-2821-a0fcd6174c2e"
+      },
+      {
+        "type": "std::uuid",
+        "value": "603fe4c7-1f8c-2e24-3dc3-ef3c551c43d3"
+      },
+      {
+        "type": "std::uuid",
+        "value": "54ad9997-ffca-f0b8-d7ff-408ccb4ea057"
+      },
+      {
+        "type": "std::uuid",
+        "value": "fabb6895-2d9e-3bad-3686-c50297fefb0b"
+      },
+      {
+        "type": "std::uuid",
+        "value": "3c65cddd-f769-c763-2b4e-888dde9863ef"
+      },
+      {
+        "type": "std::uuid",
+        "value": "eda69722-4961-6935-ec71-1e4439b659d9"
+      }
+    ],
+    "element_type": "std::uuid"
+  }
+}

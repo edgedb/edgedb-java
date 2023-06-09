@@ -1,0 +1,39 @@
+{
+  "name": "Query result of type set<std::bool>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { false, true, true, true }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      }
+    ],
+    "element_type": "std::bool"
+  }
+}

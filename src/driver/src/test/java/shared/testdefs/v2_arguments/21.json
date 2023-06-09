@@ -1,0 +1,76 @@
+{
+  "name": "Argument of type array<std::bigint>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <array<std::bigint>>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "array<std::bigint>",
+          "value": {
+            "type": "array",
+            "value": [
+              {
+                "type": "std::bigint",
+                "value": -8871450174295129639247539338652
+              },
+              {
+                "type": "std::bigint",
+                "value": 8673763119370837592258308958166
+              },
+              {
+                "type": "std::bigint",
+                "value": 23035637814
+              },
+              {
+                "type": "std::bigint",
+                "value": 111033547948288444798
+              },
+              {
+                "type": "std::bigint",
+                "value": -615449420902506675473
+              }
+            ],
+            "element_type": "std::bigint"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::bigint",
+          "value": -8871450174295129639247539338652
+        },
+        {
+          "type": "std::bigint",
+          "value": 8673763119370837592258308958166
+        },
+        {
+          "type": "std::bigint",
+          "value": 23035637814
+        },
+        {
+          "type": "std::bigint",
+          "value": 111033547948288444798
+        },
+        {
+          "type": "std::bigint",
+          "value": -615449420902506675473
+        }
+      ],
+      "element_type": "std::bigint"
+    }
+  ]
+}

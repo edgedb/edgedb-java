@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<cal::local_date>'2907-07-22', <cal::local_date>'7136-11-14')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": "2907-07-22",
+        "upper": "7136-11-14",
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "cal::local_date"
+    }
+  ]
+}

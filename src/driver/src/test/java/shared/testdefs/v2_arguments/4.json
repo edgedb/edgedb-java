@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type cal::date_duration",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::date_duration>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "cal::date_duration",
+          "value": {
+            "type": "cal::date_duration",
+            "value": "-29936.00:00:00"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::date_duration",
+      "value": "-29936.00:00:00"
+    }
+  ]
+}

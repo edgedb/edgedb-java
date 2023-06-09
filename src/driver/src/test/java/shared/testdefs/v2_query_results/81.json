@@ -1,0 +1,69 @@
+{
+  "name": "Query result of type array<std::int16>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<int16>24407, <int16>24566, <int16>30737, <int16>4375, <int16>32226, <int16>11824, <int16>13201, <int16>3512, <int16>28853, <int16>6579, <int16>24483]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::int16",
+          "value": 24407
+        },
+        {
+          "type": "std::int16",
+          "value": 24566
+        },
+        {
+          "type": "std::int16",
+          "value": 30737
+        },
+        {
+          "type": "std::int16",
+          "value": 4375
+        },
+        {
+          "type": "std::int16",
+          "value": 32226
+        },
+        {
+          "type": "std::int16",
+          "value": 11824
+        },
+        {
+          "type": "std::int16",
+          "value": 13201
+        },
+        {
+          "type": "std::int16",
+          "value": 3512
+        },
+        {
+          "type": "std::int16",
+          "value": 28853
+        },
+        {
+          "type": "std::int16",
+          "value": 6579
+        },
+        {
+          "type": "std::int16",
+          "value": 24483
+        }
+      ],
+      "element_type": "std::int16"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Query result of type array<std::int16>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<int16>12014, <int16>25850, <int16>9970, <int16>3635, <int16>28035, <int16>8265]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::int16",
+          "value": 12014
+        },
+        {
+          "type": "std::int16",
+          "value": 25850
+        },
+        {
+          "type": "std::int16",
+          "value": 9970
+        },
+        {
+          "type": "std::int16",
+          "value": 3635
+        },
+        {
+          "type": "std::int16",
+          "value": 28035
+        },
+        {
+          "type": "std::int16",
+          "value": 8265
+        }
+      ],
+      "element_type": "std::int16"
+    }
+  ]
+}

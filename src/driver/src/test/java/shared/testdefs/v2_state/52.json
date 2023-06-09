@@ -1,0 +1,76 @@
+{
+  "name": "Global of type std::int16",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global WCXFMWSKXGJIPIA -> std::int16",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type std::int16",
+      "cardinality": 109,
+      "value": "select global WCXFMWSKXGJIPIA",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "WCXFMWSKXGJIPIA": {
+            "type": "std::int16",
+            "value": 31060
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::int16",
+      "value": 31060
+    }
+  ]
+}

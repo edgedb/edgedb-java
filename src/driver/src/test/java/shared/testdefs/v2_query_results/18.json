@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::date_duration",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::date_duration>'22999 days'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::date_duration",
+      "value": "22999.00:00:00"
+    }
+  ]
+}

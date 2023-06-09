@@ -1,0 +1,77 @@
+{
+  "name": "Query result of type array<std::uuid>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<uuid>'08071df4-02b6-869a-4c24-c4c01392fbfa', <uuid>'7b71fe42-1b84-85c3-a85c-ba6b29e6e216', <uuid>'0bd14fd7-f1e7-9fbb-58d9-b974b1025168', <uuid>'95ba152f-5fb2-d906-5982-605a482f5d65', <uuid>'c4e9ad42-efc1-5112-43d2-23ab614fd4a5', <uuid>'133b520a-4c2c-7764-48f7-b26591605728', <uuid>'0432547b-8d19-40a6-0368-52e03c5b780a', <uuid>'f550baad-4af3-f639-4871-7bc93dadbfe2', <uuid>'0c2ffa7a-cf1d-7d8c-abfb-10c3f9833bed', <uuid>'d6b7a87f-6210-3135-1b3b-bba711dc0256', <uuid>'41666fa8-6b2c-deed-2ed2-4af83a75fcc5', <uuid>'954a8e36-e9f5-17d1-c5fd-f1e114e46cce', <uuid>'891abaf8-f91d-14c1-bad9-a83e173df7a5']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::uuid",
+          "value": "08071df4-02b6-869a-4c24-c4c01392fbfa"
+        },
+        {
+          "type": "std::uuid",
+          "value": "7b71fe42-1b84-85c3-a85c-ba6b29e6e216"
+        },
+        {
+          "type": "std::uuid",
+          "value": "0bd14fd7-f1e7-9fbb-58d9-b974b1025168"
+        },
+        {
+          "type": "std::uuid",
+          "value": "95ba152f-5fb2-d906-5982-605a482f5d65"
+        },
+        {
+          "type": "std::uuid",
+          "value": "c4e9ad42-efc1-5112-43d2-23ab614fd4a5"
+        },
+        {
+          "type": "std::uuid",
+          "value": "133b520a-4c2c-7764-48f7-b26591605728"
+        },
+        {
+          "type": "std::uuid",
+          "value": "0432547b-8d19-40a6-0368-52e03c5b780a"
+        },
+        {
+          "type": "std::uuid",
+          "value": "f550baad-4af3-f639-4871-7bc93dadbfe2"
+        },
+        {
+          "type": "std::uuid",
+          "value": "0c2ffa7a-cf1d-7d8c-abfb-10c3f9833bed"
+        },
+        {
+          "type": "std::uuid",
+          "value": "d6b7a87f-6210-3135-1b3b-bba711dc0256"
+        },
+        {
+          "type": "std::uuid",
+          "value": "41666fa8-6b2c-deed-2ed2-4af83a75fcc5"
+        },
+        {
+          "type": "std::uuid",
+          "value": "954a8e36-e9f5-17d1-c5fd-f1e114e46cce"
+        },
+        {
+          "type": "std::uuid",
+          "value": "891abaf8-f91d-14c1-bad9-a83e173df7a5"
+        }
+      ],
+      "element_type": "std::uuid"
+    }
+  ]
+}

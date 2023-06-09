@@ -1,0 +1,71 @@
+{
+  "name": "Query result of type set<std::json>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}') }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      },
+      {
+        "type": "std::json",
+        "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+      }
+    ],
+    "element_type": "std::json"
+  }
+}

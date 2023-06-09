@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::local_time",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_time>'10:39:39.3542810'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_time",
+      "value": "10:39:39.3542810"
+    }
+  ]
+}

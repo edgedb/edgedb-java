@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<std::int64>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<std::int64>1612976216290922701, <std::int64>5710095882428791084)",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 1612976216290922701,
+        "upper": 5710095882428791084,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::int64"
+    }
+  ]
+}

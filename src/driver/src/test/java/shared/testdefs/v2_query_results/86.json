@@ -1,0 +1,257 @@
+{
+  "name": "Query result of type array<namedtuple<std::datetime, std::duration, std::str, cal::date_duration, std::uuid, std::float32>>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [(XPEZRQLNVRQHHCJ := <datetime>'8181-03-30T14:34:15.564992-03:00', YBURQSULQEGEVPF := <duration>'22204800 seconds', PIBTIDRIHWULQLK := 'TEUBCGXKNAMFIAB', TAMBUKQXDIIVZAA := <cal::date_duration>'-23456 days', CLKLEIKQFHRLAHU := <uuid>'6bd1a634-c986-1af9-369d-5f5b41ed530f', JCXQAHVEQDEJGRI := <float32>-0.15380102n), (LTLBSXOOKKIFSGX := <datetime>'0698-09-20T12:30:00.257088-03:00', JEJJTUTAEEQFLWB := <duration>'36633600 seconds', PZYAFTLTLTHYLCI := 'KRWFARYSAOTYIZN', IORYDXEKYPIBLCS := <cal::date_duration>'-1796 days', AEEQDXAFZRANLLG := <uuid>'b2810e0e-e773-0a4b-64c3-ef9cb3d64696', QSYICSLUXYXNKKE := <float32>69.19877n), (VQXDMRSITODYBVI := <datetime>'9107-06-22T05:36:54.425056-03:00', NXXXMQNOQABXGMD := <duration>'36979200 seconds', ZBSPLRJJRGTZWRC := 'MJXNPJAKOWRRLNC', CPWHFCBGNNUKTOU := <cal::date_duration>'11217 days', UCGJWPAHBPZSYED := <uuid>'55851476-6561-8921-0119-d0bc1546d0be', SATZTTTHGXBMGVP := <float32>-14.20867n), (NODDKUPJTZKQBMR := <datetime>'9905-12-15T04:58:01.836128-04:00', LEZENNOJHWJDMAJ := <duration>'30412800 seconds', PTOXIFEJZHVHAZP := 'SDCZMZBPUCXGFGZ', XRXXLACYVVOFSBH := <cal::date_duration>'29285 days', UWHTWPSZDFHXDSI := <uuid>'d83a780b-9f99-8840-a103-083000c9a26d', MXLCTEVHELWXRXR := <float32>-73.482765n), (ZVCXCVEPFEWCKKH := <datetime>'4560-04-20T15:16:18.656304-03:00', GFBFNTMYVDLFZOZ := <duration>'41040000 seconds', WEJAJHOPPCIJLMK := 'MPQWMLBPYHRSJGP', DKOCCEXYMPXREPJ := <cal::date_duration>'22297 days', MZICNKCTBBPVFJM := <uuid>'70446454-931c-7a3a-5311-3d75d87c69cb', RPUQOBXEZICWJRK := <float32>-8.911645n), (HUTKEHQSQWSISCP := <datetime>'1598-05-31T19:55:01.83361-03:00', PWWEESIBFVISNZG := <duration>'29980800 seconds', QFXFPIYIGIHZKTU := 'TZHWFDBLIZMHADW', QSLJGKZNYVXKBBU := <cal::date_duration>'2323 days', TAYVUNEMWPWQHDM := <uuid>'5c55507b-a854-58fc-509d-4201c5343479', TVKWMVXYFTOJQHN := <float32>73.91387n), (CTDYKAEWLHNCPKM := <datetime>'8942-09-29T02:29:43.904256-03:00', TQINUJFMUQDQVKS := <duration>'7516800 seconds', CQQXZVIYLQSRZYE := 'CBIWFHKXLPKAFPX', XBHWHOTUAPITNVV := <cal::date_duration>'22060 days', TJKHJVGSMJLISWT := <uuid>'41be3db7-2fc3-e4da-274e-987c62f11e47', AZWNJQSMQOBJISW := <float32>0n), (XARDFAWLTXPJWPT := <datetime>'2724-02-06T17:44:07.18878-04:00', ZFODGEROMZFETLQ := <duration>'32832000 seconds', XRJWRMMEYPAFEUP := 'DNUBYRWAOTBRGZL', PJRBXWISCYHPRJH := <cal::date_duration>'6194 days', PXVSPGVJHYLVYYD := <uuid>'cdb119f0-d476-77fa-9c50-d28694228e18', BMKNDWTLFOPKHHA := <float32>-14.2918005n)]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "8181-03-30T14:34:15.564992-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "257.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "TEUBCGXKNAMFIAB"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-23456.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "6bd1a634-c986-1af9-369d-5f5b41ed530f"
+            },
+            {
+              "type": "std::float32",
+              "value": -0.15380102
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "0698-09-20T12:30:00.257088-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "424.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "KRWFARYSAOTYIZN"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-1796.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "b2810e0e-e773-0a4b-64c3-ef9cb3d64696"
+            },
+            {
+              "type": "std::float32",
+              "value": 69.19877
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "9107-06-22T05:36:54.425056-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "428.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "MJXNPJAKOWRRLNC"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "11217.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "55851476-6561-8921-0119-d0bc1546d0be"
+            },
+            {
+              "type": "std::float32",
+              "value": -14.20867
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "9905-12-15T04:58:01.836128-04:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "352.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "SDCZMZBPUCXGFGZ"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "29285.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "d83a780b-9f99-8840-a103-083000c9a26d"
+            },
+            {
+              "type": "std::float32",
+              "value": -73.482765
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "4560-04-20T15:16:18.656304-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "475.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "MPQWMLBPYHRSJGP"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "22297.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "70446454-931c-7a3a-5311-3d75d87c69cb"
+            },
+            {
+              "type": "std::float32",
+              "value": -8.911645
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "1598-05-31T19:55:01.83361-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "347.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "TZHWFDBLIZMHADW"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "2323.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "5c55507b-a854-58fc-509d-4201c5343479"
+            },
+            {
+              "type": "std::float32",
+              "value": 73.91387
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "8942-09-29T02:29:43.904256-03:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "87.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "CBIWFHKXLPKAFPX"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "22060.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "41be3db7-2fc3-e4da-274e-987c62f11e47"
+            },
+            {
+              "type": "std::float32",
+              "value": 0.0
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "2724-02-06T17:44:07.18878-04:00"
+            },
+            {
+              "type": "std::duration",
+              "value": "380.00:00:00"
+            },
+            {
+              "type": "std::str",
+              "value": "DNUBYRWAOTBRGZL"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "6194.00:00:00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "cdb119f0-d476-77fa-9c50-d28694228e18"
+            },
+            {
+              "type": "std::float32",
+              "value": -14.2918005
+            }
+          ]
+        }
+      ],
+      "element_type": "namedtuple"
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "name": "Query result of type array<std::duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<duration>'38707200 seconds', <duration>'30672000 seconds', <duration>'35510400 seconds', <duration>'1209600 seconds', <duration>'18316800 seconds', <duration>'29116800 seconds', <duration>'14688000 seconds', <duration>'40435200 seconds', <duration>'2678400 seconds', <duration>'37411200 seconds', <duration>'38016000 seconds', <duration>'42249600 seconds', <duration>'21427200 seconds', <duration>'22291200 seconds', <duration>'37065600 seconds', <duration>'16588800 seconds', <duration>'28339200 seconds', <duration>'10886400 seconds']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::duration",
+          "value": "448.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "355.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "411.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "14.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "212.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "337.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "170.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "468.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "31.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "433.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "440.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "489.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "248.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "258.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "429.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "192.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "328.00:00:00"
+        },
+        {
+          "type": "std::duration",
+          "value": "126.00:00:00"
+        }
+      ],
+      "element_type": "std::duration"
+    }
+  ]
+}

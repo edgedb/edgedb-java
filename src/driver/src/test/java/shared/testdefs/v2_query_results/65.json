@@ -1,0 +1,91 @@
+{
+  "name": "Query result of type set<std::int32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <int32>460742380, <int32>5208767, <int32>792494801, <int32>1056681905, <int32>2110799879, <int32>168323939, <int32>469398491, <int32>1578323156, <int32>2029794375, <int32>615269910, <int32>1365880063, <int32>644548368, <int32>632754932, <int32>1646008976, <int32>1304812893, <int32>2050682060, <int32>39512929 }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::int32",
+        "value": 460742380
+      },
+      {
+        "type": "std::int32",
+        "value": 5208767
+      },
+      {
+        "type": "std::int32",
+        "value": 792494801
+      },
+      {
+        "type": "std::int32",
+        "value": 1056681905
+      },
+      {
+        "type": "std::int32",
+        "value": 2110799879
+      },
+      {
+        "type": "std::int32",
+        "value": 168323939
+      },
+      {
+        "type": "std::int32",
+        "value": 469398491
+      },
+      {
+        "type": "std::int32",
+        "value": 1578323156
+      },
+      {
+        "type": "std::int32",
+        "value": 2029794375
+      },
+      {
+        "type": "std::int32",
+        "value": 615269910
+      },
+      {
+        "type": "std::int32",
+        "value": 1365880063
+      },
+      {
+        "type": "std::int32",
+        "value": 644548368
+      },
+      {
+        "type": "std::int32",
+        "value": 632754932
+      },
+      {
+        "type": "std::int32",
+        "value": 1646008976
+      },
+      {
+        "type": "std::int32",
+        "value": 1304812893
+      },
+      {
+        "type": "std::int32",
+        "value": 2050682060
+      },
+      {
+        "type": "std::int32",
+        "value": 39512929
+      }
+    ],
+    "element_type": "std::int32"
+  }
+}

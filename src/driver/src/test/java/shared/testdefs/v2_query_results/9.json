@@ -1,0 +1,93 @@
+{
+  "name": "Query result of type array<std::bytes>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [b'65AYG4GLI01DNXTKI2', b'5OKHQL3BM02', b'VTABCP7WR89Q', b'PECE9B3SNZPVW', b'NO25MQ2EUMVQ5LF', b'8Q45BG18N80ZH4VQ', b'7TIZCW0VLUZTRG', b'NZ3923SGX5QORB', b'12FA9380545IZWAO62S', b'SBWYXNNU5WIRU', b'49NRIYPZ8F8T3T', b'QUX0ZNZEQNUONEIV', b'YL4CAOS473DR2', b'V48OBUS5AE', b'8DXJCVZTV6Q1UPGEG4', b'VXYK0VQZHA45KYJ', b'L6T4HO9FIE']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::bytes",
+          "value": "NjVBWUc0R0xJMDFETlhUS0ky"
+        },
+        {
+          "type": "std::bytes",
+          "value": "NU9LSFFMM0JNMDI="
+        },
+        {
+          "type": "std::bytes",
+          "value": "VlRBQkNQN1dSODlR"
+        },
+        {
+          "type": "std::bytes",
+          "value": "UEVDRTlCM1NOWlBWVw=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "Tk8yNU1RMkVVTVZRNUxG"
+        },
+        {
+          "type": "std::bytes",
+          "value": "OFE0NUJHMThOODBaSDRWUQ=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "N1RJWkNXMFZMVVpUUkc="
+        },
+        {
+          "type": "std::bytes",
+          "value": "TlozOTIzU0dYNVFPUkI="
+        },
+        {
+          "type": "std::bytes",
+          "value": "MTJGQTkzODA1NDVJWldBTzYyUw=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "U0JXWVhOTlU1V0lSVQ=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "NDlOUklZUFo4RjhUM1Q="
+        },
+        {
+          "type": "std::bytes",
+          "value": "UVVYMFpOWkVRTlVPTkVJVg=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "WUw0Q0FPUzQ3M0RSMg=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "VjQ4T0JVUzVBRQ=="
+        },
+        {
+          "type": "std::bytes",
+          "value": "OERYSkNWWlRWNlExVVBHRUc0"
+        },
+        {
+          "type": "std::bytes",
+          "value": "VlhZSzBWUVpIQTQ1S1lK"
+        },
+        {
+          "type": "std::bytes",
+          "value": "TDZUNEhPOUZJRQ=="
+        }
+      ],
+      "element_type": "std::bytes"
+    }
+  ]
+}

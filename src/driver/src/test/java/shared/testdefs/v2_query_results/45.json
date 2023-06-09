@@ -1,0 +1,48 @@
+{
+  "name": "Query result of type object<std::str, cal::local_datetime, std::bool, std::decimal, std::bigint, std::int32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { KLYWYAUUJHGXAHJ := 'JOYPXPNHXRCANWB', PCQCYHKBNXLKXQR := <cal::local_datetime>'9086-11-24T17:30:18.55744', OJWOIJVXQYGXUHN := true, IYRGHBDXCZDCJHA := <std::decimal>4.248353276517416n, MFYGTVFHIEETPXF := <std::bigint>433765880973n, SRFJRUHRFSOJBZV := <int32>126975970 }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "KLYWYAUUJHGXAHJ": {
+          "type": "std::str",
+          "value": "JOYPXPNHXRCANWB"
+        },
+        "PCQCYHKBNXLKXQR": {
+          "type": "cal::local_datetime",
+          "value": "9086-11-24T17:30:18.5574400"
+        },
+        "OJWOIJVXQYGXUHN": {
+          "type": "std::bool",
+          "value": true
+        },
+        "IYRGHBDXCZDCJHA": {
+          "type": "std::decimal",
+          "value": 4.248353276517416
+        },
+        "MFYGTVFHIEETPXF": {
+          "type": "std::bigint",
+          "value": 433765880973
+        },
+        "SRFJRUHRFSOJBZV": {
+          "type": "std::int32",
+          "value": 126975970
+        }
+      }
+    }
+  ]
+}

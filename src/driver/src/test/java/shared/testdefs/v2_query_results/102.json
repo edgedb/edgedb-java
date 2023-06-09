@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::local_date",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_date>'5751-06-01'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_date",
+      "value": "5751-06-01"
+    }
+  ]
+}

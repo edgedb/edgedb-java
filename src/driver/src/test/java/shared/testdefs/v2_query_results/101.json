@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::local_datetime",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_datetime>'0672-12-11T10:14:16.742576'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_datetime",
+      "value": "0672-12-11T10:14:16.7425760"
+    }
+  ]
+}

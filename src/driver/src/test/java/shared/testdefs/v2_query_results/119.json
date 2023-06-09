@@ -1,0 +1,47 @@
+{
+  "name": "Query result of type set<std::int16>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <int16>14530, <int16>21454, <int16>5212, <int16>27287, <int16>7624, <int16>18218 }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::int16",
+        "value": 14530
+      },
+      {
+        "type": "std::int16",
+        "value": 21454
+      },
+      {
+        "type": "std::int16",
+        "value": 5212
+      },
+      {
+        "type": "std::int16",
+        "value": 27287
+      },
+      {
+        "type": "std::int16",
+        "value": 7624
+      },
+      {
+        "type": "std::int16",
+        "value": 18218
+      }
+    ],
+    "element_type": "std::int16"
+  }
+}

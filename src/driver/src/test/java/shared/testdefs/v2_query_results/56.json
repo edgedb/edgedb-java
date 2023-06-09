@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<std::datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<datetime>'6487-05-05T10:04:11.024096-03:00', <datetime>'7292-07-02T19:44:35.752768-03:00')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": "6487-05-05T10:04:11.024096-03:00",
+        "upper": "7292-07-02T19:44:35.752768-03:00",
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::datetime"
+    }
+  ]
+}

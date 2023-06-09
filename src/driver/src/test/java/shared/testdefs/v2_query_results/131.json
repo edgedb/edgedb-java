@@ -1,0 +1,32 @@
+{
+  "name": "Query result of type tuple<cal::local_datetime, std::json>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (<cal::local_datetime>'5813-12-21T19:16:50.920032', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'))",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "tuple",
+      "value": [
+        {
+          "type": "cal::local_datetime",
+          "value": "5813-12-21T19:16:50.9200320"
+        },
+        {
+          "type": "std::json",
+          "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+        }
+      ]
+    }
+  ]
+}

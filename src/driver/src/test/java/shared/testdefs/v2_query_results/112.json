@@ -1,0 +1,28 @@
+{
+  "name": "Query result of type object<std::str>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { SIXMPFWBTCQWCYZ := 'HCHSCXDOBBEJDLT' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "SIXMPFWBTCQWCYZ": {
+          "type": "std::str",
+          "value": "HCHSCXDOBBEJDLT"
+        }
+      }
+    }
+  ]
+}

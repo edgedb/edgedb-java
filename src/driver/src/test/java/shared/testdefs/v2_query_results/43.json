@@ -1,0 +1,44 @@
+{
+  "name": "Query result of type namedtuple<std::float32, std::int32, cal::relative_duration, std::json, std::bigint>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (SMNCLURNANQOSJN := <float32>15.313611n, VGRHSNOHTQAIRNQ := <int32>1370225842, AVLVDMZIRPWXENN := <cal::relative_duration>'7603200 seconds', ZTBEUOWNYXAEZBC := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), WGTZLRURZBXRJOC := <std::bigint>1850481249361035672186n)",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "SMNCLURNANQOSJN": {
+          "type": "std::float32",
+          "value": 15.313611
+        },
+        "VGRHSNOHTQAIRNQ": {
+          "type": "std::int32",
+          "value": 1370225842
+        },
+        "AVLVDMZIRPWXENN": {
+          "type": "cal::relative_duration",
+          "value": "88.00:00:00"
+        },
+        "ZTBEUOWNYXAEZBC": {
+          "type": "std::json",
+          "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+        },
+        "WGTZLRURZBXRJOC": {
+          "type": "std::bigint",
+          "value": 1850481249361035672186
+        }
+      }
+    }
+  ]
+}

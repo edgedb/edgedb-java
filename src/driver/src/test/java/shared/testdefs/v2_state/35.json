@@ -1,0 +1,76 @@
+{
+  "name": "Global of type cal::local_datetime",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global QTGOJQXRUESXGEW -> cal::local_datetime",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type cal::local_datetime",
+      "cardinality": 109,
+      "value": "select global QTGOJQXRUESXGEW",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "QTGOJQXRUESXGEW": {
+            "type": "cal::local_datetime",
+            "value": "6040-12-16T08:48:40.5992160"
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_datetime",
+      "value": "6040-12-16T08:48:40.5992160"
+    }
+  ]
+}

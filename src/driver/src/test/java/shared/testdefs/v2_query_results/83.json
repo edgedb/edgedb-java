@@ -1,0 +1,395 @@
+{
+  "name": "Query result of type array<tuple<std::float32, cal::local_time, std::json, std::str, std::uuid, std::int64, std::duration, std::float64>>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [(<float32>-19.372057n, <cal::local_time>'22:00:11.9369380', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'ZPYEACPSGNWHFCK', <uuid>'d3b50507-40bd-3305-376a-eeb453b8efa4', <std::int64>6365917789054965460, <duration>'259200 seconds', <float64>5.400128211081087n), (<float32>9.601582n, <cal::local_time>'22:14:19.0955310', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'NHPCMNSOPSPJJCN', <uuid>'beec3d81-710e-a23e-ecf7-818bfcf248c7', <std::int64>4542252497680397592, <duration>'42768000 seconds', <float64>11.651557789487558n), (<float32>17.968422n, <cal::local_time>'20:15:09.7633440', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'ZMIRZARTZMSIICK', <uuid>'359d057b-33af-dfdd-339d-888a14c1bd93', <std::int64>3931281410330760344, <duration>'9072000 seconds', <float64>14.273123877250182n), (<float32>-9.185147n, <cal::local_time>'03:08:18.2353280', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'MPEQBLDCDRRGXVH', <uuid>'7c7be239-626e-59ef-8a7b-30be4c5b7c3f', <std::int64>3239347754896439487, <duration>'6912000 seconds', <float64>29.358406536913666n), (<float32>14.035652n, <cal::local_time>'04:02:49.7245620', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'FHEHXXQKRYCIIUU', <uuid>'b39c3056-11cd-5012-daa6-d3d0d32d52c3', <std::int64>8218549278715073052, <duration>'26265600 seconds', <float64>6.545113734223467n), (<float32>-34.026962n, <cal::local_time>'17:11:02.4753120', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'ODAVQXSEPRJAODE', <uuid>'9cc9c566-280f-fd20-7720-f1a7fb0c7701', <std::int64>2196153274214179721, <duration>'26179200 seconds', <float64>49.16468145007486n), (<float32>-4.0155416n, <cal::local_time>'17:26:14.4000310', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'ENWAZOWMLVNAAWP', <uuid>'6312bebb-a5ec-e60c-22d5-4fddb0cda783', <std::int64>7136896832609267249, <duration>'2851200 seconds', <float64>52.75601913256386n), (<float32>30.81763n, <cal::local_time>'17:15:27.3914380', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'YFFPAYMUYZNHTYO', <uuid>'0c38802a-4193-eecc-ccd0-150790cd3a7e', <std::int64>5316076112078266711, <duration>'27648000 seconds', <float64>1.1268104916097645n), (<float32>-4.5670886n, <cal::local_time>'07:23:41.8200880', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'HSMHZALGDZNFLZK', <uuid>'ab36dfcb-cc95-cfec-729e-ca5307cc509a', <std::int64>852100454803668314, <duration>'39571200 seconds', <float64>-6.555586179045768n), (<float32>-52.2988n, <cal::local_time>'22:45:12.4195160', std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), 'YJJECTOAXGMZPDC', <uuid>'be03862d-5d8a-81a8-d974-9c7b73947f71', <std::int64>5008470431212368611, <duration>'28771200 seconds', <float64>3.9131380328504077n)]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -19.372057
+            },
+            {
+              "type": "cal::local_time",
+              "value": "22:00:11.9369380"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "ZPYEACPSGNWHFCK"
+            },
+            {
+              "type": "std::uuid",
+              "value": "d3b50507-40bd-3305-376a-eeb453b8efa4"
+            },
+            {
+              "type": "std::int64",
+              "value": 6365917789054965460
+            },
+            {
+              "type": "std::duration",
+              "value": "3.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 5.400128211081087
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": 9.601582
+            },
+            {
+              "type": "cal::local_time",
+              "value": "22:14:19.0955310"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "NHPCMNSOPSPJJCN"
+            },
+            {
+              "type": "std::uuid",
+              "value": "beec3d81-710e-a23e-ecf7-818bfcf248c7"
+            },
+            {
+              "type": "std::int64",
+              "value": 4542252497680397592
+            },
+            {
+              "type": "std::duration",
+              "value": "495.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 11.651557789487558
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": 17.968422
+            },
+            {
+              "type": "cal::local_time",
+              "value": "20:15:09.7633440"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "ZMIRZARTZMSIICK"
+            },
+            {
+              "type": "std::uuid",
+              "value": "359d057b-33af-dfdd-339d-888a14c1bd93"
+            },
+            {
+              "type": "std::int64",
+              "value": 3931281410330760344
+            },
+            {
+              "type": "std::duration",
+              "value": "105.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 14.273123877250182
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -9.185147
+            },
+            {
+              "type": "cal::local_time",
+              "value": "03:08:18.2353280"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "MPEQBLDCDRRGXVH"
+            },
+            {
+              "type": "std::uuid",
+              "value": "7c7be239-626e-59ef-8a7b-30be4c5b7c3f"
+            },
+            {
+              "type": "std::int64",
+              "value": 3239347754896439487
+            },
+            {
+              "type": "std::duration",
+              "value": "80.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 29.358406536913666
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": 14.035652
+            },
+            {
+              "type": "cal::local_time",
+              "value": "04:02:49.7245620"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "FHEHXXQKRYCIIUU"
+            },
+            {
+              "type": "std::uuid",
+              "value": "b39c3056-11cd-5012-daa6-d3d0d32d52c3"
+            },
+            {
+              "type": "std::int64",
+              "value": 8218549278715073052
+            },
+            {
+              "type": "std::duration",
+              "value": "304.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 6.545113734223467
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -34.026962
+            },
+            {
+              "type": "cal::local_time",
+              "value": "17:11:02.4753120"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "ODAVQXSEPRJAODE"
+            },
+            {
+              "type": "std::uuid",
+              "value": "9cc9c566-280f-fd20-7720-f1a7fb0c7701"
+            },
+            {
+              "type": "std::int64",
+              "value": 2196153274214179721
+            },
+            {
+              "type": "std::duration",
+              "value": "303.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 49.16468145007486
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -4.0155416
+            },
+            {
+              "type": "cal::local_time",
+              "value": "17:26:14.4000310"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "ENWAZOWMLVNAAWP"
+            },
+            {
+              "type": "std::uuid",
+              "value": "6312bebb-a5ec-e60c-22d5-4fddb0cda783"
+            },
+            {
+              "type": "std::int64",
+              "value": 7136896832609267249
+            },
+            {
+              "type": "std::duration",
+              "value": "33.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 52.75601913256386
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": 30.81763
+            },
+            {
+              "type": "cal::local_time",
+              "value": "17:15:27.3914380"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "YFFPAYMUYZNHTYO"
+            },
+            {
+              "type": "std::uuid",
+              "value": "0c38802a-4193-eecc-ccd0-150790cd3a7e"
+            },
+            {
+              "type": "std::int64",
+              "value": 5316076112078266711
+            },
+            {
+              "type": "std::duration",
+              "value": "320.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 1.1268104916097645
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -4.5670886
+            },
+            {
+              "type": "cal::local_time",
+              "value": "07:23:41.8200880"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "HSMHZALGDZNFLZK"
+            },
+            {
+              "type": "std::uuid",
+              "value": "ab36dfcb-cc95-cfec-729e-ca5307cc509a"
+            },
+            {
+              "type": "std::int64",
+              "value": 852100454803668314
+            },
+            {
+              "type": "std::duration",
+              "value": "458.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": -6.555586179045768
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -52.2988
+            },
+            {
+              "type": "cal::local_time",
+              "value": "22:45:12.4195160"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::str",
+              "value": "YJJECTOAXGMZPDC"
+            },
+            {
+              "type": "std::uuid",
+              "value": "be03862d-5d8a-81a8-d974-9c7b73947f71"
+            },
+            {
+              "type": "std::int64",
+              "value": 5008470431212368611
+            },
+            {
+              "type": "std::duration",
+              "value": "333.00:00:00"
+            },
+            {
+              "type": "std::float64",
+              "value": 3.9131380328504077
+            }
+          ]
+        }
+      ],
+      "element_type": "tuple"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type cal::local_time",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_time>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "cal::local_time",
+          "value": {
+            "type": "cal::local_time",
+            "value": "22:16:24.6119380"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_time",
+      "value": "22:16:24.6119380"
+    }
+  ]
+}

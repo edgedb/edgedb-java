@@ -1,0 +1,36 @@
+{
+  "name": "Query result of type object<std::uuid, cal::local_date, std::datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { CQIIUJDKQFQADNJ := <uuid>'2b3a0f37-ec19-ce1c-1f3b-8eb109474cd4', WTOJDFQMOJLSRWB := <cal::local_date>'1101-03-26', NOBZZIVRKBAXTOD := <datetime>'2752-12-25T04:22:13.777624-04:00' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "CQIIUJDKQFQADNJ": {
+          "type": "std::uuid",
+          "value": "2b3a0f37-ec19-ce1c-1f3b-8eb109474cd4"
+        },
+        "WTOJDFQMOJLSRWB": {
+          "type": "cal::local_date",
+          "value": "1101-03-26"
+        },
+        "NOBZZIVRKBAXTOD": {
+          "type": "std::datetime",
+          "value": "2752-12-25T04:22:13.777624-04:00"
+        }
+      }
+    }
+  ]
+}

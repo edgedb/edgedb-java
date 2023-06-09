@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::float32",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <float32>-4.8779693n",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::float32",
+      "value": -4.8779693
+    }
+  ]
+}

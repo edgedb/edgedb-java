@@ -1,0 +1,76 @@
+{
+  "name": "Global of type std::uuid",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global WLYEIYXEXLMFOFA -> std::uuid",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type std::uuid",
+      "cardinality": 109,
+      "value": "select global WLYEIYXEXLMFOFA",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "WLYEIYXEXLMFOFA": {
+            "type": "std::uuid",
+            "value": "478fb13a-cde7-2b5c-5819-fc4ef0924bf7"
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::uuid",
+      "value": "478fb13a-cde7-2b5c-5819-fc4ef0924bf7"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "Global of type range<std::int32>",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global SKNLBIXUQVGVOLT -> range<std::int32>",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type range<std::int32>",
+      "cardinality": 109,
+      "value": "select global SKNLBIXUQVGVOLT",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "SKNLBIXUQVGVOLT": {
+            "type": "range",
+            "value": {
+              "lower": 1118691298,
+              "upper": 1787036958,
+              "inc_lower": true,
+              "inc_upper": false
+            },
+            "element_type": "std::int32"
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 1118691298,
+        "upper": 1787036958,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::int32"
+    }
+  ]
+}

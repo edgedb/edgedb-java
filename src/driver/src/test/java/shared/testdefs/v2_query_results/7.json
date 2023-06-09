@@ -1,0 +1,77 @@
+{
+  "name": "Query result of type array<std::int32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<int32>2039341380, <int32>1474781027, <int32>2099981448, <int32>1160045913, <int32>1373507931, <int32>1207479498, <int32>526705488, <int32>1752042315, <int32>1765846085, <int32>647802229, <int32>1695969909, <int32>1112844924, <int32>284523456]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::int32",
+          "value": 2039341380
+        },
+        {
+          "type": "std::int32",
+          "value": 1474781027
+        },
+        {
+          "type": "std::int32",
+          "value": 2099981448
+        },
+        {
+          "type": "std::int32",
+          "value": 1160045913
+        },
+        {
+          "type": "std::int32",
+          "value": 1373507931
+        },
+        {
+          "type": "std::int32",
+          "value": 1207479498
+        },
+        {
+          "type": "std::int32",
+          "value": 526705488
+        },
+        {
+          "type": "std::int32",
+          "value": 1752042315
+        },
+        {
+          "type": "std::int32",
+          "value": 1765846085
+        },
+        {
+          "type": "std::int32",
+          "value": 647802229
+        },
+        {
+          "type": "std::int32",
+          "value": 1695969909
+        },
+        {
+          "type": "std::int32",
+          "value": 1112844924
+        },
+        {
+          "type": "std::int32",
+          "value": 284523456
+        }
+      ],
+      "element_type": "std::int32"
+    }
+  ]
+}

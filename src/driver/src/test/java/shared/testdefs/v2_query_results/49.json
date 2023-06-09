@@ -1,0 +1,48 @@
+{
+  "name": "Query result of type object<std::decimal, std::bigint, std::int32, std::str, cal::local_datetime, std::bool>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { AVARBLXYNCGWKYN := <std::decimal>5.706994526883120n, BLWETZEXEEMADKO := <std::bigint>-98608830011n, EQYTJJUOXZVIKTB := <int32>1809146911, BMDHTLNYWHHJGFR := 'GHGFAQVDPHNEVAV', SFIYCNLFLUNBNFQ := <cal::local_datetime>'7921-04-15T08:08:34.910976', TEMVPBLRARLYIDV := true }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "AVARBLXYNCGWKYN": {
+          "type": "std::decimal",
+          "value": 5.706994526883120
+        },
+        "BLWETZEXEEMADKO": {
+          "type": "std::bigint",
+          "value": -98608830011
+        },
+        "EQYTJJUOXZVIKTB": {
+          "type": "std::int32",
+          "value": 1809146911
+        },
+        "BMDHTLNYWHHJGFR": {
+          "type": "std::str",
+          "value": "GHGFAQVDPHNEVAV"
+        },
+        "SFIYCNLFLUNBNFQ": {
+          "type": "cal::local_datetime",
+          "value": "7921-04-15T08:08:34.9109760"
+        },
+        "TEMVPBLRARLYIDV": {
+          "type": "std::bool",
+          "value": true
+        }
+      }
+    }
+  ]
+}

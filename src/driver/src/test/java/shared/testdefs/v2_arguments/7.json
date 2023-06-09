@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type std::duration",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::duration>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "std::duration",
+          "value": {
+            "type": "std::duration",
+            "value": "8.00:00:00"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::duration",
+      "value": "8.00:00:00"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "Query result of type set<cal::date_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::date_duration>'-24332 days', <cal::date_duration>'-27773 days', <cal::date_duration>'26304 days', <cal::date_duration>'19678 days', <cal::date_duration>'32374 days', <cal::date_duration>'-17897 days', <cal::date_duration>'-2230 days', <cal::date_duration>'8518 days', <cal::date_duration>'15510 days', <cal::date_duration>'23111 days', <cal::date_duration>'-15352 days', <cal::date_duration>'-16860 days', <cal::date_duration>'29045 days' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::date_duration",
+        "value": "-24332.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-27773.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "26304.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "19678.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "32374.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-17897.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-2230.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "8518.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "15510.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "23111.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-15352.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-16860.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "29045.00:00:00"
+      }
+    ],
+    "element_type": "cal::date_duration"
+  }
+}

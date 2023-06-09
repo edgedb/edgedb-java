@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::local_datetime",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_datetime>'8783-08-11T08:41:50.393888'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_datetime",
+      "value": "8783-08-11T08:41:50.3938880"
+    }
+  ]
+}

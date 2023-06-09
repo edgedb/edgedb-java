@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type std::datetime",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::datetime>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "std::datetime",
+          "value": {
+            "type": "std::datetime",
+            "value": "4746-01-23T12:31:35.443808-04:00"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::datetime",
+      "value": "4746-01-23T12:31:35.443808-04:00"
+    }
+  ]
+}

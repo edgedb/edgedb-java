@@ -1,0 +1,63 @@
+{
+  "name": "Query result of type set<cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::local_date>'6854-01-12', <cal::local_date>'4127-05-05', <cal::local_date>'3774-08-12', <cal::local_date>'1293-12-12', <cal::local_date>'5742-02-21', <cal::local_date>'5551-09-29', <cal::local_date>'9064-11-29', <cal::local_date>'3688-08-26', <cal::local_date>'8520-10-28', <cal::local_date>'2216-11-19' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::local_date",
+        "value": "6854-01-12"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "4127-05-05"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "3774-08-12"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "1293-12-12"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "5742-02-21"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "5551-09-29"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "9064-11-29"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "3688-08-26"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "8520-10-28"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "2216-11-19"
+      }
+    ],
+    "element_type": "cal::local_date"
+  }
+}

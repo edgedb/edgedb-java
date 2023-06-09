@@ -1,12 +1,14 @@
 package com.edgedb.driver.datatypes;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
-import java.time.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,27 +16,13 @@ import java.util.Objects;
  * @param <T> The inner type of the range.
  * @see <a href="https://www.edgedb.com/docs/stdlib/range">EdgeDB range docs</a>
  */
-public final class Range<T> implements Comparable<Range<T>> {
+public final class Range<T> {
     /**
      * An empty range with no specific inner type.
      */
     public static final Range<?> EMPTY_RANGE = new Range<>(Long.class, null, null);
 
-    private static final Map<Class<?>, ?> DEFAULTS = new HashMap<>(){{
-        put(Integer.class, 0);
-        put(Integer.TYPE, 0);
-        put(Long.class, 0L);
-        put(Long.TYPE, 0L);
-        put(Float.class, 0F);
-        put(Float.TYPE, 0F);
-        put(Double.class, 0D);
-        put(Double.TYPE, 0D);
-        put(BigDecimal.class, BigDecimal.ZERO);
-        put(OffsetDateTime.class, OffsetDateTime.MIN);
-        put(ZonedDateTime.class, OffsetDateTime.MIN.atZoneSameInstant(ZoneOffset.UTC));
-        put(LocalDateTime.class, LocalDateTime.MIN);
-        put(LocalDate.class, LocalDate.MIN);
-    }};
+    private static List<Class<?>> VALID_ELEMENTS;
 
     private final @Nullable T lower;
     private final @Nullable T upper;
@@ -49,9 +37,7 @@ public final class Range<T> implements Comparable<Range<T>> {
     }
 
     private Range(Class<T> cls, @Nullable T lower, @Nullable T upper, boolean includeLower, boolean includeUpper) {
-        if(!DEFAULTS.containsKey(cls)) {
-            throw new IllegalArgumentException("Range element type is invalid");
-        }
+        checkValidElement(cls);
 
         this.lower = lower;
         this.upper = upper;
@@ -59,6 +45,28 @@ public final class Range<T> implements Comparable<Range<T>> {
         this.includeUpper = includeUpper;
         this.isEmpty = (lower == null && upper == null) || (lower != null && lower.equals(upper));
         this.elementType = cls;
+    }
+
+    private synchronized void checkValidElement(Class<?> cls) {
+        var valid = VALID_ELEMENTS == null ? (VALID_ELEMENTS = new ArrayList<>(){{
+            add(Integer.class);
+            add(Integer.TYPE);
+            add(Long.class);
+            add(Long.TYPE);
+            add(Float.class);
+            add(Float.TYPE);
+            add(Double.class);
+            add(Double.TYPE);
+            add(BigDecimal.class);
+            add(OffsetDateTime.class);
+            add(ZonedDateTime.class);
+            add(LocalDateTime.class);
+            add(LocalDate.class);
+        }}) : VALID_ELEMENTS;
+
+        if(!valid.contains(cls)) {
+            throw new IllegalArgumentException("Range element type is invalid");
+        }
     }
 
     /**
@@ -159,38 +167,6 @@ public final class Range<T> implements Comparable<Range<T>> {
      */
     public Class<T> getElementType() {
         return this.elementType;
-    }
-
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compareTo(@NotNull Range<T> o) {
-        int a = 0;
-        int b = 0;
-
-        if(!isEmpty) {
-            var l = lower == null ? (T)DEFAULTS.get(elementType) : lower;
-            var u = upper == null ? (T)DEFAULTS.get(elementType) : upper;
-
-            if(!(u instanceof Comparable)) {
-                throw new ClassCastException("Unable to compare element values");
-            }
-
-            a = ((Comparable<T>)u).compareTo(l);
-        }
-
-        if(!o.isEmpty) {
-            var l = o.lower == null ? (T)DEFAULTS.get(o.elementType) : o.lower;
-            var u = o.upper == null ? (T)DEFAULTS.get(o.elementType) : o.upper;
-
-            if(!(u instanceof Comparable)) {
-                throw new ClassCastException("Unable to compare element values");
-            }
-
-            b = ((Comparable<T>)u).compareTo(l);
-        }
-
-        return b - a;
     }
 
     @Override

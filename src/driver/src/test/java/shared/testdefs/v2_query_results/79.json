@@ -1,0 +1,205 @@
+{
+  "name": "Query result of type array<range<std::int32>>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [range(<int32>1579098446, <int32>2091180324), range(<int32>734505788, <int32>1892599064), range(<int32>575458738, <int32>1250980149), range(<int32>1785970819, <int32>1996039959), range(<int32>932013739, <int32>1556413508), range(<int32>453031683, <int32>1376301320), range(<int32>1454000672, <int32>2127971583), range(<int32>1156675891, <int32>1581601488), range(<int32>846830926, <int32>1900337921), range(<int32>1365969587, <int32>1491598264), range(<int32>1519117711, <int32>1732014442), range(<int32>1252421351, <int32>1693799482), range(<int32>1492593341, <int32>1678271432), range(<int32>1202740737, <int32>1858697109), range(<int32>1771731172, <int32>1903666981), range(<int32>1241849445, <int32>1608880268), range(<int32>1437909403, <int32>2050365156), range(<int32>602498460, <int32>1201424067)]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "range",
+          "value": {
+            "lower": 1579098446,
+            "upper": 2091180324,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 734505788,
+            "upper": 1892599064,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 575458738,
+            "upper": 1250980149,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1785970819,
+            "upper": 1996039959,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 932013739,
+            "upper": 1556413508,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 453031683,
+            "upper": 1376301320,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1454000672,
+            "upper": 2127971583,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1156675891,
+            "upper": 1581601488,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 846830926,
+            "upper": 1900337921,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1365969587,
+            "upper": 1491598264,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1519117711,
+            "upper": 1732014442,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1252421351,
+            "upper": 1693799482,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1492593341,
+            "upper": 1678271432,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1202740737,
+            "upper": 1858697109,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1771731172,
+            "upper": 1903666981,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1241849445,
+            "upper": 1608880268,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 1437909403,
+            "upper": 2050365156,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        },
+        {
+          "type": "range",
+          "value": {
+            "lower": 602498460,
+            "upper": 1201424067,
+            "inc_lower": true,
+            "inc_upper": false
+          },
+          "element_type": "std::int32"
+        }
+      ],
+      "element_type": "range"
+    }
+  ]
+}

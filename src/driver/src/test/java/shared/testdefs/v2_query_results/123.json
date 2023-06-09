@@ -1,0 +1,59 @@
+{
+  "name": "Query result of type set<cal::local_datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::local_datetime>'1236-09-12T17:22:59.680188', <cal::local_datetime>'4603-09-10T15:24:36.017408', <cal::local_datetime>'2403-10-28T20:57:55.056108', <cal::local_datetime>'9819-08-13T19:01:45.775936', <cal::local_datetime>'1100-01-14T20:35:37.459876', <cal::local_datetime>'4478-06-29T07:21:44.133376', <cal::local_datetime>'1085-06-13T03:19:13.820896', <cal::local_datetime>'5635-02-24T03:02:45.797664', <cal::local_datetime>'1857-10-14T20:19:02.495515' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::local_datetime",
+        "value": "1236-09-12T17:22:59.6801880"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "4603-09-10T15:24:36.0174080"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "2403-10-28T20:57:55.0561080"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "9819-08-13T19:01:45.7759360"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "1100-01-14T20:35:37.4598760"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "4478-06-29T07:21:44.1333760"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "1085-06-13T03:19:13.8208960"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "5635-02-24T03:02:45.7976640"
+      },
+      {
+        "type": "cal::local_datetime",
+        "value": "1857-10-14T20:19:02.4955150"
+      }
+    ],
+    "element_type": "cal::local_datetime"
+  }
+}

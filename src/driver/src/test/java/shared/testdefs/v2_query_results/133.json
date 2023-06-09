@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::uuid",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <uuid>'7babb5c3-d372-2d58-7879-f03559e523bb'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::uuid",
+      "value": "7babb5c3-d372-2d58-7879-f03559e523bb"
+    }
+  ]
+}

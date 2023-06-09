@@ -1,0 +1,65 @@
+{
+  "name": "Query result of type array<std::float64>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<float64>52.37219361698823n, <float64>-3.5331031547547798n, <float64>26.229998202170247n, <float64>-24.394875184816716n, <float64>6.120853311438511n, <float64>-62.739022051328334n, <float64>-39.631367429919244n, <float64>-9.775402697629948n, <float64>4.066333041557265n, <float64>1.0908446042290165n]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::float64",
+          "value": 52.37219361698823
+        },
+        {
+          "type": "std::float64",
+          "value": -3.5331031547547798
+        },
+        {
+          "type": "std::float64",
+          "value": 26.229998202170247
+        },
+        {
+          "type": "std::float64",
+          "value": -24.394875184816716
+        },
+        {
+          "type": "std::float64",
+          "value": 6.120853311438511
+        },
+        {
+          "type": "std::float64",
+          "value": -62.739022051328334
+        },
+        {
+          "type": "std::float64",
+          "value": -39.631367429919244
+        },
+        {
+          "type": "std::float64",
+          "value": -9.775402697629948
+        },
+        {
+          "type": "std::float64",
+          "value": 4.066333041557265
+        },
+        {
+          "type": "std::float64",
+          "value": 1.0908446042290165
+        }
+      ],
+      "element_type": "std::float64"
+    }
+  ]
+}

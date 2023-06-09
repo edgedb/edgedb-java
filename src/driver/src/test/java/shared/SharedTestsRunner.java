@@ -65,14 +65,17 @@ public class SharedTestsRunner {
         }
     }
 
-    public static void Run(String path) {
+    public static void Run(Path path) {
+        // we're in './src/driver', so remove 2 levels of the dir
+        var absPath = Path.of(System.getProperty("user.dir")).getParent().getParent().resolve(path);
+
         // since result type combinations are exponential, we set a hard coded limit as to not run out of memory.
         final int maxResultTypes = 15;
 
         Test testDefinition;
 
         try {
-            var content = Files.readString(Path.of(path));
+            var content = Files.readString(absPath);
             testDefinition = MAPPER.readValue(content, Test.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -105,7 +108,7 @@ public class SharedTestsRunner {
             }
         }
 
-        var resultTypes = ResultTypeBuilder.createResultTypes(testDefinition.result, maxResultTypes, !path.contains("deep_nesting"));
+        var resultTypes = ResultTypeBuilder.createResultTypes(testDefinition.result, maxResultTypes, !absPath.toString().contains("deep_nesting"));
 
         for(int i = 0; i != results.size(); i++) {
             var executionResult = results.get(i);

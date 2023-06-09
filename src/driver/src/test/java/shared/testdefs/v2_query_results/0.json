@@ -1,0 +1,93 @@
+{
+  "name": "Query result of type array<cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<cal::local_date>'4815-09-12', <cal::local_date>'8344-06-20', <cal::local_date>'3925-04-24', <cal::local_date>'9546-05-31', <cal::local_date>'3932-05-09', <cal::local_date>'3124-02-02', <cal::local_date>'1897-02-06', <cal::local_date>'2982-07-22', <cal::local_date>'3972-09-21', <cal::local_date>'6867-10-11', <cal::local_date>'3680-12-02', <cal::local_date>'7920-08-22', <cal::local_date>'9808-07-17', <cal::local_date>'0071-01-11', <cal::local_date>'1973-07-20', <cal::local_date>'3854-11-22', <cal::local_date>'1882-04-08']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "cal::local_date",
+          "value": "4815-09-12"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "8344-06-20"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3925-04-24"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "9546-05-31"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3932-05-09"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3124-02-02"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "1897-02-06"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "2982-07-22"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3972-09-21"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "6867-10-11"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3680-12-02"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "7920-08-22"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "9808-07-17"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "0071-01-11"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "1973-07-20"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "3854-11-22"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "1882-04-08"
+        }
+      ],
+      "element_type": "cal::local_date"
+    }
+  ]
+}

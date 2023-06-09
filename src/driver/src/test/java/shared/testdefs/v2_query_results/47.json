@@ -1,0 +1,48 @@
+{
+  "name": "Query result of type object<std::bool, std::decimal, std::bigint, std::int32, std::str, cal::local_datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { NPHUCWLSGQYOMGR := false, NRAVHQGBKCJFFIR := <std::decimal>9.395749908590580n, KWGYDEDIVAOBUFT := <std::bigint>-6137407327452039693781853372133n, HCHIGUAPNWRYVFM := <int32>776788303, ELJVHTLRLVOGIBP := 'NTMTLYYVYWXBHEV', INXBRMAJVRUZMIF := <cal::local_datetime>'7699-10-23T22:08:26.662112' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "NPHUCWLSGQYOMGR": {
+          "type": "std::bool",
+          "value": false
+        },
+        "NRAVHQGBKCJFFIR": {
+          "type": "std::decimal",
+          "value": 9.395749908590580
+        },
+        "KWGYDEDIVAOBUFT": {
+          "type": "std::bigint",
+          "value": -6137407327452039693781853372133
+        },
+        "HCHIGUAPNWRYVFM": {
+          "type": "std::int32",
+          "value": 776788303
+        },
+        "ELJVHTLRLVOGIBP": {
+          "type": "std::str",
+          "value": "NTMTLYYVYWXBHEV"
+        },
+        "INXBRMAJVRUZMIF": {
+          "type": "cal::local_datetime",
+          "value": "7699-10-23T22:08:26.6621120"
+        }
+      }
+    }
+  ]
+}

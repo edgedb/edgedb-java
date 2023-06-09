@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type std::bytes",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::bytes>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "std::bytes",
+          "value": {
+            "type": "std::bytes",
+            "value": "UFk4NkxKWlI1M0ZT"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::bytes",
+      "value": "UFk4NkxKWlI1M0ZT"
+    }
+  ]
+}

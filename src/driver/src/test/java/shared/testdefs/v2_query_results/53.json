@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<std::float32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<float32>5.8365154n, <float32>66.17244n)",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 5.8365154,
+        "upper": 66.17244,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::float32"
+    }
+  ]
+}

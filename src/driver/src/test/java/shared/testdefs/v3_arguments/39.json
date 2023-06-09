@@ -1,0 +1,44 @@
+{
+  "name": "Argument of type range<std::int32>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <range<std::int32>>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "range<std::int32>",
+          "value": {
+            "type": "range",
+            "value": {
+              "lower": 730775401,
+              "upper": 1108234069,
+              "inc_lower": true,
+              "inc_upper": false
+            },
+            "element_type": "std::int32"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 730775401,
+        "upper": 1108234069,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::int32"
+    }
+  ]
+}

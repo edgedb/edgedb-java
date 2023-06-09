@@ -9,7 +9,6 @@ import org.joou.UInteger;
 import org.joou.ULong;
 import org.joou.UShort;
 
-import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
@@ -185,7 +184,7 @@ public class PacketReader {
         var set = EnumSet.noneOf(cls);
 
         for (var enumConstant : cls.getEnumConstants()) {
-            if((value & enumConstant.getValue().longValue()) >= 0) {
+            if((value & enumConstant.getValue().longValue()) > 0) {
                 set.add(enumConstant);
             }
         }

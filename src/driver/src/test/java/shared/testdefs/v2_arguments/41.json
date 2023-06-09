@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type std::uuid",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::uuid>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "std::uuid",
+          "value": {
+            "type": "std::uuid",
+            "value": "3af0fc28-a947-2113-a232-9e44aa72ce41"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::uuid",
+      "value": "3af0fc28-a947-2113-a232-9e44aa72ce41"
+    }
+  ]
+}

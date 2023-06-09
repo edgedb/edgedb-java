@@ -1,0 +1,75 @@
+{
+  "name": "Query result of type set<cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::local_date>'1052-08-04', <cal::local_date>'6183-04-19', <cal::local_date>'1257-06-17', <cal::local_date>'3486-07-26', <cal::local_date>'8981-11-18', <cal::local_date>'9952-12-14', <cal::local_date>'7949-10-20', <cal::local_date>'7617-10-17', <cal::local_date>'3816-10-03', <cal::local_date>'6924-10-20', <cal::local_date>'2873-06-20', <cal::local_date>'4618-10-20', <cal::local_date>'8622-07-03' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::local_date",
+        "value": "1052-08-04"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "6183-04-19"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "1257-06-17"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "3486-07-26"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "8981-11-18"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "9952-12-14"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "7949-10-20"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "7617-10-17"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "3816-10-03"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "6924-10-20"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "2873-06-20"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "4618-10-20"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "8622-07-03"
+      }
+    ],
+    "element_type": "cal::local_date"
+  }
+}

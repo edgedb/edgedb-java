@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type std::float64",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::float64>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "std::float64",
+          "value": {
+            "type": "std::float64",
+            "value": 0.13306912134078758
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::float64",
+      "value": 0.13306912134078758
+    }
+  ]
+}

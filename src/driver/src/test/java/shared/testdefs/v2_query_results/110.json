@@ -1,0 +1,1066 @@
+{
+  "name": "Query result of type namedtuple<cal::local_time, array<std::json>, array<std::decimal>, array<cal::local_datetime>, array<std::bigint>, array<std::bool>, array<std::float64>, array<std::int64>, array<std::int64>, array<cal::date_duration>, array<cal::date_duration>, array<std::uuid>, array<cal::relative_duration>, array<cal::local_date>, array<cal::local_date>, array<std::datetime>, array<std::datetime>, array<std::str>, array<std::int32>, array<std::float32>, std::int16, std::bytes, std::float64, cal::date_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (RJZAQJIOMJQCKPD := <cal::local_time>'20:12:06.8494530', GZRHGKJXSTXLOFW := [std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'), std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}')], ZXLJTKAHXVNMWNT := [<std::decimal>16.029566235854080n, <std::decimal>14.967392093952480n, <std::decimal>58.867333318045073n, <std::decimal>10.488956662122575n, <std::decimal>23.811217557550960n, <std::decimal>9.623607741493560n, <std::decimal>12.445185006803472n, <std::decimal>5.953829307553275n, <std::decimal>13.008363005709078n, <std::decimal>61.758484336900755n, <std::decimal>27.917346252090008n, <std::decimal>63.480070851501096n, <std::decimal>20.19874322004555n, <std::decimal>35.568331746183474n, <std::decimal>18.89350702422368n], TPJRFGOYVGVVPFZ := [<cal::local_datetime>'4067-07-18T10:58:34.401008', <cal::local_datetime>'1199-12-09T15:54:33.297712', <cal::local_datetime>'9113-06-28T19:08:04.829312', <cal::local_datetime>'5189-09-03T06:50:30.225408', <cal::local_datetime>'9523-02-12T10:33:02.02976', <cal::local_datetime>'1706-06-11T12:56:07.437836', <cal::local_datetime>'3770-11-17T22:20:34.011152', <cal::local_datetime>'6336-09-24T16:12:09.52384', <cal::local_datetime>'1492-06-08T09:32:54.985196', <cal::local_datetime>'4015-02-14T08:31:48.938664', <cal::local_datetime>'0531-12-08T09:32:59.025056', <cal::local_datetime>'3874-05-08T13:47:26.403728', <cal::local_datetime>'7703-11-20T16:22:00.881184', <cal::local_datetime>'6921-06-23T06:05:15.253152'], JFJIVCWMBGYORTB := [<std::bigint>-610600929387080029n, <std::bigint>33481367376447730147242610765n, <std::bigint>-147002011214208786419316061n, <std::bigint>-6087236526483020247090927067360n, <std::bigint>214466602436n, <std::bigint>-27176600876866503409054588772n, <std::bigint>-79621461447141n, <std::bigint>487962014877428040448273n, <std::bigint>22566651807610413n, <std::bigint>-3428711511886852373n, <std::bigint>-1533663687206247075389142519664353n, <std::bigint>12745080716675n, <std::bigint>-6705472985450586395n, <std::bigint>53282091312057464363756811n, <std::bigint>384548926824n, <std::bigint>31679378006199876n], UMNVDSEYXNTNZFU := [false, true, true, false, false, true, true, true, false, false], PLWVNZRTYOXEZJK := [<float64>18.139334287559304n, <float64>63.145544074077876n, <float64>41.163814116811295n, <float64>-56.036533700319254n, <float64>-59.55966965554267n, <float64>-16.349222488863965n, <float64>-89.09085295772685n, <float64>-1.0263362447853834n, <float64>40.129957556785065n], BFKQWYUYYODJBDN := [<std::int64>66705059394589921, <std::int64>1810769515814652202, <std::int64>6720974298070853907, <std::int64>860330116607597098, <std::int64>2114271480331533462], YIDTYWNKXOOYVAA := [<std::int64>2933523747228401906, <std::int64>4800550667088836431, <std::int64>2074392066258144086, <std::int64>8503222471553906679, <std::int64>3245615932553350543, <std::int64>238353901293760543, <std::int64>5646265668109422255, <std::int64>9134264049890933061, <std::int64>3872925317431801795], SSXGSSLTQOSGHUH := [<cal::date_duration>'-1283 days', <cal::date_duration>'-15954 days', <cal::date_duration>'9878 days', <cal::date_duration>'22542 days', <cal::date_duration>'17166 days', <cal::date_duration>'14530 days', <cal::date_duration>'20989 days', <cal::date_duration>'-3295 days', <cal::date_duration>'-11692 days', <cal::date_duration>'-26181 days', <cal::date_duration>'7379 days', <cal::date_duration>'11670 days', <cal::date_duration>'-29689 days', <cal::date_duration>'10073 days', <cal::date_duration>'26153 days'], XOMPHZGLQOHEQII := [<cal::date_duration>'4067 days', <cal::date_duration>'-26355 days', <cal::date_duration>'6881 days', <cal::date_duration>'-7100 days', <cal::date_duration>'29414 days', <cal::date_duration>'-5370 days', <cal::date_duration>'-24696 days', <cal::date_duration>'-23339 days', <cal::date_duration>'17806 days', <cal::date_duration>'4796 days', <cal::date_duration>'26138 days', <cal::date_duration>'3467 days', <cal::date_duration>'4785 days', <cal::date_duration>'30989 days', <cal::date_duration>'23392 days', <cal::date_duration>'19493 days', <cal::date_duration>'-12504 days', <cal::date_duration>'22086 days'], AICJOCRGSURMMUN := [<uuid>'9173d8f5-dee7-d4f7-c71b-c6a769fa5db3', <uuid>'63247a4b-52d8-786e-a3c4-e6c2b5c38f4c', <uuid>'e3494e30-d91d-fc4a-63e3-8ee665398a50', <uuid>'660d0b59-d276-a346-6afb-ed22f8341e03', <uuid>'1a777a8c-7ab1-7196-2f27-00f4c387126a', <uuid>'aa68963a-28b5-5ed5-08a5-7921eb28042e', <uuid>'ea5a8bc5-6fc2-df9f-749b-364fd251e0e2', <uuid>'61e783e8-74cc-634d-a518-120b01748607', <uuid>'372fd222-272c-caa7-f788-3519f1868cb7', <uuid>'673996c5-a340-5062-3df6-45a95d94de00', <uuid>'002c2f15-a821-c0b6-db1d-6a433e33711f', <uuid>'6b455a8c-1e3a-7fc6-6fde-fa36e2fd6d62', <uuid>'c20434aa-8c59-1d95-df79-8c23381f1209', <uuid>'021d2685-734e-f6c5-68ac-9043ad80dede', <uuid>'099907af-af2f-00c5-c528-8bc192a34650', <uuid>'bbb1f1cc-6ae0-3614-6e0d-5aadfc526f5f'], UREADYXIKCBNMJV := [<cal::relative_duration>'3715200 seconds', <cal::relative_duration>'6220800 seconds', <cal::relative_duration>'950400 seconds', <cal::relative_duration>'6220800 seconds', <cal::relative_duration>'1728000 seconds', <cal::relative_duration>'7862400 seconds', <cal::relative_duration>'345600 seconds', <cal::relative_duration>'5097600 seconds', <cal::relative_duration>'8294400 seconds', <cal::relative_duration>'6652800 seconds', <cal::relative_duration>'8380800 seconds', <cal::relative_duration>'2937600 seconds', <cal::relative_duration>'172800 seconds', <cal::relative_duration>'691200 seconds', <cal::relative_duration>'8035200 seconds', <cal::relative_duration>'4406400 seconds', <cal::relative_duration>'2332800 seconds'], XSULDDCRQMXMIIF := [<cal::local_date>'7124-12-23', <cal::local_date>'5574-01-31', <cal::local_date>'3868-05-05', <cal::local_date>'5701-11-19', <cal::local_date>'7793-07-23', <cal::local_date>'1120-04-21', <cal::local_date>'4227-08-19', <cal::local_date>'1806-01-16', <cal::local_date>'1855-08-06', <cal::local_date>'9303-08-28', <cal::local_date>'9940-04-10', <cal::local_date>'3911-12-18', <cal::local_date>'0218-03-03', <cal::local_date>'1271-10-14', <cal::local_date>'0181-08-01'], QXCPZPZQOGPSMLQ := [<cal::local_date>'1207-07-21', <cal::local_date>'2267-02-22', <cal::local_date>'9586-07-21', <cal::local_date>'8910-06-25', <cal::local_date>'1335-01-23', <cal::local_date>'1428-09-29', <cal::local_date>'6094-07-20'], GYFCGQIWHRKCDZD := [<datetime>'0196-09-15T23:02:35.518384-03:00', <datetime>'5199-07-25T18:35:12.048-03:00', <datetime>'5323-03-15T11:15:57.234032-03:00', <datetime>'7290-02-19T07:35:48.08336-04:00', <datetime>'7123-02-23T10:27:48.889792-04:00', <datetime>'7290-02-05T21:41:21.64896-04:00', <datetime>'2787-12-23T14:28:38.058564-04:00', <datetime>'8568-06-28T08:21:29.964736-03:00', <datetime>'0904-09-25T11:03:42.365428-03:00', <datetime>'9010-08-12T22:31:43.95312-03:00', <datetime>'9004-08-22T21:03:22.539232-03:00', <datetime>'0595-01-10T12:16:56.253896-04:00', <datetime>'3281-06-04T22:32:40.130736-03:00'], TMFTQUNHQGVEUFA := [<datetime>'1027-11-10T23:02:15.743832-04:00', <datetime>'3937-09-30T04:22:16.400592-03:00', <datetime>'1291-04-23T01:37:19.25278-03:00', <datetime>'1139-05-10T11:56:01.5569-03:00', <datetime>'6229-03-07T02:08:36.04152-04:00', <datetime>'0772-05-08T22:33:31.277952-03:00', <datetime>'6312-03-31T16:50:19.687088-03:00'], FXGESLVYDRQXGMT := ['EKWGCXVZGQOKGXP', 'WJSUSAHWLGZQETT', 'FIBCXZQZMYHHMKR', 'EBIAKQWDDAVWXEV', 'XAFYWNTXTTIUTZJ', 'ODLDLSDOLXYWDUC', 'CUKLFTZQHKHRICK', 'QVHUSSBFXQMYOWT'], RARZPXUUEUVALLG := [<int32>1788867673, <int32>501663509, <int32>684486733, <int32>1026783342, <int32>649113076, <int32>1259912006, <int32>818774533, <int32>1559518480, <int32>410048249, <int32>1191994925], GABLRIAIKLNSAMP := [<float32>-16.327385n, <float32>-33.666264n, <float32>21.176596n, <float32>12.528958n, <float32>-15.134475n, <float32>6.96607n, <float32>-13.232865n, <float32>-42.80559n, <float32>-1.9663128n, <float32>28.918852n, <float32>-32.09169n, <float32>4.675624n, <float32>-6.903943n, <float32>18.24296n, <float32>58.26846n, <float32>-1.7814349n, <float32>75.03716n, <float32>-9.633287n], ZKFKKDDNRTVOZGA := <int16>13589, KPCHUBVWFENAFMZ := b'2E27G7YDL0FJXDD2T73', PJFJJNFYQMLHVPF := <float64>3.2345481115554215n, MXAZVXOFDBTMHRB := <cal::date_duration>'12812 days')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "RJZAQJIOMJQCKPD": {
+          "type": "cal::local_time",
+          "value": "20:12:06.8494530"
+        },
+        "GZRHGKJXSTXLOFW": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            },
+            {
+              "type": "std::json",
+              "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+            }
+          ],
+          "element_type": "std::json"
+        },
+        "ZXLJTKAHXVNMWNT": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::decimal",
+              "value": 16.029566235854080
+            },
+            {
+              "type": "std::decimal",
+              "value": 14.967392093952480
+            },
+            {
+              "type": "std::decimal",
+              "value": 58.867333318045073
+            },
+            {
+              "type": "std::decimal",
+              "value": 10.488956662122575
+            },
+            {
+              "type": "std::decimal",
+              "value": 23.811217557550960
+            },
+            {
+              "type": "std::decimal",
+              "value": 9.623607741493560
+            },
+            {
+              "type": "std::decimal",
+              "value": 12.445185006803472
+            },
+            {
+              "type": "std::decimal",
+              "value": 5.953829307553275
+            },
+            {
+              "type": "std::decimal",
+              "value": 13.008363005709078
+            },
+            {
+              "type": "std::decimal",
+              "value": 61.758484336900755
+            },
+            {
+              "type": "std::decimal",
+              "value": 27.917346252090008
+            },
+            {
+              "type": "std::decimal",
+              "value": 63.480070851501096
+            },
+            {
+              "type": "std::decimal",
+              "value": 20.19874322004555
+            },
+            {
+              "type": "std::decimal",
+              "value": 35.568331746183474
+            },
+            {
+              "type": "std::decimal",
+              "value": 18.89350702422368
+            }
+          ],
+          "element_type": "std::decimal"
+        },
+        "TPJRFGOYVGVVPFZ": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::local_datetime",
+              "value": "4067-07-18T10:58:34.4010080"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "1199-12-09T15:54:33.2977120"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "9113-06-28T19:08:04.8293120"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "5189-09-03T06:50:30.2254080"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "9523-02-12T10:33:02.0297600"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "1706-06-11T12:56:07.4378360"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "3770-11-17T22:20:34.0111520"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "6336-09-24T16:12:09.5238400"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "1492-06-08T09:32:54.9851960"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "4015-02-14T08:31:48.9386640"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "0531-12-08T09:32:59.0250560"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "3874-05-08T13:47:26.4037280"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "7703-11-20T16:22:00.8811840"
+            },
+            {
+              "type": "cal::local_datetime",
+              "value": "6921-06-23T06:05:15.2531520"
+            }
+          ],
+          "element_type": "cal::local_datetime"
+        },
+        "JFJIVCWMBGYORTB": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::bigint",
+              "value": -610600929387080029
+            },
+            {
+              "type": "std::bigint",
+              "value": 33481367376447730147242610765
+            },
+            {
+              "type": "std::bigint",
+              "value": -147002011214208786419316061
+            },
+            {
+              "type": "std::bigint",
+              "value": -6087236526483020247090927067360
+            },
+            {
+              "type": "std::bigint",
+              "value": 214466602436
+            },
+            {
+              "type": "std::bigint",
+              "value": -27176600876866503409054588772
+            },
+            {
+              "type": "std::bigint",
+              "value": -79621461447141
+            },
+            {
+              "type": "std::bigint",
+              "value": 487962014877428040448273
+            },
+            {
+              "type": "std::bigint",
+              "value": 22566651807610413
+            },
+            {
+              "type": "std::bigint",
+              "value": -3428711511886852373
+            },
+            {
+              "type": "std::bigint",
+              "value": -1533663687206247075389142519664353
+            },
+            {
+              "type": "std::bigint",
+              "value": 12745080716675
+            },
+            {
+              "type": "std::bigint",
+              "value": -6705472985450586395
+            },
+            {
+              "type": "std::bigint",
+              "value": 53282091312057464363756811
+            },
+            {
+              "type": "std::bigint",
+              "value": 384548926824
+            },
+            {
+              "type": "std::bigint",
+              "value": 31679378006199876
+            }
+          ],
+          "element_type": "std::bigint"
+        },
+        "UMNVDSEYXNTNZFU": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::bool",
+              "value": false
+            },
+            {
+              "type": "std::bool",
+              "value": true
+            },
+            {
+              "type": "std::bool",
+              "value": true
+            },
+            {
+              "type": "std::bool",
+              "value": false
+            },
+            {
+              "type": "std::bool",
+              "value": false
+            },
+            {
+              "type": "std::bool",
+              "value": true
+            },
+            {
+              "type": "std::bool",
+              "value": true
+            },
+            {
+              "type": "std::bool",
+              "value": true
+            },
+            {
+              "type": "std::bool",
+              "value": false
+            },
+            {
+              "type": "std::bool",
+              "value": false
+            }
+          ],
+          "element_type": "std::bool"
+        },
+        "PLWVNZRTYOXEZJK": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::float64",
+              "value": 18.139334287559304
+            },
+            {
+              "type": "std::float64",
+              "value": 63.145544074077876
+            },
+            {
+              "type": "std::float64",
+              "value": 41.163814116811295
+            },
+            {
+              "type": "std::float64",
+              "value": -56.036533700319254
+            },
+            {
+              "type": "std::float64",
+              "value": -59.55966965554267
+            },
+            {
+              "type": "std::float64",
+              "value": -16.349222488863965
+            },
+            {
+              "type": "std::float64",
+              "value": -89.09085295772685
+            },
+            {
+              "type": "std::float64",
+              "value": -1.0263362447853834
+            },
+            {
+              "type": "std::float64",
+              "value": 40.129957556785065
+            }
+          ],
+          "element_type": "std::float64"
+        },
+        "BFKQWYUYYODJBDN": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::int64",
+              "value": 66705059394589921
+            },
+            {
+              "type": "std::int64",
+              "value": 1810769515814652202
+            },
+            {
+              "type": "std::int64",
+              "value": 6720974298070853907
+            },
+            {
+              "type": "std::int64",
+              "value": 860330116607597098
+            },
+            {
+              "type": "std::int64",
+              "value": 2114271480331533462
+            }
+          ],
+          "element_type": "std::int64"
+        },
+        "YIDTYWNKXOOYVAA": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::int64",
+              "value": 2933523747228401906
+            },
+            {
+              "type": "std::int64",
+              "value": 4800550667088836431
+            },
+            {
+              "type": "std::int64",
+              "value": 2074392066258144086
+            },
+            {
+              "type": "std::int64",
+              "value": 8503222471553906679
+            },
+            {
+              "type": "std::int64",
+              "value": 3245615932553350543
+            },
+            {
+              "type": "std::int64",
+              "value": 238353901293760543
+            },
+            {
+              "type": "std::int64",
+              "value": 5646265668109422255
+            },
+            {
+              "type": "std::int64",
+              "value": 9134264049890933061
+            },
+            {
+              "type": "std::int64",
+              "value": 3872925317431801795
+            }
+          ],
+          "element_type": "std::int64"
+        },
+        "SSXGSSLTQOSGHUH": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::date_duration",
+              "value": "-1283.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-15954.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "9878.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "22542.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "17166.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "14530.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "20989.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-3295.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-11692.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-26181.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "7379.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "11670.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-29689.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "10073.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "26153.00:00:00"
+            }
+          ],
+          "element_type": "cal::date_duration"
+        },
+        "XOMPHZGLQOHEQII": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::date_duration",
+              "value": "4067.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-26355.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "6881.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-7100.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "29414.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-5370.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-24696.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-23339.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "17806.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "4796.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "26138.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "3467.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "4785.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "30989.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "23392.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "19493.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "-12504.00:00:00"
+            },
+            {
+              "type": "cal::date_duration",
+              "value": "22086.00:00:00"
+            }
+          ],
+          "element_type": "cal::date_duration"
+        },
+        "AICJOCRGSURMMUN": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::uuid",
+              "value": "9173d8f5-dee7-d4f7-c71b-c6a769fa5db3"
+            },
+            {
+              "type": "std::uuid",
+              "value": "63247a4b-52d8-786e-a3c4-e6c2b5c38f4c"
+            },
+            {
+              "type": "std::uuid",
+              "value": "e3494e30-d91d-fc4a-63e3-8ee665398a50"
+            },
+            {
+              "type": "std::uuid",
+              "value": "660d0b59-d276-a346-6afb-ed22f8341e03"
+            },
+            {
+              "type": "std::uuid",
+              "value": "1a777a8c-7ab1-7196-2f27-00f4c387126a"
+            },
+            {
+              "type": "std::uuid",
+              "value": "aa68963a-28b5-5ed5-08a5-7921eb28042e"
+            },
+            {
+              "type": "std::uuid",
+              "value": "ea5a8bc5-6fc2-df9f-749b-364fd251e0e2"
+            },
+            {
+              "type": "std::uuid",
+              "value": "61e783e8-74cc-634d-a518-120b01748607"
+            },
+            {
+              "type": "std::uuid",
+              "value": "372fd222-272c-caa7-f788-3519f1868cb7"
+            },
+            {
+              "type": "std::uuid",
+              "value": "673996c5-a340-5062-3df6-45a95d94de00"
+            },
+            {
+              "type": "std::uuid",
+              "value": "002c2f15-a821-c0b6-db1d-6a433e33711f"
+            },
+            {
+              "type": "std::uuid",
+              "value": "6b455a8c-1e3a-7fc6-6fde-fa36e2fd6d62"
+            },
+            {
+              "type": "std::uuid",
+              "value": "c20434aa-8c59-1d95-df79-8c23381f1209"
+            },
+            {
+              "type": "std::uuid",
+              "value": "021d2685-734e-f6c5-68ac-9043ad80dede"
+            },
+            {
+              "type": "std::uuid",
+              "value": "099907af-af2f-00c5-c528-8bc192a34650"
+            },
+            {
+              "type": "std::uuid",
+              "value": "bbb1f1cc-6ae0-3614-6e0d-5aadfc526f5f"
+            }
+          ],
+          "element_type": "std::uuid"
+        },
+        "UREADYXIKCBNMJV": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::relative_duration",
+              "value": "43.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "72.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "11.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "72.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "20.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "91.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "4.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "59.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "96.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "77.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "97.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "34.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "2.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "8.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "93.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "51.00:00:00"
+            },
+            {
+              "type": "cal::relative_duration",
+              "value": "27.00:00:00"
+            }
+          ],
+          "element_type": "cal::relative_duration"
+        },
+        "XSULDDCRQMXMIIF": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::local_date",
+              "value": "7124-12-23"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "5574-01-31"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "3868-05-05"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "5701-11-19"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "7793-07-23"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1120-04-21"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "4227-08-19"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1806-01-16"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1855-08-06"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "9303-08-28"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "9940-04-10"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "3911-12-18"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "0218-03-03"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1271-10-14"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "0181-08-01"
+            }
+          ],
+          "element_type": "cal::local_date"
+        },
+        "QXCPZPZQOGPSMLQ": {
+          "type": "array",
+          "value": [
+            {
+              "type": "cal::local_date",
+              "value": "1207-07-21"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "2267-02-22"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "9586-07-21"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "8910-06-25"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1335-01-23"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "1428-09-29"
+            },
+            {
+              "type": "cal::local_date",
+              "value": "6094-07-20"
+            }
+          ],
+          "element_type": "cal::local_date"
+        },
+        "GYFCGQIWHRKCDZD": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "0196-09-15T23:02:35.518384-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "5199-07-25T18:35:12.048-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "5323-03-15T11:15:57.234032-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "7290-02-19T07:35:48.08336-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "7123-02-23T10:27:48.889792-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "7290-02-05T21:41:21.64896-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "2787-12-23T14:28:38.058564-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "8568-06-28T08:21:29.964736-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "0904-09-25T11:03:42.365428-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "9010-08-12T22:31:43.95312-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "9004-08-22T21:03:22.539232-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "0595-01-10T12:16:56.253896-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "3281-06-04T22:32:40.130736-03:00"
+            }
+          ],
+          "element_type": "std::datetime"
+        },
+        "TMFTQUNHQGVEUFA": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::datetime",
+              "value": "1027-11-10T23:02:15.743832-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "3937-09-30T04:22:16.400592-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "1291-04-23T01:37:19.25278-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "1139-05-10T11:56:01.5569-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "6229-03-07T02:08:36.04152-04:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "0772-05-08T22:33:31.277952-03:00"
+            },
+            {
+              "type": "std::datetime",
+              "value": "6312-03-31T16:50:19.687088-03:00"
+            }
+          ],
+          "element_type": "std::datetime"
+        },
+        "FXGESLVYDRQXGMT": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::str",
+              "value": "EKWGCXVZGQOKGXP"
+            },
+            {
+              "type": "std::str",
+              "value": "WJSUSAHWLGZQETT"
+            },
+            {
+              "type": "std::str",
+              "value": "FIBCXZQZMYHHMKR"
+            },
+            {
+              "type": "std::str",
+              "value": "EBIAKQWDDAVWXEV"
+            },
+            {
+              "type": "std::str",
+              "value": "XAFYWNTXTTIUTZJ"
+            },
+            {
+              "type": "std::str",
+              "value": "ODLDLSDOLXYWDUC"
+            },
+            {
+              "type": "std::str",
+              "value": "CUKLFTZQHKHRICK"
+            },
+            {
+              "type": "std::str",
+              "value": "QVHUSSBFXQMYOWT"
+            }
+          ],
+          "element_type": "std::str"
+        },
+        "RARZPXUUEUVALLG": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::int32",
+              "value": 1788867673
+            },
+            {
+              "type": "std::int32",
+              "value": 501663509
+            },
+            {
+              "type": "std::int32",
+              "value": 684486733
+            },
+            {
+              "type": "std::int32",
+              "value": 1026783342
+            },
+            {
+              "type": "std::int32",
+              "value": 649113076
+            },
+            {
+              "type": "std::int32",
+              "value": 1259912006
+            },
+            {
+              "type": "std::int32",
+              "value": 818774533
+            },
+            {
+              "type": "std::int32",
+              "value": 1559518480
+            },
+            {
+              "type": "std::int32",
+              "value": 410048249
+            },
+            {
+              "type": "std::int32",
+              "value": 1191994925
+            }
+          ],
+          "element_type": "std::int32"
+        },
+        "GABLRIAIKLNSAMP": {
+          "type": "array",
+          "value": [
+            {
+              "type": "std::float32",
+              "value": -16.327385
+            },
+            {
+              "type": "std::float32",
+              "value": -33.666264
+            },
+            {
+              "type": "std::float32",
+              "value": 21.176596
+            },
+            {
+              "type": "std::float32",
+              "value": 12.528958
+            },
+            {
+              "type": "std::float32",
+              "value": -15.134475
+            },
+            {
+              "type": "std::float32",
+              "value": 6.96607
+            },
+            {
+              "type": "std::float32",
+              "value": -13.232865
+            },
+            {
+              "type": "std::float32",
+              "value": -42.80559
+            },
+            {
+              "type": "std::float32",
+              "value": -1.9663128
+            },
+            {
+              "type": "std::float32",
+              "value": 28.918852
+            },
+            {
+              "type": "std::float32",
+              "value": -32.09169
+            },
+            {
+              "type": "std::float32",
+              "value": 4.675624
+            },
+            {
+              "type": "std::float32",
+              "value": -6.903943
+            },
+            {
+              "type": "std::float32",
+              "value": 18.24296
+            },
+            {
+              "type": "std::float32",
+              "value": 58.26846
+            },
+            {
+              "type": "std::float32",
+              "value": -1.7814349
+            },
+            {
+              "type": "std::float32",
+              "value": 75.03716
+            },
+            {
+              "type": "std::float32",
+              "value": -9.633287
+            }
+          ],
+          "element_type": "std::float32"
+        },
+        "ZKFKKDDNRTVOZGA": {
+          "type": "std::int16",
+          "value": 13589
+        },
+        "KPCHUBVWFENAFMZ": {
+          "type": "std::bytes",
+          "value": "MkUyN0c3WURMMEZKWEREMlQ3Mw=="
+        },
+        "PJFJJNFYQMLHVPF": {
+          "type": "std::float64",
+          "value": 3.2345481115554215
+        },
+        "MXAZVXOFDBTMHRB": {
+          "type": "cal::date_duration",
+          "value": "12812.00:00:00"
+        }
+      }
+    }
+  ]
+}

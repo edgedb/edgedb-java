@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::int16",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <int16>22964",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::int16",
+      "value": 22964
+    }
+  ]
+}

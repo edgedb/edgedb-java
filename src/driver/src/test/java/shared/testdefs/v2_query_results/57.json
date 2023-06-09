@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<cal::local_datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<cal::local_datetime>'5910-12-20T05:25:40.413264', <cal::local_datetime>'6549-03-14T19:50:47.231328')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": "5910-12-20T05:25:40.4132640",
+        "upper": "6549-03-14T19:50:47.2313280",
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "cal::local_datetime"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Query result of type range<std::decimal>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT range(<std::decimal>4.290668910504630n, <std::decimal>30.052965146979744n)",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "range",
+      "value": {
+        "lower": 4.290668910504630,
+        "upper": 30.052965146979744,
+        "inc_lower": true,
+        "inc_upper": false
+      },
+      "element_type": "std::decimal"
+    }
+  ]
+}

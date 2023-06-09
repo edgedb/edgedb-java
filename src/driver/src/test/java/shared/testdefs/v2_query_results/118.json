@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type cal::relative_duration",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::relative_duration>'0 seconds'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::relative_duration",
+      "value": "00:00:00"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Query result of type tuple<std::duration, cal::local_time>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (<duration>'38880000 seconds', <cal::local_time>'04:38:13.4939220')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "tuple",
+      "value": [
+        {
+          "type": "std::duration",
+          "value": "450.00:00:00"
+        },
+        {
+          "type": "cal::local_time",
+          "value": "04:38:13.4939220"
+        }
+      ]
+    }
+  ]
+}

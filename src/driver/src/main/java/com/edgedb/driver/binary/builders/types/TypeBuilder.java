@@ -5,6 +5,8 @@ import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.packets.receivable.Data;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.datatypes.Tuple;
+import com.edgedb.driver.datatypes.internal.TupleImpl;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +23,7 @@ public final class TypeBuilder {
         deserializerInfo = new ConcurrentHashMap<>() {{
             put(Map.class, new TypeDeserializerInfo<>(Map.class, (e, v) -> e.flatten()));
             put(Object.class, new TypeDeserializerInfo<>(Object.class, (e, v) -> e.flatten()));
+            put(Tuple.class, new TypeDeserializerInfo<>(TupleImpl.class));
         }};
     }
 

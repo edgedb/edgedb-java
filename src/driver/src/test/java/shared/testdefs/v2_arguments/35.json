@@ -1,0 +1,32 @@
+{
+  "name": "Argument of type cal::local_datetime",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <cal::local_datetime>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "cal::local_datetime",
+          "value": {
+            "type": "cal::local_datetime",
+            "value": "9496-09-18T03:23:39.2690560"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "cal::local_datetime",
+      "value": "9496-09-18T03:23:39.2690560"
+    }
+  ]
+}

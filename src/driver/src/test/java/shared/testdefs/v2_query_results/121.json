@@ -1,0 +1,63 @@
+{
+  "name": "Query result of type set<range<std::int64>>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { range(<std::int64>4539650887878041736, <std::int64>6038405025612454648), range(<std::int64>5860146886327473512, <std::int64>8960119331412300426), range(<std::int64>2987674829276058012, <std::int64>6252212801466660762), range(<std::int64>505428471966870839, <std::int64>938535493624214885) }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "range",
+        "value": {
+          "lower": 4539650887878041736,
+          "upper": 6038405025612454648,
+          "inc_lower": true,
+          "inc_upper": false
+        },
+        "element_type": "std::int64"
+      },
+      {
+        "type": "range",
+        "value": {
+          "lower": 5860146886327473512,
+          "upper": 8960119331412300426,
+          "inc_lower": true,
+          "inc_upper": false
+        },
+        "element_type": "std::int64"
+      },
+      {
+        "type": "range",
+        "value": {
+          "lower": 2987674829276058012,
+          "upper": 6252212801466660762,
+          "inc_lower": true,
+          "inc_upper": false
+        },
+        "element_type": "std::int64"
+      },
+      {
+        "type": "range",
+        "value": {
+          "lower": 505428471966870839,
+          "upper": 938535493624214885,
+          "inc_lower": true,
+          "inc_upper": false
+        },
+        "element_type": "std::int64"
+      }
+    ],
+    "element_type": "range"
+  }
+}

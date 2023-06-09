@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::int32",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <int32>660406923",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::int32",
+      "value": 660406923
+    }
+  ]
+}

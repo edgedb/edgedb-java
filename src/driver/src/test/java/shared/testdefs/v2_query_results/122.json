@@ -1,0 +1,67 @@
+{
+  "name": "Query result of type set<std::bigint>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <std::bigint>21711328442934322962313246685n, <std::bigint>1582239973508709188609660283593903n, <std::bigint>-1612086349429897n, <std::bigint>-3301933424n, <std::bigint>413718196669n, <std::bigint>-1422902068058816445448963305361073n, <std::bigint>444365628701n, <std::bigint>545148136n, <std::bigint>-451257030281891528645507235948949n, <std::bigint>-10749411252903308298887642554n, <std::bigint>1317679960088146896842n }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::bigint",
+        "value": 21711328442934322962313246685
+      },
+      {
+        "type": "std::bigint",
+        "value": 1582239973508709188609660283593903
+      },
+      {
+        "type": "std::bigint",
+        "value": -1612086349429897
+      },
+      {
+        "type": "std::bigint",
+        "value": -3301933424
+      },
+      {
+        "type": "std::bigint",
+        "value": 413718196669
+      },
+      {
+        "type": "std::bigint",
+        "value": -1422902068058816445448963305361073
+      },
+      {
+        "type": "std::bigint",
+        "value": 444365628701
+      },
+      {
+        "type": "std::bigint",
+        "value": 545148136
+      },
+      {
+        "type": "std::bigint",
+        "value": -451257030281891528645507235948949
+      },
+      {
+        "type": "std::bigint",
+        "value": -10749411252903308298887642554
+      },
+      {
+        "type": "std::bigint",
+        "value": 1317679960088146896842
+      }
+    ],
+    "element_type": "std::bigint"
+  }
+}

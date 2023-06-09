@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::duration",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <duration>'24278400 seconds'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::duration",
+      "value": "281.00:00:00"
+    }
+  ]
+}

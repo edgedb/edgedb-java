@@ -1,0 +1,186 @@
+{
+  "name": "Argument of type tuple<std::bigint, std::bool, std::bytes, cal::date_duration, std::datetime, std::decimal, std::duration, std::float32, std::float64, std::int16, std::int32, std::int64, std::json, cal::local_datetime, cal::local_date, cal::local_time, cal::relative_duration, std::str, std::uuid>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <tuple<std::bigint, std::bool, std::bytes, cal::date_duration, std::datetime, std::decimal, std::duration, std::float32, std::float64, std::int16, std::int32, std::int64, std::json, cal::local_datetime, cal::local_date, cal::local_time, cal::relative_duration, std::str, std::uuid>>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "tuple<std::bigint, std::bool, std::bytes, cal::date_duration, std::datetime, std::decimal, std::duration, std::float32, std::float64, std::int16, std::int32, std::int64, std::json, cal::local_datetime, cal::local_date, cal::local_time, cal::relative_duration, std::str, std::uuid>",
+          "value": {
+            "type": "tuple",
+            "value": [
+              {
+                "type": "std::bigint",
+                "value": 1021085557402431377250564946283
+              },
+              {
+                "type": "std::bool",
+                "value": false
+              },
+              {
+                "type": "std::bytes",
+                "value": "QTA5RjJER0NEMUQ1WFVJNQ=="
+              },
+              {
+                "type": "cal::date_duration",
+                "value": "28165.00:00:00"
+              },
+              {
+                "type": "std::datetime",
+                "value": "9071-06-09T08:50:26.377248-03:00"
+              },
+              {
+                "type": "std::decimal",
+                "value": 36.945744326778574
+              },
+              {
+                "type": "std::duration",
+                "value": "170.00:00:00"
+              },
+              {
+                "type": "std::float32",
+                "value": 32.681686
+              },
+              {
+                "type": "std::float64",
+                "value": -59.940355634289034
+              },
+              {
+                "type": "std::int16",
+                "value": 20441
+              },
+              {
+                "type": "std::int32",
+                "value": 2127406736
+              },
+              {
+                "type": "std::int64",
+                "value": 1269500871310045429
+              },
+              {
+                "type": "std::json",
+                "value": "{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}"
+              },
+              {
+                "type": "cal::local_datetime",
+                "value": "0020-12-22T11:50:25.6154480"
+              },
+              {
+                "type": "cal::local_date",
+                "value": "5575-02-05"
+              },
+              {
+                "type": "cal::local_time",
+                "value": "20:19:28.1631880"
+              },
+              {
+                "type": "cal::relative_duration",
+                "value": "37.00:00:00"
+              },
+              {
+                "type": "std::str",
+                "value": "IUNVONEQOIGULXI"
+              },
+              {
+                "type": "std::uuid",
+                "value": "6793f909-04e6-a306-ef42-38de7a6ceca2"
+              }
+            ]
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "tuple",
+      "value": [
+        {
+          "type": "std::bigint",
+          "value": 1021085557402431377250564946283
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bytes",
+          "value": "QTA5RjJER0NEMUQ1WFVJNQ=="
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "28165.00:00:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "9071-06-09T08:50:26.377248-03:00"
+        },
+        {
+          "type": "std::decimal",
+          "value": 36.945744326778574
+        },
+        {
+          "type": "std::duration",
+          "value": "170.00:00:00"
+        },
+        {
+          "type": "std::float32",
+          "value": 32.681686
+        },
+        {
+          "type": "std::float64",
+          "value": -59.940355634289034
+        },
+        {
+          "type": "std::int16",
+          "value": 20441
+        },
+        {
+          "type": "std::int32",
+          "value": 2127406736
+        },
+        {
+          "type": "std::int64",
+          "value": 1269500871310045429
+        },
+        {
+          "type": "std::json",
+          "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+        },
+        {
+          "type": "cal::local_datetime",
+          "value": "0020-12-22T11:50:25.6154480"
+        },
+        {
+          "type": "cal::local_date",
+          "value": "5575-02-05"
+        },
+        {
+          "type": "cal::local_time",
+          "value": "20:19:28.1631880"
+        },
+        {
+          "type": "cal::relative_duration",
+          "value": "37.00:00:00"
+        },
+        {
+          "type": "std::str",
+          "value": "IUNVONEQOIGULXI"
+        },
+        {
+          "type": "std::uuid",
+          "value": "6793f909-04e6-a306-ef42-38de7a6ceca2"
+        }
+      ]
+    }
+  ]
+}

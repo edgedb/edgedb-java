@@ -1,0 +1,85 @@
+{
+  "name": "Query result of type array<std::datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<datetime>'0950-01-19T09:27:25.74482-04:00', <datetime>'0413-11-09T17:21:51.378528-04:00', <datetime>'2501-11-14T20:09:48.776092-04:00', <datetime>'3292-11-07T21:19:04.248432-04:00', <datetime>'7210-01-06T16:03:27.63232-04:00', <datetime>'7417-10-01T06:25:48.029408-03:00', <datetime>'7575-04-16T17:32:37.097376-03:00', <datetime>'5777-10-28T03:41:00.303024-03:00', <datetime>'8746-05-31T10:32:14.809856-03:00', <datetime>'5480-04-22T14:47:43.325248-03:00', <datetime>'0132-11-27T02:43:41.030424-04:00', <datetime>'0657-09-14T20:34:05.911304-03:00', <datetime>'4741-03-25T21:39:01.38512-03:00', <datetime>'5414-09-20T06:43:50.960784-03:00', <datetime>'7374-11-08T20:19:37.918208-04:00']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::datetime",
+          "value": "0950-01-19T09:27:25.74482-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "0413-11-09T17:21:51.378528-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "2501-11-14T20:09:48.776092-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "3292-11-07T21:19:04.248432-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "7210-01-06T16:03:27.63232-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "7417-10-01T06:25:48.029408-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "7575-04-16T17:32:37.097376-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "5777-10-28T03:41:00.303024-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "8746-05-31T10:32:14.809856-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "5480-04-22T14:47:43.325248-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "0132-11-27T02:43:41.030424-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "0657-09-14T20:34:05.911304-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "4741-03-25T21:39:01.38512-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "5414-09-20T06:43:50.960784-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "7374-11-08T20:19:37.918208-04:00"
+        }
+      ],
+      "element_type": "std::datetime"
+    }
+  ]
+}

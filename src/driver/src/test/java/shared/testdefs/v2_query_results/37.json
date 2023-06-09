@@ -1,0 +1,40 @@
+{
+  "name": "Query result of type namedtuple<std::int32, cal::date_duration, std::datetime, std::str>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (IUOQSFWCEHPSGPG := <int32>45322332, TRGPXLVXVIUJPEQ := <cal::date_duration>'31187 days', AKXCWEBBGYCKFLR := <datetime>'8786-03-03T16:09:10.634144-04:00', MCVKITTXWBSPCYU := 'RFPPQUCNVFWVLCI')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "IUOQSFWCEHPSGPG": {
+          "type": "std::int32",
+          "value": 45322332
+        },
+        "TRGPXLVXVIUJPEQ": {
+          "type": "cal::date_duration",
+          "value": "31187.00:00:00"
+        },
+        "AKXCWEBBGYCKFLR": {
+          "type": "std::datetime",
+          "value": "8786-03-03T16:09:10.634144-04:00"
+        },
+        "MCVKITTXWBSPCYU": {
+          "type": "std::str",
+          "value": "RFPPQUCNVFWVLCI"
+        }
+      }
+    }
+  ]
+}

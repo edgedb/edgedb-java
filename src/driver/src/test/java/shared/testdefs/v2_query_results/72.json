@@ -1,0 +1,39 @@
+{
+  "name": "Query result of type set<cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::local_date>'3591-11-27', <cal::local_date>'9715-06-06', <cal::local_date>'6999-06-18', <cal::local_date>'0401-02-08' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::local_date",
+        "value": "3591-11-27"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "9715-06-06"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "6999-06-18"
+      },
+      {
+        "type": "cal::local_date",
+        "value": "0401-02-08"
+      }
+    ],
+    "element_type": "cal::local_date"
+  }
+}

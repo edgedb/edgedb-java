@@ -1,0 +1,79 @@
+{
+  "name": "Query result of type set<cal::date_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::date_duration>'-30707 days', <cal::date_duration>'-28841 days', <cal::date_duration>'4167 days', <cal::date_duration>'-15185 days', <cal::date_duration>'-23262 days', <cal::date_duration>'-22204 days', <cal::date_duration>'26383 days', <cal::date_duration>'3034 days', <cal::date_duration>'2175 days', <cal::date_duration>'-9212 days', <cal::date_duration>'11618 days', <cal::date_duration>'18352 days', <cal::date_duration>'7858 days', <cal::date_duration>'-21634 days' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::date_duration",
+        "value": "-30707.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-28841.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "4167.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-15185.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-23262.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-22204.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "26383.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "3034.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "2175.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-9212.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "11618.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "18352.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "7858.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-21634.00:00:00"
+      }
+    ],
+    "element_type": "cal::date_duration"
+  }
+}

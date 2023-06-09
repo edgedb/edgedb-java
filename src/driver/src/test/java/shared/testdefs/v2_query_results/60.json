@@ -1,0 +1,95 @@
+{
+  "name": "Query result of type set<cal::local_time>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::local_time>'19:45:19.1611560', <cal::local_time>'20:20:04.9589060', <cal::local_time>'14:20:17.7725620', <cal::local_time>'18:35:08.1408830', <cal::local_time>'13:07:02.4706250', <cal::local_time>'03:55:57.1974380', <cal::local_time>'01:48:58.7961880', <cal::local_time>'17:03:51.4865310', <cal::local_time>'18:19:34.4418630', <cal::local_time>'01:02:52.8844660', <cal::local_time>'10:40:23.2515160', <cal::local_time>'01:18:15.4461880', <cal::local_time>'05:10:05.0863120', <cal::local_time>'23:32:30.3758750', <cal::local_time>'15:33:26.7695940', <cal::local_time>'03:59:40.6023120', <cal::local_time>'16:03:04.8635620', <cal::local_time>'19:27:12.9221560' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::local_time",
+        "value": "19:45:19.1611560"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "20:20:04.9589060"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "14:20:17.7725620"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "18:35:08.1408830"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "13:07:02.4706250"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "03:55:57.1974380"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "01:48:58.7961880"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "17:03:51.4865310"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "18:19:34.4418630"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "01:02:52.8844660"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "10:40:23.2515160"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "01:18:15.4461880"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "05:10:05.0863120"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "23:32:30.3758750"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "15:33:26.7695940"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "03:59:40.6023120"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "16:03:04.8635620"
+      },
+      {
+        "type": "cal::local_time",
+        "value": "19:27:12.9221560"
+      }
+    ],
+    "element_type": "cal::local_time"
+  }
+}

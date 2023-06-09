@@ -1,0 +1,35 @@
+{
+  "name": "Query result of type set<cal::date_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::date_duration>'-12030 days', <cal::date_duration>'18412 days', <cal::date_duration>'-1483 days' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::date_duration",
+        "value": "-12030.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "18412.00:00:00"
+      },
+      {
+        "type": "cal::date_duration",
+        "value": "-1483.00:00:00"
+      }
+    ],
+    "element_type": "cal::date_duration"
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "name": "Argument of type array<std::bigint>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <array<std::bigint>>$arg",
+      "arguments": [
+        {
+          "name": "arg",
+          "edgedb_typename": "array<std::bigint>",
+          "value": {
+            "type": "array",
+            "value": [
+              {
+                "type": "std::bigint",
+                "value": -2152720392899178295224
+              },
+              {
+                "type": "std::bigint",
+                "value": 3916150107317
+              },
+              {
+                "type": "std::bigint",
+                "value": -3574554412318698674
+              },
+              {
+                "type": "std::bigint",
+                "value": 98658629605509
+              },
+              {
+                "type": "std::bigint",
+                "value": 11874737666685387
+              },
+              {
+                "type": "std::bigint",
+                "value": -7102843274308427486268724657633
+              },
+              {
+                "type": "std::bigint",
+                "value": -38573947965316789928730824811
+              },
+              {
+                "type": "std::bigint",
+                "value": 44113578894163
+              },
+              {
+                "type": "std::bigint",
+                "value": 448922742856
+              },
+              {
+                "type": "std::bigint",
+                "value": -7907758816019362066
+              },
+              {
+                "type": "std::bigint",
+                "value": -47420543659907
+              },
+              {
+                "type": "std::bigint",
+                "value": 58457006378397828902969207
+              },
+              {
+                "type": "std::bigint",
+                "value": -2712273903739394832
+              },
+              {
+                "type": "std::bigint",
+                "value": 2496524019061038793
+              },
+              {
+                "type": "std::bigint",
+                "value": -138564685903597
+              },
+              {
+                "type": "std::bigint",
+                "value": 34585717505251868804869978759
+              }
+            ],
+            "element_type": "std::bigint"
+          }
+        }
+      ],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::bigint",
+          "value": -2152720392899178295224
+        },
+        {
+          "type": "std::bigint",
+          "value": 3916150107317
+        },
+        {
+          "type": "std::bigint",
+          "value": -3574554412318698674
+        },
+        {
+          "type": "std::bigint",
+          "value": 98658629605509
+        },
+        {
+          "type": "std::bigint",
+          "value": 11874737666685387
+        },
+        {
+          "type": "std::bigint",
+          "value": -7102843274308427486268724657633
+        },
+        {
+          "type": "std::bigint",
+          "value": -38573947965316789928730824811
+        },
+        {
+          "type": "std::bigint",
+          "value": 44113578894163
+        },
+        {
+          "type": "std::bigint",
+          "value": 448922742856
+        },
+        {
+          "type": "std::bigint",
+          "value": -7907758816019362066
+        },
+        {
+          "type": "std::bigint",
+          "value": -47420543659907
+        },
+        {
+          "type": "std::bigint",
+          "value": 58457006378397828902969207
+        },
+        {
+          "type": "std::bigint",
+          "value": -2712273903739394832
+        },
+        {
+          "type": "std::bigint",
+          "value": 2496524019061038793
+        },
+        {
+          "type": "std::bigint",
+          "value": -138564685903597
+        },
+        {
+          "type": "std::bigint",
+          "value": 34585717505251868804869978759
+        }
+      ],
+      "element_type": "std::bigint"
+    }
+  ]
+}

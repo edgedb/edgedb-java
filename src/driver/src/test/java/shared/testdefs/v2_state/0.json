@@ -1,0 +1,200 @@
+{
+  "name": "Global of type array<std::bigint>",
+  "queries": [
+    {
+      "name": "Start transaction",
+      "cardinality": 110,
+      "value": "start transaction",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Create global",
+      "cardinality": 110,
+      "value": "create global ZCNEVQOORZHBMMF -> array<std::bigint>",
+      "arguments": [],
+      "capabilities": 8,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    },
+    {
+      "name": "Select global of type array<std::bigint>",
+      "cardinality": 109,
+      "value": "select global ZCNEVQOORZHBMMF",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {
+          "ZCNEVQOORZHBMMF": {
+            "type": "array",
+            "value": [
+              {
+                "type": "std::bigint",
+                "value": 1683471060357585966953401719466952
+              },
+              {
+                "type": "std::bigint",
+                "value": 1078594995
+              },
+              {
+                "type": "std::bigint",
+                "value": 4978808705160117705035637
+              },
+              {
+                "type": "std::bigint",
+                "value": -21032931613428405
+              },
+              {
+                "type": "std::bigint",
+                "value": 18685293397537
+              },
+              {
+                "type": "std::bigint",
+                "value": -82964411835772
+              },
+              {
+                "type": "std::bigint",
+                "value": 2016575164419795661550157035622
+              },
+              {
+                "type": "std::bigint",
+                "value": -2196457375204816284485
+              },
+              {
+                "type": "std::bigint",
+                "value": 1004899331322766491501
+              },
+              {
+                "type": "std::bigint",
+                "value": 478414862298742379683662
+              },
+              {
+                "type": "std::bigint",
+                "value": -1890903747444990898922095670397045
+              },
+              {
+                "type": "std::bigint",
+                "value": -4810849241313362122
+              },
+              {
+                "type": "std::bigint",
+                "value": 406762244173595159973148
+              },
+              {
+                "type": "std::bigint",
+                "value": -72470202616
+              },
+              {
+                "type": "std::bigint",
+                "value": -680306557
+              }
+            ],
+            "element_type": "std::bigint"
+          }
+        }
+      }
+    },
+    {
+      "name": "Rollback",
+      "cardinality": 110,
+      "value": "rollback",
+      "arguments": [],
+      "capabilities": 4,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {
+          "ddl_policy": 0
+        },
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::bigint",
+          "value": 1683471060357585966953401719466952
+        },
+        {
+          "type": "std::bigint",
+          "value": 1078594995
+        },
+        {
+          "type": "std::bigint",
+          "value": 4978808705160117705035637
+        },
+        {
+          "type": "std::bigint",
+          "value": -21032931613428405
+        },
+        {
+          "type": "std::bigint",
+          "value": 18685293397537
+        },
+        {
+          "type": "std::bigint",
+          "value": -82964411835772
+        },
+        {
+          "type": "std::bigint",
+          "value": 2016575164419795661550157035622
+        },
+        {
+          "type": "std::bigint",
+          "value": -2196457375204816284485
+        },
+        {
+          "type": "std::bigint",
+          "value": 1004899331322766491501
+        },
+        {
+          "type": "std::bigint",
+          "value": 478414862298742379683662
+        },
+        {
+          "type": "std::bigint",
+          "value": -1890903747444990898922095670397045
+        },
+        {
+          "type": "std::bigint",
+          "value": -4810849241313362122
+        },
+        {
+          "type": "std::bigint",
+          "value": 406762244173595159973148
+        },
+        {
+          "type": "std::bigint",
+          "value": -72470202616
+        },
+        {
+          "type": "std::bigint",
+          "value": -680306557
+        }
+      ],
+      "element_type": "std::bigint"
+    }
+  ]
+}

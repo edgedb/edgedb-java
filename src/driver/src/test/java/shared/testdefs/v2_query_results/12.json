@@ -1,0 +1,93 @@
+{
+  "name": "Query result of type array<std::bool>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [true, true, true, true, true, false, true, false, false, true, true, true, true, true, false, false, false]",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": true
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        },
+        {
+          "type": "std::bool",
+          "value": false
+        }
+      ],
+      "element_type": "std::bool"
+    }
+  ]
+}

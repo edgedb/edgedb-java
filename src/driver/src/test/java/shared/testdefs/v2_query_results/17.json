@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::bytes",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT b'CFLN2545VE1O2YH'",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::bytes",
+      "value": "Q0ZMTjI1NDVWRTFPMllI"
+    }
+  ]
+}

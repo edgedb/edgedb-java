@@ -1,0 +1,44 @@
+{
+  "name": "Query result of type namedtuple<std::bigint, std::float32, std::int32, cal::relative_duration, std::json>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (IMJXDTXQGVDIUDN := <std::bigint>31091207948424342374743134649n, ZDZHBZZHQNPQLHK := <float32>32.56249n, IDYCDZWJSQVLHYR := <int32>572238337, DASEOLLBQJIRJDO := <cal::relative_duration>'7689600 seconds', QVAAVHEPHRUBISU := std::to_json('{\"DateOnly\":\"8173-06-07\",\"Days\":2254800}'))",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "IMJXDTXQGVDIUDN": {
+          "type": "std::bigint",
+          "value": 31091207948424342374743134649
+        },
+        "ZDZHBZZHQNPQLHK": {
+          "type": "std::float32",
+          "value": 32.56249
+        },
+        "IDYCDZWJSQVLHYR": {
+          "type": "std::int32",
+          "value": 572238337
+        },
+        "DASEOLLBQJIRJDO": {
+          "type": "cal::relative_duration",
+          "value": "89.00:00:00"
+        },
+        "QVAAVHEPHRUBISU": {
+          "type": "std::json",
+          "value": "{\"Days\": 2254800, \"DateOnly\": \"8173-06-07\"}"
+        }
+      }
+    }
+  ]
+}

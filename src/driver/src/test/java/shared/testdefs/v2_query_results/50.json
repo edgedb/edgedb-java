@@ -1,0 +1,48 @@
+{
+  "name": "Query result of type object<std::bigint, std::int32, std::str, cal::local_datetime, std::bool, std::decimal>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { RAWSMSVAUGCUQKQ := <std::bigint>143094199534470925077697018n, GCQROHOQYMGLQUV := <int32>1727116661, XKHUGJBZEZOVYLL := 'VUSPLGIWAUNVKRK', JPKROEATORKHZUZ := <cal::local_datetime>'0301-05-25T16:17:22.156216', OUADFWRBKULVGPM := false, LJATIRTYATWBWFU := <std::decimal>49.282034807504156n }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "RAWSMSVAUGCUQKQ": {
+          "type": "std::bigint",
+          "value": 143094199534470925077697018
+        },
+        "GCQROHOQYMGLQUV": {
+          "type": "std::int32",
+          "value": 1727116661
+        },
+        "XKHUGJBZEZOVYLL": {
+          "type": "std::str",
+          "value": "VUSPLGIWAUNVKRK"
+        },
+        "JPKROEATORKHZUZ": {
+          "type": "cal::local_datetime",
+          "value": "0301-05-25T16:17:22.1562160"
+        },
+        "OUADFWRBKULVGPM": {
+          "type": "std::bool",
+          "value": false
+        },
+        "LJATIRTYATWBWFU": {
+          "type": "std::decimal",
+          "value": 49.282034807504156
+        }
+      }
+    }
+  ]
+}

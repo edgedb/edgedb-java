@@ -1,0 +1,23 @@
+{
+  "name": "Query result of type std::decimal",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT <std::decimal>39.240675320960917n",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "std::decimal",
+      "value": 39.240675320960917
+    }
+  ]
+}

@@ -10,8 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Main {
-    private static final String TEST_DEFINITION_DIRECTORY = "C:\\Users\\lynch\\source\\repos\\EdgeDB\\tests\\EdgeDB.Tests.Integration\\tests";
-    private static final String TEST_OUTPUT_DIRECTORY = "C:\\Users\\lynch\\Documents\\GitHub\\edgedb-java\\src\\driver\\src\\test\\java\\shared\\generated";
+    private static final Path TEST_DEFINITION_DIRECTORY = Path.of("src", "driver", "src", "test", "java", "shared", "testdefs");
+    private static final Path TEST_OUTPUT_DIRECTORY = Path.of("src", "driver", "src", "test", "java", "shared", "generated");
 
     private static final NamingStrategy PASCAL_CASE_NAMING_STRATEGY = NamingStrategy.pascalCase();
     private static final NamingStrategy CAMEL_CASE_NAMING_STRATEGY = NamingStrategy.camelCase();
@@ -20,7 +20,9 @@ public class Main {
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
     public static void main(String[] args) throws IOException {
-        var definitionDir = new File(TEST_DEFINITION_DIRECTORY);
+        var dir =  Path.of(System.getProperty("user.dir"));
+
+        var definitionDir = dir.resolve(TEST_DEFINITION_DIRECTORY).toFile();
 
         var files = definitionDir.listFiles((d,e) -> d.getAbsolutePath() == definitionDir.getAbsolutePath() && e.endsWith(".json"));
 
@@ -30,7 +32,7 @@ public class Main {
 
         for(var file : files) {
             var group = mapper.readValue(Files.readString(file.toPath(), StandardCharsets.UTF_8), TestGroup.class);
-            var testFiles = Path.of(TEST_DEFINITION_DIRECTORY, file.getName().replace(".json", "")).toFile().listFiles();
+            var testFiles = dir.resolve(TEST_DEFINITION_DIRECTORY).resolve(file.getName().replace(".json", "")).toFile().listFiles();
             processGroup(group, testFiles);
         }
     }
@@ -38,7 +40,8 @@ public class Main {
     private static final String[] usings = new String[] {
             "org.junit.jupiter.api.Test",
             "org.junit.jupiter.api.DisplayName",
-            "shared.SharedTestsRunner"
+            "shared.SharedTestsRunner",
+            "java.nio.file.Path"
     };
 
     private static void processGroup(TestGroup group, File[] tests) throws IOException {
@@ -63,7 +66,7 @@ public class Main {
                 writer.appendLine("@DisplayName(\"" + test.name + "\")");
 
                 try (var methodScope = writer.beginScope("public void " + camelCaseName + "_" + testFile.getName().replace(".json", "") + "()")) {
-                    writer.appendLine("var path = \"" + testFile.getAbsolutePath().replace("\\", "\\\\") + "\";");
+                    writer.appendLine("var path = Path.of(\"" + TEST_DEFINITION_DIRECTORY.resolve(testFile.getParentFile().getName()).resolve(testFile.getName()).toString().replace(System.getProperty("file.separator"), "\", \"") + "\");");
                     writer.appendLine("SharedTestsRunner.Run(path);");
                 }
             }
@@ -72,7 +75,7 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        Files.write(Path.of(TEST_OUTPUT_DIRECTORY, pascalGroupName + "Tests" + ".java"), writer.toString().getBytes(StandardCharsets.UTF_8));
+        Files.write(TEST_OUTPUT_DIRECTORY.resolve(pascalGroupName + "Tests" + ".java"), writer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private static Test readTest(File file) throws IOException {

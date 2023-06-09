@@ -1,0 +1,47 @@
+{
+  "name": "Query result of type set<std::uuid>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <uuid>'79256ee6-6373-2424-00cc-814b7ca8035f', <uuid>'2200c460-126e-16fe-a6f1-ec5854ce683a', <uuid>'5c1350c3-6b42-f1ad-7a56-6d7b2ae19c28', <uuid>'73269206-5e10-d41d-6f0e-d28176cbcf32', <uuid>'2b874763-a695-f51d-170e-a818a483ebc4', <uuid>'c252c354-f4a8-642a-333e-ed33992b7aae' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::uuid",
+        "value": "79256ee6-6373-2424-00cc-814b7ca8035f"
+      },
+      {
+        "type": "std::uuid",
+        "value": "2200c460-126e-16fe-a6f1-ec5854ce683a"
+      },
+      {
+        "type": "std::uuid",
+        "value": "5c1350c3-6b42-f1ad-7a56-6d7b2ae19c28"
+      },
+      {
+        "type": "std::uuid",
+        "value": "73269206-5e10-d41d-6f0e-d28176cbcf32"
+      },
+      {
+        "type": "std::uuid",
+        "value": "2b874763-a695-f51d-170e-a818a483ebc4"
+      },
+      {
+        "type": "std::uuid",
+        "value": "c252c354-f4a8-642a-333e-ed33992b7aae"
+      }
+    ],
+    "element_type": "std::uuid"
+  }
+}

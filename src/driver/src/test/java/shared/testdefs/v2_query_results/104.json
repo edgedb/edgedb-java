@@ -1,0 +1,28 @@
+{
+  "name": "Query result of type namedtuple<std::uuid>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT (GOMTSEMUOQXDRKD := <uuid>'450e357f-e694-64da-426b-437287611833')",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "namedtuple",
+      "value": {
+        "GOMTSEMUOQXDRKD": {
+          "type": "std::uuid",
+          "value": "450e357f-e694-64da-426b-437287611833"
+        }
+      }
+    }
+  ]
+}

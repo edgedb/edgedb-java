@@ -1,0 +1,79 @@
+{
+  "name": "Query result of type set<std::bool>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { false, false, false, true, true, true, false, false, false, false, true, true, true, false }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": true
+      },
+      {
+        "type": "std::bool",
+        "value": false
+      }
+    ],
+    "element_type": "std::bool"
+  }
+}

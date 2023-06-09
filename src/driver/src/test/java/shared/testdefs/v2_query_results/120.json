@@ -1,0 +1,55 @@
+{
+  "name": "Query result of type set<cal::relative_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { <cal::relative_duration>'5875200 seconds', <cal::relative_duration>'2160000 seconds', <cal::relative_duration>'5097600 seconds', <cal::relative_duration>'4060800 seconds', <cal::relative_duration>'2505600 seconds', <cal::relative_duration>'259200 seconds', <cal::relative_duration>'259200 seconds', <cal::relative_duration>'4320000 seconds' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "cal::relative_duration",
+        "value": "68.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "25.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "59.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "47.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "29.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "3.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "3.00:00:00"
+      },
+      {
+        "type": "cal::relative_duration",
+        "value": "50.00:00:00"
+      }
+    ],
+    "element_type": "cal::relative_duration"
+  }
+}

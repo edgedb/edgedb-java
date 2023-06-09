@@ -1,0 +1,36 @@
+{
+  "name": "Query result of type object<std::datetime, std::uuid, cal::local_date>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { PYZWEYBSCBGMOPM := <datetime>'7578-07-06T20:54:09.489536-03:00', KSRUHBUFJLOAMXI := <uuid>'6268e1e2-2dd7-b039-9419-8a9d4ece0139', KWSTCYIXEQVNNRP := <cal::local_date>'1594-09-01' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "object",
+      "value": {
+        "PYZWEYBSCBGMOPM": {
+          "type": "std::datetime",
+          "value": "7578-07-06T20:54:09.489536-03:00"
+        },
+        "KSRUHBUFJLOAMXI": {
+          "type": "std::uuid",
+          "value": "6268e1e2-2dd7-b039-9419-8a9d4ece0139"
+        },
+        "KWSTCYIXEQVNNRP": {
+          "type": "cal::local_date",
+          "value": "1594-09-01"
+        }
+      }
+    }
+  ]
+}

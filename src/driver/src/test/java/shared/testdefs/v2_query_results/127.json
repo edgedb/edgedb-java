@@ -1,0 +1,87 @@
+{
+  "name": "Query result of type set<std::str>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT { 'COBBGGRPXDWHFNC', 'SINKTWLOWXAYMKL', 'TYWMLLVWKRRYEZO', 'ECTFKKNGCNEIGSD', 'SDOHQQZHMRACENJ', 'JVUKQFHJLQJYGMQ', 'NEFALGOODMSTKKB', 'DHZKYTVMWEVAGAA', 'AIOAHJLCHGHDMOZ', 'OTVZNFSUITEGLOH', 'MSSBWBIUVWDSLSA', 'FULMEBNUPTROEFR', 'YERUVXEMLBEQCAI', 'TWBQCUXLEXLDKTP', 'FKTHAFMHQYADWWS', 'KAVHDAQDGGPXMBC' }",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": {
+    "type": "set",
+    "value": [
+      {
+        "type": "std::str",
+        "value": "COBBGGRPXDWHFNC"
+      },
+      {
+        "type": "std::str",
+        "value": "SINKTWLOWXAYMKL"
+      },
+      {
+        "type": "std::str",
+        "value": "TYWMLLVWKRRYEZO"
+      },
+      {
+        "type": "std::str",
+        "value": "ECTFKKNGCNEIGSD"
+      },
+      {
+        "type": "std::str",
+        "value": "SDOHQQZHMRACENJ"
+      },
+      {
+        "type": "std::str",
+        "value": "JVUKQFHJLQJYGMQ"
+      },
+      {
+        "type": "std::str",
+        "value": "NEFALGOODMSTKKB"
+      },
+      {
+        "type": "std::str",
+        "value": "DHZKYTVMWEVAGAA"
+      },
+      {
+        "type": "std::str",
+        "value": "AIOAHJLCHGHDMOZ"
+      },
+      {
+        "type": "std::str",
+        "value": "OTVZNFSUITEGLOH"
+      },
+      {
+        "type": "std::str",
+        "value": "MSSBWBIUVWDSLSA"
+      },
+      {
+        "type": "std::str",
+        "value": "FULMEBNUPTROEFR"
+      },
+      {
+        "type": "std::str",
+        "value": "YERUVXEMLBEQCAI"
+      },
+      {
+        "type": "std::str",
+        "value": "TWBQCUXLEXLDKTP"
+      },
+      {
+        "type": "std::str",
+        "value": "FKTHAFMHQYADWWS"
+      },
+      {
+        "type": "std::str",
+        "value": "KAVHDAQDGGPXMBC"
+      }
+    ],
+    "element_type": "std::str"
+  }
+}

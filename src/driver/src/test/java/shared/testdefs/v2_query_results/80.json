@@ -1,0 +1,45 @@
+{
+  "name": "Query result of type array<std::str>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT ['QNZSRTDOMBXKTAQ', 'WRXAZWCDWFUJBSA', 'JAQQPIMRDEZWSLG', 'PCOBFZYTLVVLYTM', 'AJASJZKNEFXVWGK']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::str",
+          "value": "QNZSRTDOMBXKTAQ"
+        },
+        {
+          "type": "std::str",
+          "value": "WRXAZWCDWFUJBSA"
+        },
+        {
+          "type": "std::str",
+          "value": "JAQQPIMRDEZWSLG"
+        },
+        {
+          "type": "std::str",
+          "value": "PCOBFZYTLVVLYTM"
+        },
+        {
+          "type": "std::str",
+          "value": "AJASJZKNEFXVWGK"
+        }
+      ],
+      "element_type": "std::str"
+    }
+  ]
+}

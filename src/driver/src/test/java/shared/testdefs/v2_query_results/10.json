@@ -1,0 +1,45 @@
+{
+  "name": "Query result of type array<std::datetime>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<datetime>'9654-01-23T08:52:17.83056-04:00', <datetime>'8628-10-23T12:29:42.089792-03:00', <datetime>'4589-06-29T12:50:05.962928-03:00', <datetime>'3418-11-18T01:43:47.054376-04:00', <datetime>'0085-01-04T09:08:48.38404-04:00']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "std::datetime",
+          "value": "9654-01-23T08:52:17.83056-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "8628-10-23T12:29:42.089792-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "4589-06-29T12:50:05.962928-03:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "3418-11-18T01:43:47.054376-04:00"
+        },
+        {
+          "type": "std::datetime",
+          "value": "0085-01-04T09:08:48.38404-04:00"
+        }
+      ],
+      "element_type": "std::datetime"
+    }
+  ]
+}

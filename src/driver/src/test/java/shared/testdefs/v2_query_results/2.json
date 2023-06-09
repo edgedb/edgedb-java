@@ -1,0 +1,69 @@
+{
+  "name": "Query result of type array<cal::date_duration>",
+  "queries": [
+    {
+      "cardinality": 109,
+      "value": "SELECT [<cal::date_duration>'3855 days', <cal::date_duration>'4463 days', <cal::date_duration>'11009 days', <cal::date_duration>'14303 days', <cal::date_duration>'-20031 days', <cal::date_duration>'-28664 days', <cal::date_duration>'12692 days', <cal::date_duration>'-73 days', <cal::date_duration>'8828 days', <cal::date_duration>'-22652 days', <cal::date_duration>'18472 days']",
+      "arguments": [],
+      "capabilities": 0,
+      "session": {
+        "module": "default",
+        "aliases": {},
+        "config": {},
+        "globals": {}
+      }
+    }
+  ],
+  "result": [
+    {
+      "type": "array",
+      "value": [
+        {
+          "type": "cal::date_duration",
+          "value": "3855.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "4463.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "11009.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "14303.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "-20031.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "-28664.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "12692.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "-73.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "8828.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "-22652.00:00:00"
+        },
+        {
+          "type": "cal::date_duration",
+          "value": "18472.00:00:00"
+        }
+      ],
+      "element_type": "cal::date_duration"
+    }
+  ]
+}
