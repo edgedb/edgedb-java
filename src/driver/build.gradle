@@ -30,3 +30,51 @@ jar {
                 'Automatic-Module-Name': 'com.edgedb.driver'
     }
 }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId archivesBaseName
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name = 'EdgeDB Java'
+                description = 'A JVM-based binding for the EdgeDB database'
+                url = 'https://github.com/edgedb/edgedb-java'
+                organization {
+                    name = 'EdgeDB'
+                    url = 'https://edgedb.com'
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = 'https://github.com/edgedb/edgedb-java/issues'
+                }
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/edgedb/edgedb-java'
+                    connection = 'scm:git:git://github.com/edgedb/edgedb-java.git'
+                    developerConnection = 'scm:git:ssh://git@github.com:edgedb/edgedb-java.git'
+                }
+                developers {
+                    developer {
+                        name = 'MagicStack Inc. and the EdgeDB authors'
+                    }
+                }
+            }
+        }
+    }
+}

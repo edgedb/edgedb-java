@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    project_version = '0.1.0'
+    project_version = '0.1.0-SNAPSHOT'
     github_org = 'edgedb'
     project_name = 'edgedb-java'
     artifact_group = 'com.edgedb'
@@ -30,7 +30,7 @@ ext {
     assertj_version = '3.24.2'
     logback_version = '1.4.5'
 
-    isRelease = !version.toString().endsWith('-SNAPSHOT')
+    isRelease = !project_version.toString().endsWith('-SNAPSHOT')
 }
 
 allprojects {
@@ -116,53 +116,6 @@ subprojects {
     }
 
     publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifactId archivesBaseName
-
-                versionMapping {
-                    usage('java-api') {
-                        fromResolutionOf('runtimeClasspath')
-                    }
-                    usage('java-runtime') {
-                        fromResolutionResult()
-                    }
-                }
-
-                pom {
-                    name = 'EdgeDB Java'
-                    description = 'A JVM-based binding for the EdgeDB database'
-                    url = 'https://github.com/edgedb/edgedb-java'
-                    organization {
-                        name = 'EdgeDB'
-                        url = 'https://edgedb.com'
-                    }
-                    issueManagement {
-                        system = 'GitHub'
-                        url = 'https://github.com/edgedb/edgedb-java/issues'
-                    }
-                    licenses {
-                        license {
-                            name = 'The Apache License, Version 2.0'
-                            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution = 'repo'
-                        }
-                    }
-                    scm {
-                        url = 'https://github.com/edgedb/edgedb-java'
-                        connection = 'scm:git:git://github.com/edgedb/edgedb-java.git'
-                        developerConnection = 'scm:git:ssh://git@github.com:edgedb/edgedb-java.git'
-                    }
-                    developers {
-                        developer {
-                            name = 'MagicStack Inc. and the EdgeDB authors'
-                        }
-                    }
-                }
-            }
-        }
-
         repositories {
                 maven {
                     if (isRelease) {
@@ -181,7 +134,6 @@ subprojects {
                 }
             }
     }
-
     if (isRelease) {
         signing {
             def signingKey = findProperty("signingKey")
