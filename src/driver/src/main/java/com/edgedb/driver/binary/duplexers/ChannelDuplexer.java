@@ -80,10 +80,15 @@ public class ChannelDuplexer extends Duplexer {
                 }
                 else {
                     logger.debug("Completing {} message promise(s)", readPromises.size());
-                    for (var promise : readPromises) {
+
+                    var promise = readPromises.poll();
+
+                    assert promise != null;
+
+                    do {
                         logger.debug("Completing promise {}", promise.hashCode());
                         promise.complete(protocolMessage);
-                    }
+                    } while ((promise = readPromises.poll()) != null);
                 }
             }
         }
