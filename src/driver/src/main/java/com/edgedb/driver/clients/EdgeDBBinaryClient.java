@@ -658,6 +658,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> handlePacket(
             Receivable packet
     ) {
+        logger.debug("Processing packet {}", packet.getMessageType());
+
         try {
             switch (packet.getMessageType()) {
                 case SERVER_HANDSHAKE:
@@ -725,9 +727,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     this.stateDescriptorId = stateDescriptor.typeDescriptorId;
                     break;
                 case PARAMETER_STATUS:
-                    // TODO: parameters
                     parseServerSettings((ParameterStatus) packet);
-
                     break;
                 case LOG_MESSAGE:
                     var msg = (LogMessage)packet;
@@ -748,8 +748,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             }
         }
         catch (Exception x) {
+            logger.debug("Processing failed", x);
             return CompletableFuture.failedFuture(x);
         }
+
+        logger.debug("Processing pass-through to completed result");
 
         return CompletableFuture.completedFuture(null);
     }
@@ -817,16 +820,18 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         try{
             return this.duplexer.duplex(initialMessage, (state) -> {
+                logger.debug("Authentication duplex: M:{}", state.packet.getMessageType());
                 try {
                     switch (state.packet.getMessageType()) {
                         case AUTHENTICATION:
                             var auth = (AuthenticationStatus)state.packet;
 
+                            logger.debug("Processing auth part: {}", auth.authStatus);
+
                             switch (auth.authStatus) {
                                 case AUTHENTICATION_SASL_CONTINUE:
                                     var result = scram.buildFinalMessage(auth, connection.getPassword());
                                     signature.set(result.signature);
-
                                     return this.duplexer.send(result.buildPacket());
                                 case AUTHENTICATION_SASL_FINAL:
                                     var key = Scram.parseServerFinalMessage(auth);
@@ -841,6 +846,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                     }
                                     break;
                                 case AUTHENTICATION_OK:
+                                    logger.debug("Completing auth duplex");
                                     state.finishDuplexing();
                                     this.isIdle = false;
                                     break;
@@ -900,21 +906,21 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> doClientHandshake() {
         return this.duplexer.readNext()
                 .thenCompose(packet -> {
+                    logger.debug("Processing handshake step with packet: {}", packet == null ? "NULL" : packet.getMessageType());
+
                     if(packet == null) {
                         return CompletableFuture.failedFuture(new UnexpectedDisconnectException());
                     }
 
                     if(packet instanceof ReadyForCommand) {
+                        logger.debug("Dispatching client ready");
                         this.readyPromise.complete(null);
                         return dispatchReady();
                     }
 
-                    try {
-                        return composeWith(packet, this::handlePacket)
-                                .thenCompose((v) -> doClientHandshake());
-                    } catch (Throwable e) {
-                        throw new CompletionException(e);
-                    }
+                    logger.debug("Transitioning packet handling to this::handlePacket");
+                    return composeWith(packet, this::handlePacket)
+                            .thenCompose((v) -> doClientHandshake());
                 });
     }
 

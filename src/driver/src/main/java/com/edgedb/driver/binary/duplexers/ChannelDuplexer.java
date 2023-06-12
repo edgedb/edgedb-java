@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import static com.edgedb.driver.util.ComposableUtil.composeWith;
@@ -31,7 +33,7 @@ public class ChannelDuplexer extends Duplexer {
     private final Queue<Receivable> messageQueue;
     private final Queue<CompletableFuture<Receivable>> readPromises;
 
-    private final Object messageEnqueueReference = new Object();
+    private final ReentrantLock messageEnqueueLock = new ReentrantLock();
 
     private final EdgeDBBinaryClient client;
 
@@ -58,6 +60,11 @@ public class ChannelDuplexer extends Duplexer {
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
             if(evt.equals("RESET")) {
                 channelActivePromise = new CompletableFuture<>();
+            } else if (evt.equals("TIMEOUT")) {
+                var exc = new TimeoutException("A message read process passed the configured message timeout");
+                for(var promise : readPromises) {
+                    promise.completeExceptionally(exc);
+                }
             }
         }
 
@@ -71,7 +78,20 @@ public class ChannelDuplexer extends Duplexer {
             var protocolMessage = (Receivable)msg;
             logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
 
-            synchronized (messageEnqueueReference) {
+            int completeCount = 0;
+
+
+            try {
+                if(!messageEnqueueLock.tryLock(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())) {
+                    ctx.fireUserEventTriggered("TIMEOUT");
+                    return;
+                }
+            } catch (InterruptedException e) {
+                ctx.fireExceptionCaught(e);
+                return;
+            }
+
+            try {
                 logger.debug("Dependant promises empty?: {}", readPromises.isEmpty());
 
                 if(readPromises.isEmpty()) {
@@ -81,15 +101,27 @@ public class ChannelDuplexer extends Duplexer {
                 else {
                     logger.debug("Completing {} message promise(s)", readPromises.size());
 
-                    var promise = readPromises.poll();
-
-                    assert promise != null;
-
-                    do {
-                        logger.debug("Completing promise {}", promise.hashCode());
-                        promise.complete(protocolMessage);
-                    } while ((promise = readPromises.poll()) != null);
+                    // we don't want to iterate and complete within the lock, since the complete method *can* enqueue
+                    // more promises.
+                    completeCount = readPromises.size();
                 }
+            } finally {
+                messageEnqueueLock.unlock();
+            }
+
+            for(int i = 0; i != completeCount; i++) {
+                var promise = readPromises.poll();
+
+                if(promise == null) {
+                    break;
+                }
+
+                logger.debug(
+                        "Completing promise {} with message type {}; already complete?: {}",
+                        promise.hashCode(), protocolMessage.getMessageType(), promise.isDone()
+                );
+
+                promise.complete(protocolMessage);
             }
         }
 
@@ -116,7 +148,16 @@ public class ChannelDuplexer extends Duplexer {
     @Override
     public CompletionStage<Receivable> readNext() {
         logger.debug("Entering message queue lock");
-        synchronized (messageEnqueueReference) {
+
+        try {
+            if(!messageEnqueueLock.tryLock(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())) {
+                return CompletableFuture.failedFuture(new TimeoutException("A message processor passed the configured message timeout"));
+            }
+        } catch (InterruptedException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+
+        try {
             logger.debug("Queue empty?: {}", this.messageQueue.isEmpty());
 
             if(this.messageQueue.isEmpty()) {
@@ -131,7 +172,7 @@ public class ChannelDuplexer extends Duplexer {
                 final var readPromiseId = promise.hashCode();
 
                 promise.whenComplete((v,e) -> {
-                    logger.debug("Read promise completed, is success?: {}", e == null && !promise.isCancelled());
+                    logger.debug("Read promise completed, ID: {}, is success?: {}", promise.hashCode(), e == null && !promise.isCancelled());
                 });
 
                 logger.debug("Enqueueing read promise: ID: {}", readPromiseId);
@@ -142,6 +183,9 @@ public class ChannelDuplexer extends Duplexer {
                 logger.debug("Returning polled message {}", message.getMessageType());
                 return CompletableFuture.completedFuture(message);
             }
+        }
+        finally {
+            messageEnqueueLock.unlock();
         }
     }
 
@@ -177,12 +221,13 @@ public class ChannelDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException {
-        final var duplexId = Arrays.hashCode(packets);
+        var firstHashcode = packet.hashCode();
+        final var duplexId = 31 * firstHashcode + Arrays.hashCode(packets);
         logger.debug("Starting duplex step, ID: {}", duplexId);
         final var duplexPromise = new CompletableFuture<Void>();
 
         duplexPromise.whenComplete((v,e) -> {
-            logger.debug("Duplex step complete, ID: {}", duplexId);
+            logger.debug("Duplex step complete, ID: {}, isCancelled?: {}, isExceptional?: {}", duplexId, duplexPromise.isCancelled(), e != null);
         });
 
         return this.send(packet, packets)
@@ -194,7 +239,7 @@ public class ChannelDuplexer extends Duplexer {
         logger.debug("Handling duplex step, ID: {}", id);
 
         return composeWith(readNext(), (packet) -> {
-            logger.debug("Invoking duplex consumer, ID: {}", id);
+            logger.debug("Invoking duplex consumer, ID: {}, Message: {}", id, packet.getMessageType());
             return func.apply(new DuplexResult(packet, promise));
         }).thenCompose(v -> {
             logger.debug(
