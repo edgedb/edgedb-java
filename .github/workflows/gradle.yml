@@ -40,7 +40,7 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build --info
   release:
     name: Publish artifacts
     runs-on: ubuntu-latest
