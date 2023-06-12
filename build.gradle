@@ -101,6 +101,9 @@ allprojects {
 
     test {
         useJUnitPlatform()
+        testLogging {
+            exceptionFormat = 'full'
+        }
     }
 }
 
