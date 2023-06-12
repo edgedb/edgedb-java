@@ -98,6 +98,10 @@ allprojects {
         withJavadocJar()
         withSourcesJar()
     }
+
+    test {
+        useJUnitPlatform()
+    }
 }
 
 subprojects {
@@ -186,3 +190,4 @@ subprojects {
         }
     }
 }
+
