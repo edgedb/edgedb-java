@@ -41,8 +41,6 @@ jobs:
           distribution: 'temurin'
       - name: Build with Gradle
         run: ./gradlew build
-      - name: Tests
-        run: ./gradlew test --tests "*"
   release:
     name: Publish artifacts
     runs-on: ubuntu-latest
