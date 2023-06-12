@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -518,6 +519,26 @@ public class EdgeDBConnection implements Cloneable {
             @Nullable ConfigureFunction configure,
             boolean autoResolve
     ) throws ConfigurationException, IOException {
+        return parse(connParam, configure, autoResolve, System::getenv);
+    }
+
+    /**
+     * Parses a connection from disc, and/or the connection argument as a DSN or instance name, applying
+     * environment variables to the connection, then calling the specified delegate with the parsed connection.
+     * @param connParam The connection argument, usually a DSN or instance name.
+     * @param configure The delegate used to configure the resolved connection.
+     * @param autoResolve Whether to resolve the connection from disc.
+     * @param resolveEnv A function to fetch environment variables.
+     * @return A parsed {@linkplain EdgeDBConnection}.
+     * @throws ConfigurationException One of the arguments is invalid.
+     * @throws IOException One on the file arguments doesn't exist or cannot be read.
+     */
+    public static EdgeDBConnection parse(
+            @Nullable String connParam,
+            @Nullable ConfigureFunction configure,
+            boolean autoResolve,
+            Function<String, String> resolveEnv
+    ) throws ConfigurationException, IOException {
         var connection = new EdgeDBConnection();
 
         boolean isDSN = false;
@@ -530,7 +551,7 @@ public class EdgeDBConnection implements Cloneable {
             }
         }
 
-        connection = applyEnv(connection);
+        connection = applyEnv(connection, resolveEnv);
 
         if(connParam != null) {
             if(connParam.contains("://")) {
@@ -556,15 +577,15 @@ public class EdgeDBConnection implements Cloneable {
         return connection;
     }
 
-    private static EdgeDBConnection applyEnv(EdgeDBConnection connection) throws ConfigurationException, IOException {
-        var instanceName = System.getenv(EDGEDB_INSTANCE_ENV_NAME);
-        var dsn = System.getenv(EDGEDB_DSN_ENV_NAME);
-        var host = System.getenv(EDGEDB_HOST_ENV_NAME);
-        var port = System.getenv(EDGEDB_PORT_ENV_NAME);
-        var credentials = System.getenv(EDGEDB_CREDENTIALS_FILE_ENV_NAME);
-        var user = System.getenv(EDGEDB_USER_ENV_NAME);
-        var pass = System.getenv(EDGEDB_PASSWORD_ENV_NAME);
-        var db = System.getenv(EDGEDB_DATABASE_ENV_NAME);
+    private static EdgeDBConnection applyEnv(EdgeDBConnection connection, Function<String, String> getEnv) throws ConfigurationException, IOException {
+        var instanceName = getEnv.apply(EDGEDB_INSTANCE_ENV_NAME);
+        var dsn = getEnv.apply(EDGEDB_DSN_ENV_NAME);
+        var host = getEnv.apply(EDGEDB_HOST_ENV_NAME);
+        var port = getEnv.apply(EDGEDB_PORT_ENV_NAME);
+        var credentials = getEnv.apply(EDGEDB_CREDENTIALS_FILE_ENV_NAME);
+        var user = getEnv.apply(EDGEDB_USER_ENV_NAME);
+        var pass = getEnv.apply(EDGEDB_PASSWORD_ENV_NAME);
+        var db = getEnv.apply(EDGEDB_DATABASE_ENV_NAME);
 
         if(instanceName != null) {
             connection = connection.mergeInto(fromInstanceName(instanceName));

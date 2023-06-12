@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -226,25 +225,10 @@ public class ConnectionTests {
 
     private static Result parse(String conn, EdgeDBConnection.ConfigureFunction conf, Map<String, String> env) {
         try {
-            setNewEnvironmentHack(env == null ? Map.of() : env);
-            return new Result(EdgeDBConnection.parse(conn, conf, false));
+            return new Result(EdgeDBConnection.parse(conn, conf, false, env == null ? System::getenv : env::get));
         } catch (Exception e) {
             return new Result(e);
         }
-    }
-
-    private static void setNewEnvironmentHack(Map<String, String> newEnv) throws Exception {
-        Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-        Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-        theEnvironmentField.setAccessible(true);
-        Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
-        env.clear();
-        env.putAll(newEnv);
-        Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-        theCaseInsensitiveEnvironmentField.setAccessible(true);
-        Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
-        cienv.clear();
-        cienv.putAll(newEnv);
     }
 
     private static final class Result {
