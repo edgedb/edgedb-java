@@ -68,13 +68,21 @@ public class ChannelDuplexer extends Duplexer {
 
         @Override
         public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
+            var protocolMessage = (Receivable)msg;
+            logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
+
             synchronized (messageEnqueueReference) {
+                logger.debug("Dependant promises empty?: {}", readPromises.isEmpty());
+
                 if(readPromises.isEmpty()) {
-                    messageQueue.add((Receivable)msg);
+                    logger.debug("Enqueuing message into message queue");
+                    messageQueue.add(protocolMessage);
                 }
                 else {
+                    logger.debug("Completing {} message promise(s)", readPromises.size());
                     for (var promise : readPromises) {
-                        promise.complete((Receivable) msg);
+                        logger.debug("Completing promise {}", promise.hashCode());
+                        promise.complete(protocolMessage);
                     }
                 }
             }
@@ -102,18 +110,32 @@ public class ChannelDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Receivable> readNext() {
+        logger.debug("Entering message queue lock");
         synchronized (messageEnqueueReference) {
+            logger.debug("Queue empty?: {}", this.messageQueue.isEmpty());
+
             if(this.messageQueue.isEmpty()) {
+                logger.debug("Creating message wait promise");
+
                 var promise = new CompletableFuture<Receivable>()
                         .orTimeout(
                                 client.getConfig().getMessageTimeoutValue(),
                                 client.getConfig().getMessageTimeoutUnit()
                         );
 
+                final var readPromiseId = promise.hashCode();
+
+                promise.whenComplete((v,e) -> {
+                    logger.debug("Read promise completed, is success?: {}", e == null && !promise.isCancelled());
+                });
+
+                logger.debug("Enqueueing read promise: ID: {}", readPromiseId);
                 readPromises.add(promise);
                 return promise;
             } else {
-                return CompletableFuture.completedFuture(this.messageQueue.poll());
+                var message = this.messageQueue.poll();
+                logger.debug("Returning polled message {}", message.getMessageType());
+                return CompletableFuture.completedFuture(message);
             }
         }
     }
