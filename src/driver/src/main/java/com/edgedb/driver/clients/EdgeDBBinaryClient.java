@@ -122,6 +122,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         try {
             return duplexer.duplexAndSync(args.toParsePacket(), (result) -> {
+                logger.trace("parse duplex result: {}", result.packet.getMessageType());
                 switch (result.packet.getMessageType()) {
                     case ERROR_RESPONSE:
                         var err = result.packet.as(ErrorResponse.class);

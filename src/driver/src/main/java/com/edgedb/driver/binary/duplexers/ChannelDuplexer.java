@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -149,28 +150,44 @@ public class ChannelDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException {
+        final var duplexId = Arrays.hashCode(packets);
+        logger.debug("Starting duplex step, ID: {}", duplexId);
         final var duplexPromise = new CompletableFuture<Void>();
 
+        duplexPromise.whenComplete((v,e) -> {
+            logger.debug("Duplex step complete, ID: {}", duplexId);
+        });
+
         return this.send(packet, packets)
-                .thenCompose((v) -> processDuplexStep(func, duplexPromise))
+                .thenCompose((v) -> processDuplexStep(func, duplexPromise, duplexId))
                 .thenCompose((v) -> duplexPromise);
     }
 
-    private CompletionStage<Void> processDuplexStep(Function<DuplexResult, CompletionStage<Void>> func, CompletableFuture<Void> promise) {
-        return composeWith(readNext(), (packet) -> func.apply(new DuplexResult(packet, promise)))
-                .thenCompose(v -> {
-                    if(promise.isDone()) {
-                        if(promise.isCompletedExceptionally() || promise.isCancelled()) {
-                            return promise;
-                        }
+    private CompletionStage<Void> processDuplexStep(Function<DuplexResult, CompletionStage<Void>> func, CompletableFuture<Void> promise, int id) {
+        logger.debug("Handling duplex step, ID: {}", id);
 
-                        return CompletableFuture.completedFuture(null);
-                    }
+        return composeWith(readNext(), (packet) -> {
+            logger.debug("Invoking duplex consumer, ID: {}", id);
+            return func.apply(new DuplexResult(packet, promise));
+        }).thenCompose(v -> {
+            logger.debug(
+                    "Post-invoke duplex step ID: {}, isDone?: {}, isCancelled?: {}, isExceptional?: {}, ",
+                    id, promise.isDone(), promise.isCancelled(), promise.isCompletedExceptionally()
+            );
 
-
-                    return processDuplexStep(func, promise);
+            if(promise.isDone()) {
+                if(promise.isCompletedExceptionally() || promise.isCancelled()) {
+                    logger.debug("Returning failed-state promise to callee, ID: {}", id);
+                    return promise;
                 }
-        );
+
+                logger.debug("Returning completed state promise, ID: {}", id);
+                return CompletableFuture.completedFuture(null);
+            }
+
+            logger.debug("Continuing duplex step for ID: {}", id);
+            return processDuplexStep(func, promise, id);
+        });
     }
 
     public void init(Channel channel) {
