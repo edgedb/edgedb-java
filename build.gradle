@@ -5,10 +5,10 @@ plugins {
 }
 
 ext {
+    project_version = '0.1.0'
     github_org = 'edgedb'
     project_name = 'edgedb-java'
     artifact_group = 'com.edgedb'
-    project_version = "$version".toString()
     project_description = 'Java binding for the EdgeDB database'
     project_url = "https://edgedb.com"
     project_jdk = '11'
