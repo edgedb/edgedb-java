@@ -119,8 +119,8 @@ For example, creating a bean that represents the ``Person`` schema type:
             }
         }
 
-The driver will give priority to ``setName`` and ``setAge`` rather than 
-reflection to set the field values.
+The driver will give priority to the ``setName`` and ``setAge`` methods rather
+than using the reflection API to set the field values.
 
 Multi-link properties
 ---------------------
