@@ -104,12 +104,22 @@ schema type:
             });
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             type Person {
                 property name -> str;
                 property age -> int32;
+            }
+        }
+
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            type Person {
+                name: str;
+                age: int32;
             }
         }
         

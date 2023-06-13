@@ -24,12 +24,22 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
         }
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             type Person {
                 property name -> str;
                 property age -> int32;
+            }
+        }
+    
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            type Person {
+                name: str;
+                age: int32;
             }
         }
 
@@ -110,12 +120,22 @@ For example, creating a bean that represents the ``Person`` schema type:
         }
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             type Person {
                 property name -> str;
                 property age -> int32;
+            }
+        }
+
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            type Person {
+                name: str;
+                age: int32;
             }
         }
 
@@ -144,13 +164,24 @@ around this, you must specify the type of the collection with the
         }
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             type Person {
                 property name -> str;
                 property age -> int32;
                 multi link friends -> Person;
+            }
+        }
+    
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            type Person {
+                name: str;
+                age: int32;
+                multi friends: Person;
             }
         }
 
@@ -253,13 +284,24 @@ Value consumers take in the fields' values in the constructor, mapped by a
         }
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             type Person {
                 property name -> str;
                 property age -> int32;
                 multi link friends -> Person;
+            }
+        }
+    
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            type Person {
+                name: str;
+                age: int32;
+                multi friends: Person;
             }
         }
 
@@ -291,7 +333,7 @@ schema types in code. For example:
         }
 
     .. code-tab:: sdl
-        :caption: Schema
+        :caption: Schema 2.x
 
         module default {
             abstract type Media {
@@ -306,6 +348,25 @@ schema types in code. For example:
         
             type Show extending Media {
                 required property seasons -> int64;
+            }
+        }
+    
+    .. code-tab:: sdl
+        :caption: Schema 3+
+
+        module default {
+            abstract type Media {
+                required title: str {
+                    constraint exclusive;
+                }
+            }
+        
+            type Movie extending Media {
+                required release_year: int64;
+            }
+        
+            type Show extending Media {
+                required seasons: int64;
             }
         }
 
