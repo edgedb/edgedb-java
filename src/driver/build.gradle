@@ -34,7 +34,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifactId archivesBaseName
+            artifactId = project.name
 
             versionMapping {
                 usage('java-api') {

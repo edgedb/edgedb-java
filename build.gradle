@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    project_version = '0.1.0-SNAPSHOT'
+    project_version = '0.0.1-SNAPSHOT'
     github_org = 'edgedb'
     project_name = 'edgedb-java'
     artifact_group = 'com.edgedb'
@@ -55,13 +55,6 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-
-        if (!isRelease) {
-            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-            maven { url 'https://oss.sonatype.org/content/repositories/staging' }
-        }
-
-        maven { url 'https://s01.oss.sonatype.org/' }
     }
 
     configurations.configureEach {
@@ -119,10 +112,11 @@ subprojects {
         repositories {
                 maven {
                     if (isRelease) {
-                        url 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+                        url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
                     } else {
-                        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+                        url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
                     }
+
                     def sonatypeUsername = findProperty('sonatypeUsername')
                     def sonatypePassword = findProperty('sonatypePassword')
                     if (sonatypeUsername != null && sonatypePassword != null) {
@@ -134,6 +128,7 @@ subprojects {
                 }
             }
     }
+
     if (isRelease) {
         signing {
             def signingKey = findProperty("signingKey")
