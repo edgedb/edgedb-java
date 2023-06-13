@@ -20,7 +20,7 @@ with the builder subclass like so:
 These are the following methods exposed on the configuration builder:
 
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| Name                         | Type                    | Description                                                                                 |
+| Name                         | Parameters              | Description                                                                                 |
 +==============================+=========================+=============================================================================================+
 | ``withPoolSize``             | ``int``                 | The maximum number of concurrent clients to allow in the client pool.                       |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
@@ -28,7 +28,7 @@ These are the following methods exposed on the configuration builder:
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withMaxConnectionRetries`` | ``int``                 | The maximum number of connection attempts to make before throwing.                          |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| ``withConnectionTimeout``    | ``long, TimeUnit``      | The amount of time to wait for a connection to be established.                              |
+| ``withConnectionTimeout``    | ``long``, ``TimeUnit``  | The amount of time to wait for a connection to be established.                              |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withMessageTimeout``       | ``long, TimeUnit``      | The amount of time to wait for an expected response from EdgeDB.                            |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
