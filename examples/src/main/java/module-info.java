@@ -6,5 +6,8 @@ module com.edgedb.examples {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
 
+    requires kotlin.stdlib;
+    requires kotlinx.coroutines.core;
+
     exports com.edgedb.examples;
 }

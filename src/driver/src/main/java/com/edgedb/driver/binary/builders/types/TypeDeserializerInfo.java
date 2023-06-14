@@ -20,6 +20,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TypeDeserializerInfo<T> {
     private static final Logger logger = LoggerFactory.getLogger(TypeDeserializerInfo.class);
@@ -32,6 +33,7 @@ public class TypeDeserializerInfo<T> {
     private List<FieldInfo> fields;
     private Map<String, Method> setterMethods;
     private Reflections reflection;
+    private Collection<Class<?>> bases;
 
     private final Map<NamingStrategy, NamingStrategyMap<Parameter>> constructorNamingMap;
     private final Map<NamingStrategy, NamingStrategyMap<FieldInfo>> fieldNamingMap;
@@ -69,6 +71,22 @@ public class TypeDeserializerInfo<T> {
         return this.reflection;
     }
 
+    private synchronized Collection<Class<?>> getBases() {
+        if(bases == null) {
+            var bases = new ArrayList<Class<?>>();
+            Class<?> tempType = type;
+            Class<?> base;
+            while((base = tempType.getSuperclass()) != null && base.isAnnotationPresent(EdgeDBType.class)) {
+                bases.add(base);
+                tempType = base;
+            }
+
+            this.bases = bases;
+        }
+
+        return bases;
+    }
+
     private synchronized List<FieldInfo> getFields() {
         if(fields == null) {
             var fields = type.getDeclaredFields();
@@ -90,9 +108,15 @@ public class TypeDeserializerInfo<T> {
     public synchronized Map<String, Method> getSetterMethods() {
         if(setterMethods == null) {
             var methods = type.getDeclaredMethods();
-            this.setterMethods = Arrays.stream(methods)
+            var setterMethods = Arrays.stream(methods);
+
+            for(var base : getBases()) {
+                setterMethods = Stream.concat(setterMethods, Arrays.stream(base.getDeclaredMethods()));
+            }
+
+            this.setterMethods = setterMethods
                     .filter((v) -> v.getName().startsWith("set"))
-                    .collect(Collectors.toMap(v -> v.getName().toLowerCase(), v -> v));
+                    .collect(Collectors.toMap(v -> v.getName().substring(3), v -> v));
         }
 
         return setterMethods;
@@ -310,7 +334,7 @@ public class TypeDeserializerInfo<T> {
             this.edgedbNameAnno = field.getAnnotation(EdgeDBName.class);
 
             // if there's a set method that isn't ignored, with the same type, use it.
-            this.setMethod = setters.get("set" + field.getName());
+            this.setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));
 
             this.linkType = field.getAnnotation(EdgeDBLinkType.class);
         }

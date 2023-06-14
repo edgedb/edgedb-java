@@ -9,13 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, EdgeDBException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws IOException, EdgeDBException {
+        var argsList = Arrays.asList(args);
+
         var client = new EdgeDBClient(EdgeDBClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
@@ -24,6 +26,19 @@ public class Main {
 
         // use the example module
         var exampleClient = client.withModule("examples");
+
+        if(argsList.contains("java")) {
+            runJavaExamples(exampleClient);
+        }
+
+        if(argsList.contains("kotlin")) {
+            com.edgedb.examples.KotlinMain.Companion.runExamples(exampleClient);
+        }
+
+        logger.info("Examples complete");
+    }
+
+    private static void runJavaExamples(EdgeDBClient client) {
         var examples = new ArrayList<Supplier<Example>>() {
             {
                 add(AbstractTypes::new);
@@ -39,16 +54,14 @@ public class Main {
 
         for (var example : examples) {
             var inst = example.get();
-            logger.info("Running {}...", inst);
+            logger.info("Running Java example {}...", inst);
             try {
-                inst.run(exampleClient).toCompletableFuture().get();
-                logger.info("Example {} complete!", inst);
+                inst.run(client).toCompletableFuture().get();
+                logger.info("Java example {} complete!", inst);
             }
             catch (Exception x) {
-                logger.error("Failed to run example {}", inst, x);
+                logger.error("Failed to run Java example {}", inst, x);
             }
         }
-
-        logger.info("Examples complete");
     }
 }
