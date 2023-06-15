@@ -1,7 +1,6 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.EdgeDBClient
-import com.edgedb.driver.ObjectEnumerator
 import com.edgedb.driver.annotations.EdgeDBDeserializer
 import com.edgedb.driver.annotations.EdgeDBName
 import com.edgedb.driver.annotations.EdgeDBType
@@ -36,6 +35,6 @@ class KotlinCustomDeserializer : KotlinExample {
                 """.trimIndent()
         ).await()
 
-        logger.info("Got person: name: {}, age: {}", person.name, person.age)
+        logger.info("Got person: {}", person)
     }
 }
