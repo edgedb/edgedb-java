@@ -1,14 +1,19 @@
 plugins {
     id 'java'
+    id 'scala'
     id 'org.jetbrains.kotlin.jvm' version '1.9.0-Beta'
+    id("org.javamodularity.moduleplugin") version "1.8.12"
 }
 
 group 'com.edgedb'
 version '1.0-SNAPSHOT'
 
 sourceSets.main {
-    java.srcDirs("src/main/java", "src/main/kotlin")
+    java.srcDirs("src/main/java", "src/main/kotlin", "src/main/scala")
 }
+
+tasks.compileScala.classpath = sourceSets.main.compileClasspath
+tasks.compileJava.classpath += files(sourceSets.main.scala.classesDirectory)
 
 repositories {
     mavenCentral()
@@ -26,6 +31,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1'
 
+    implementation 'org.scala-lang:scala3-library_3:3.3.0'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testImplementation 'junit:junit:4.13.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
@@ -35,6 +42,15 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+jar.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+modularity.patchModule("org.scala.lang.scala3.library", "scala-library-2.13.10.jar")
+
+
+compileScala {
+    destinationDirectory = compileJava.destinationDirectory
+}
+
 compileKotlin {
     destinationDirectory = compileJava.destinationDirectory
     kotlinOptions {

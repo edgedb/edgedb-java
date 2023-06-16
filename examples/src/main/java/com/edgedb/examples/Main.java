@@ -10,12 +10,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, EdgeDBException {
+    public static void main(String[] args) throws IOException, EdgeDBException, ExecutionException, InterruptedException {
         var argsList = Arrays.asList(args);
 
         var client = new EdgeDBClient(EdgeDBClientConfig.builder()
@@ -33,6 +34,11 @@ public class Main {
 
         if(argsList.contains("kotlin")) {
             com.edgedb.examples.KotlinMain.Companion.runExamples(exampleClient);
+        }
+
+        if(argsList.contains("scala")) {
+            new ScalaMain().runExamples(exampleClient)
+                    .toCompletableFuture().get();
         }
 
         logger.info("Examples complete");
