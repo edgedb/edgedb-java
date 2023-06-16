@@ -114,9 +114,16 @@ public class TypeDeserializerInfo<T> {
                 setterMethods = Stream.concat(setterMethods, Arrays.stream(base.getDeclaredMethods()));
             }
 
+            // kotlin & java use the 'set' prefix, scala uses the '_$eq' postfix.
             this.setterMethods = setterMethods
-                    .filter((v) -> v.getName().startsWith("set"))
-                    .collect(Collectors.toMap(v -> v.getName().substring(3), v -> v));
+                    .filter((v) -> v.getName().startsWith("set") || v.getName().endsWith("_$eq"))
+                    .collect(Collectors.toMap(v -> {
+                        if(v.getName().startsWith("set")) {
+                            return v.getName().substring(3);
+                        } else {
+                            return v.getName().substring(0, v.getName().length() - 4);
+                        }
+                    }, v -> v));
         }
 
         return setterMethods;
@@ -334,7 +341,12 @@ public class TypeDeserializerInfo<T> {
             this.edgedbNameAnno = field.getAnnotation(EdgeDBName.class);
 
             // if there's a set method that isn't ignored, with the same type, use it.
-            this.setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));
+            var setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));
+            if(setMethod == null) {
+                setMethod = setters.get(field.getName());
+            }
+
+            this.setMethod = setMethod;
 
             this.linkType = field.getAnnotation(EdgeDBLinkType.class);
         }
