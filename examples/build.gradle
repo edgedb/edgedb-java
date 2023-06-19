@@ -32,9 +32,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+jar.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+sourcesJar.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 test {
     useJUnitPlatform()
