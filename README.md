@@ -1,3 +1,5 @@
+![EdgeDB Java](./branding/banner.png)
+
 <div align="center">
   <h1>☕ The official Java/JVM client library for EdgeDB ☕</h1>
 
