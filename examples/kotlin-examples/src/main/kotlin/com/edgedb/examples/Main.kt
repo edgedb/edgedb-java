@@ -17,8 +17,6 @@ object Main {
                 .build()
         ).withModule("examples")
 
-
-
         val examples = listOf(
                 AbstractTypes(),
                 BasicQueries(),
