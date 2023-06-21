@@ -124,3 +124,11 @@ schema type:
         }
         
 Learn more about :ref:`data modeling <edgedb_java_datamodeling>`.
+
+Logging
+-------
+
+The java binding uses the `SLF4J <https://www.slf4j.org/>`_ logging facade.
+To enable logging, you will need to add a SLF4J implementation to your project,
+you can read more about that 
+`here <https://www.slf4j.org/manual.html#swapping>`_.
