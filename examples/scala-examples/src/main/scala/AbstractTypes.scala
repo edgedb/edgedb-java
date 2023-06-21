@@ -27,36 +27,36 @@ class AbstractTypes extends Example:
   import AbstractTypes._
 
   override def run(client: EdgeDBClient)(implicit context: ExecutionContext): Future[Unit] = {
-    client.execute(
-      """insert Movie {
-               title := "The Matrix",
-               release_year := 1999
-           } unless conflict on .title;
-           insert Show {
-               title := "The Office",
-               seasons := 9
-           } unless conflict on .title
-           """.stripMargin
-    ).asScala.flatMap { * =>
-      client.query(
+    for {
+      result <- client.query(
         classOf[Media],
-        """select Media {
-                title,
-                [is Movie].release_year,
-                [is Show].seasons
-             }"""
-      ).asScala
-    }.map({ results => results.forEach({
-      case movie: Movie =>
-        logger.info(
-          "Got movie: title: {}, release year: {}",
-          movie.title, movie.releaseYear
-        )
-      case show: Show =>
-        logger.info(
-          "Got show: title: {}, seasons: {}",
-          show.title, show.seasons
-        )
-      case unknown => logger.warn("Got unknown result type: {}", unknown)
-    })})
+        """
+          | insert Movie {
+          |     title := "The Matrix",
+          |     release_year := 1999
+          | } unless conflict on .title;
+          | insert Show {
+          |     title := "The Office",
+          |     seasons := 9
+          | } unless conflict on .title;
+          | select Media {
+          |     title,
+          |     [is Movie].release_year,
+          |     [is Show].seasons
+          |}""".stripMargin).asScala
+    } yield {
+      result.forEach {
+        case movie: Movie =>
+          logger.info(
+            "Got movie: title: {}, release year: {}",
+            movie.title, movie.releaseYear
+          )
+        case show: Show =>
+          logger.info(
+            "Got show: title: {}, seasons: {}",
+            show.title, show.seasons
+          )
+        case unknown => logger.warn("Got unknown result type: {}", unknown)
+      }
+    }
   }

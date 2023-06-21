@@ -24,13 +24,15 @@ class CustomDeserializer extends Example:
   import CustomDeserializer._
 
   override def run(client: EdgeDBClient)(implicit context: ExecutionContext): Future[Unit] = {
-    client.queryRequiredSingle(
-      classOf[Person],
-      """
-        | insert Person { name := 'Example', age := 123 } unless conflict on .name;
-        | select Person { name, age } filter .name = 'Example'
-        |""".stripMargin
-    ).asScala.map { result =>
+    for(
+      result <- client.queryRequiredSingle(
+        classOf[Person],
+        """
+          | insert Person { name := 'Example', age := 123 } unless conflict on .name;
+          | select Person { name, age } filter .name = 'Example'
+          |""".stripMargin
+      ).asScala
+    ) yield {
       logger.info("Got person: name: {}, age: {}", result.name, result.age)
     }
   }

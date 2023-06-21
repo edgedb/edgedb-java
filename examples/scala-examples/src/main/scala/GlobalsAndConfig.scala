@@ -25,10 +25,12 @@ class GlobalsAndConfig extends Example:
       ).asJava
     )
 
-    configuredClient.queryRequiredSingle(
-      classOf[UUID],
-      "SELECT GLOBAL current_user_id"
-    ).asScala.map { result =>
+    for(
+      result <- configuredClient.queryRequiredSingle(
+        classOf[UUID],
+        "SELECT GLOBAL current_user_id"
+      ).asScala
+    ) yield {
       logger.info("Current user ID: {}", result)
     }
   }
