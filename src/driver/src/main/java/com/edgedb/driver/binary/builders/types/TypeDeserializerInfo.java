@@ -342,7 +342,6 @@ public class TypeDeserializerInfo<T> {
 
             // if there's a set method that isn't ignored, with the same type, use it.
             var setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));
-
             if(setMethod == null) {
                 setMethod = setters.get(field.getName());
             }

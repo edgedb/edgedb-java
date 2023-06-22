@@ -1,6 +1,7 @@
 rootProject.name = 'edgedb-java'
-include 'examples'
 include 'src:driver'
 include 'tools'
 include 'tools:testgen'
+include 'examples:java-examples'
+include 'examples:kotlin-examples'
 

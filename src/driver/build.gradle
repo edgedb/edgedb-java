@@ -1,3 +1,5 @@
+import java.nio.file.Paths
+
 dependencies {
     api "com.fasterxml.jackson.core:jackson-core:$jackson_version"
     api "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
@@ -30,6 +32,14 @@ jar {
                 'Automatic-Module-Name': 'com.edgedb.driver'
     }
 }
+
+tasks.register('copyJarToBin') {
+    copy {
+        from jar
+        into Paths.get(project.rootDir.toString(), 'examples', 'scala-examples', 'lib')
+    }
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
