@@ -88,3 +88,14 @@ publishing {
         }
     }
 }
+
+if (isRelease) {
+    signing {
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        if (signingKey != null && signingPassword != null) {
+            useInMemoryPgpKeys(new String(signingKey.decodeBase64()), signingPassword as String)
+        }
+        sign publishing.publications.mavenJava
+    }
+}
