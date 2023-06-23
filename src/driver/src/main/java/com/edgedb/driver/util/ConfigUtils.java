@@ -3,6 +3,8 @@ package com.edgedb.driver.util;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.abstractions.impl.DefaultSystemProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,10 +24,10 @@ public class ConfigUtils {
         }
     }
 
-    public static String getInstanceProjectDirectory(String projectDir) {
+    public static String getInstanceProjectDirectory(@NotNull String projectDir) {
         return getInstanceProjectDirectory(projectDir, DEFAULT_SYSTEM_PROVIDER);
     }
-    public static String getInstanceProjectDirectory(String projectDir, SystemProvider systemProvider) {
+    public static String getInstanceProjectDirectory(@NotNull String projectDir, @Nullable SystemProvider systemProvider) {
         var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
         var fullPath = provider.getFullPath(projectDir);
@@ -40,7 +42,7 @@ public class ConfigUtils {
         return provider.combinePaths(getEdgeDBConfigDir(provider), "projects", String.format("%s-%s", baseName, hash.toLowerCase()));
     }
 
-    public static String getEdgeDBConfigDir(SystemProvider systemProvider) {
+    public static String getEdgeDBConfigDir(@Nullable SystemProvider systemProvider) {
         var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
         return provider.isOSPlatform(OSType.WINDOWS)
@@ -51,13 +53,13 @@ public class ConfigUtils {
     public static String getCredentialsDir() {
         return getCredentialsDir(DEFAULT_SYSTEM_PROVIDER);
     }
-    public static String getCredentialsDir(SystemProvider systemProvider) {
+    public static String getCredentialsDir(@Nullable SystemProvider systemProvider) {
         var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
         return provider.combinePaths(getEdgeDBConfigDir(provider), "credentials");
     }
 
-    private static String getEdgeDBBasePath(SystemProvider systemProvider) {
+    private static String getEdgeDBBasePath(@Nullable SystemProvider systemProvider) {
         var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
         var basePath = getEdgeDBKnownBasePath(provider);
@@ -65,7 +67,7 @@ public class ConfigUtils {
                 ? basePath
                 : provider.combinePaths(provider.getHomeDir(), ".edgedb");
     }
-    private static String getEdgeDBKnownBasePath(SystemProvider systemProvider) {
+    private static String getEdgeDBKnownBasePath(@Nullable SystemProvider systemProvider) {
         var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
         if (provider.isOSPlatform(OSType.WINDOWS)) {

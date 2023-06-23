@@ -1,14 +1,19 @@
 package com.edgedb.driver.binary;
 
+import com.edgedb.driver.binary.codecs.Codec;
+import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
 import org.joou.UInteger;
 import org.joou.ULong;
 import org.joou.UShort;
 
+import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
@@ -20,12 +25,12 @@ import java.util.function.Function;
 import static org.joou.Unsigned.*;
 
 public class PacketReader {
-    private final ByteBuf buffer;
-    private static final Map<Class<?>, Function<PacketReader, ? extends Number>> numberReaderMap;
+    private final @NotNull ByteBuf buffer;
+    private static final @NotNull Map<Class<?>, Function<PacketReader, ? extends Number>> numberReaderMap;
 
     private final int initPos;
 
-    public PacketReader(ByteBuf buffer) {
+    public PacketReader(@NotNull ByteBuf buffer) {
         this.buffer = buffer;
         this.initPos = buffer.readerIndex();
     }
@@ -57,7 +62,21 @@ public class PacketReader {
     }
 
     public boolean isEmpty() {
-        return this.buffer.readableBytes() == 0; // TODO: this doesn't look right?
+        return this.buffer.readableBytes() == 0;
+    }
+
+    public <T> @Nullable T deserializeByteArray(@NotNull Codec<T> codec, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+        var buff = readByteArray();
+
+        if(buff == null) {
+            return null;
+        }
+
+        try {
+            return codec.deserialize(new PacketReader(buff), context);
+        } finally {
+            buff.release();
+        }
     }
 
     public byte[] consumeByteArray() {
@@ -66,11 +85,11 @@ public class PacketReader {
         return arr;
     }
 
-    public UUID readUUID() {
+    public @NotNull UUID readUUID() {
         return new UUID(buffer.readLong(), buffer.readLong());
     }
 
-    public String readString() {
+    public @NotNull String readString() {
         var len = readInt32();
         var buffer = new byte[len];
         this.buffer.readBytes(buffer);
@@ -81,7 +100,7 @@ public class PacketReader {
         return buffer.readBoolean();
     }
 
-    public Byte readByte() {
+    public @NotNull Byte readByte() {
         return buffer.readByte();
     }
 
@@ -105,7 +124,7 @@ public class PacketReader {
         return buffer.readLong();
     }
 
-    public ULong readUInt64() {
+    public @NotNull ULong readUInt64() {
         return ulong(buffer.readLong());
     }
 
@@ -121,11 +140,11 @@ public class PacketReader {
         return buffer.readShort();
     }
 
-    public UShort readUInt16() {
+    public @NotNull UShort readUInt16() {
         return ushort(buffer.readUnsignedShort());
     }
 
-    public String[] readStringArray() {
+    public String @NotNull [] readStringArray() {
         var count = readInt32();
 
         var arr = new String[count];
@@ -151,17 +170,17 @@ public class PacketReader {
         return this.buffer.readRetainedSlice(length);
     }
 
-    public Annotation[] readAnnotations() {
+    public Annotation @NotNull [] readAnnotations() {
         return readArrayOf(Annotation.class, Annotation::new, UShort.class);
     }
 
-    public KeyValue[] readAttributes() {
+    public KeyValue @NotNull [] readAttributes() {
         return readArrayOf(KeyValue.class, KeyValue::new, UShort.class);
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends Number, T> T[] readArrayOf(Class<T> cls, Function<PacketReader, T> mapper, Class<U> lengthPrimitive) {
-        var len = ((U)numberReaderMap.get(lengthPrimitive).apply(this)).intValue();
+    public <U extends Number, T> T @NotNull [] readArrayOf(Class<T> cls, @NotNull Function<PacketReader, T> mapper, Class<U> lengthPrimitive) {
+        var len = numberReaderMap.get(lengthPrimitive).apply(this).intValue();
 
         // can only use 32 bit, so cast to that
         var arr = (T[]) Array.newInstance(cls, len);
@@ -174,11 +193,11 @@ public class PacketReader {
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> T readEnum(Class<T> cls, Class<U> primitive) {
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> T readEnum(@NotNull Class<T> cls, Class<U> primitive) {
         return PacketSerializer.getEnumValue(cls, (U)numberReaderMap.get(primitive).apply(this));
     }
 
-    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> EnumSet<T> readEnumSet(Class<T> cls, Class<U> primitive) {
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> @NotNull EnumSet<T> readEnumSet(@NotNull Class<T> cls, Class<U> primitive) {
         var value = numberReaderMap.get(primitive).apply(this).longValue();
 
         var set = EnumSet.noneOf(cls);

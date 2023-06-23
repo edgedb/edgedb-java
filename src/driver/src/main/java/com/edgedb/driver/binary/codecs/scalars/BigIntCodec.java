@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.util.StringsUtil;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UShort;
 
@@ -24,7 +25,7 @@ public final class BigIntCodec extends ScalarCodecBase<BigInteger> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable BigInteger value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable BigInteger value, CodecContext context) throws OperationNotSupportedException {
         if(value == null) {
             return;
         }
@@ -58,7 +59,7 @@ public final class BigIntCodec extends ScalarCodecBase<BigInteger> {
     }
 
     @Override
-    public BigInteger deserialize(PacketReader reader, CodecContext context) {
+    public @NotNull BigInteger deserialize(@NotNull PacketReader reader, CodecContext context) {
         var nDigits = reader.readUInt16().intValue();
         var weight = reader.readInt16();
         var isPos = reader.readUInt16().compareTo(ushort(0)) == 0;

@@ -2,16 +2,17 @@ package com.edgedb.driver.binary.descriptors;
 
 import com.edgedb.driver.binary.descriptors.common.ShapeElement;
 import com.edgedb.driver.binary.PacketReader;
+import org.jetbrains.annotations.NotNull;
 import org.joou.UShort;
 
 import java.util.UUID;
 
 public class InputShapeDescriptor implements TypeDescriptor {
-    public final ShapeElement[] shapes;
+    public final ShapeElement @NotNull [] shapes;
 
     private final UUID id;
 
-    public InputShapeDescriptor(final UUID id, final PacketReader reader) {
+    public InputShapeDescriptor(final UUID id, final @NotNull PacketReader reader) {
         this.id = id;
         this.shapes = reader.readArrayOf(ShapeElement.class, ShapeElement::new, UShort.class);
     }

@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -16,7 +17,7 @@ public class AuthenticationSASLResponse extends Sendable {
     }
 
     @Override
-    protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
+    protected void buildPacket(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.writeArray(payload);
     }
 

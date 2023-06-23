@@ -1,6 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the message severity within a log message sent by the server.
@@ -18,7 +19,7 @@ public enum LogSeverity implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return this.value;
     }
 }

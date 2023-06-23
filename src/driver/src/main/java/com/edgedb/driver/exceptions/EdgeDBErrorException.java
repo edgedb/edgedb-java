@@ -2,6 +2,7 @@ package com.edgedb.driver.exceptions;
 
 import com.edgedb.driver.ErrorCode;
 import com.edgedb.driver.util.StringsUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -21,7 +22,7 @@ public class EdgeDBErrorException extends EdgeDBException {
     private static final short ERROR_COLUMN_END = (short)0xFFF8;
 
     private final Map<Short, byte[]> attributes;
-    private final ErrorCode errorCode;
+    private final @NotNull ErrorCode errorCode;
     private final String message;
 
     private final @Nullable String query;
@@ -33,7 +34,7 @@ public class EdgeDBErrorException extends EdgeDBException {
      * @param errorCode The error code.
      * @param query The optional query that caused this error.
      */
-    public EdgeDBErrorException(Map<Short, byte[]> attributes, String message, ErrorCode errorCode, @Nullable String query) {
+    public EdgeDBErrorException(Map<Short, byte[]> attributes, String message, @NotNull ErrorCode errorCode, @Nullable String query) {
         super(errorCode.shouldRetry(), errorCode.shouldReconnect());
 
         this.attributes = attributes;
@@ -54,7 +55,7 @@ public class EdgeDBErrorException extends EdgeDBException {
      * Gets the error code of this exception.
      * @return The error code returned by EdgeDB.
      */
-    public ErrorCode getErrorCode() {
+    public @NotNull ErrorCode getErrorCode() {
         return this.errorCode;
     }
 
@@ -94,7 +95,7 @@ public class EdgeDBErrorException extends EdgeDBException {
         return getAttributeData(code, (b) -> new String(b, StandardCharsets.UTF_8));
     }
 
-    private <T> @Nullable T getAttributeData(short code, Function<byte[], T> mapper) {
+    private <T> @Nullable T getAttributeData(short code, @NotNull Function<byte[], T> mapper) {
         if(attributes.containsKey(code)) {
             return mapper.apply(attributes.get(code));
         }
@@ -118,7 +119,7 @@ public class EdgeDBErrorException extends EdgeDBException {
         return String.format("%s: %s", this.errorCode, this.message);
     }
 
-    private String prettify() {
+    private @Nullable String prettify() {
         String lineStartStr, lineEndStr, columnStartStr, columnEndStr;
         
         if(

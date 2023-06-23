@@ -14,7 +14,7 @@ public class CPeriodDeserializer extends CFormatBase<Period> {
     }
 
     @Override
-    public Period deserialize(JsonParser parser, DeserializationContext context) throws IOException, JacksonException {
+    public Period deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         return Period.ofDays((int)super.fromString(parser.getCodec().readValue(parser, String.class), ChronoUnit.SECONDS).toDays());
     }
 }

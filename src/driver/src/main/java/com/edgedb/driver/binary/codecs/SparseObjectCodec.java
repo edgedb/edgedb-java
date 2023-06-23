@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -14,10 +15,10 @@ import java.util.stream.IntStream;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     private final Codec[] innerCodecs;
-    private final Map<String, Integer> propertyNamesMap;
-    private final String[] propertyNames;
+    private final @NotNull Map<String, Integer> propertyNamesMap;
+    private final String @NotNull [] propertyNames;
 
-    public SparseObjectCodec(Codec[] innerCodecs, String[] propertyNames) {
+    public SparseObjectCodec(Codec[] innerCodecs, String @NotNull [] propertyNames) {
         super((Class<Map<String,?>>) Map.of().getClass());
         this.innerCodecs = innerCodecs;
 
@@ -28,7 +29,7 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable Map<String, ?> value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(value == null || value.isEmpty()) {
             writer.write(0);
             return;
@@ -61,7 +62,7 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     }
 
     @Override
-    public Map<String, ?> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Map<String, ?> deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(innerCodecs.length != numElements) {

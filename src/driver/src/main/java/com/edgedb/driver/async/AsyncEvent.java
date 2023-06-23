@@ -1,5 +1,7 @@
 package com.edgedb.driver.async;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -8,9 +10,9 @@ import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
 public final class AsyncEvent<T> {
-    private final List<Function<T, CompletionStage<?>>> listeners;
+    private final @NotNull List<Function<T, CompletionStage<?>>> listeners;
 
-    private final Semaphore semaphore;
+    private final @NotNull Semaphore semaphore;
 
     public AsyncEvent() {
         semaphore = new Semaphore(1);
@@ -24,7 +26,7 @@ public final class AsyncEvent<T> {
             listeners.add(handler);
         }
         finally {
-            semaphore.release();;
+            semaphore.release();
         }
 
     }

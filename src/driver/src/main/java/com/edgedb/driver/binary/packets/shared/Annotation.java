@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -11,7 +12,7 @@ public class Annotation implements SerializableData {
     private final String name;
     private final String value;
 
-    public Annotation(PacketReader reader) {
+    public Annotation(@NotNull PacketReader reader) {
         name = reader.readString();
         value = reader.readString();
     }
@@ -22,7 +23,7 @@ public class Annotation implements SerializableData {
     }
 
     @Override
-    public void write(PacketWriter writer) throws OperationNotSupportedException {
+    public void write(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.write(this.name);
         writer.write(this.value);
     }

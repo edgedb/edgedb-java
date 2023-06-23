@@ -27,10 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
-import javax.net.ssl.SSLException;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,21 +48,19 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private static final int MAX_PARSE_ATTEMPTS = 2;
 
     public @Nullable Long suggestedPoolConcurrency;
-    public Map<String, Object> rawServerConfig;
+    public @Nullable Map<String, Object> rawServerConfig;
 
     @SuppressWarnings("rawtypes")
-    private Codec<Map> stateCodec;
+    private @Nullable Codec<Map> stateCodec;
     private UUID stateDescriptorId;
-
-    private byte[] serverKey;
 
     private short connectionAttempts;
 
     protected Duplexer duplexer;
     private boolean isIdle;
-    private final Semaphore connectionSemaphore;
-    private final Semaphore querySemaphore;
-    private final CompletableFuture<Void> readyPromise;
+    private final @NotNull Semaphore connectionSemaphore;
+    private final @NotNull Semaphore querySemaphore;
+    private final @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
     public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
@@ -77,16 +72,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @Override
-    public Optional<Long> getSuggestedPoolConcurrency() {
+    public @NotNull Optional<Long> getSuggestedPoolConcurrency() {
         return Optional.ofNullable(this.suggestedPoolConcurrency);
     }
 
-    @Override
-    public Map<String, Object> getServerConfig() {
-        return rawServerConfig;
-    }
-
-    public CodecContext getCodecContext() {
+    public @NotNull CodecContext getCodecContext() {
         return this.codecContext;
     }
 
@@ -102,7 +92,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.duplexer = duplexer;
     }
 
-    private CompletionStage<Void> parse(ExecutionArguments args) {
+    private CompletionStage<Void> parse(@NotNull ExecutionArguments args) {
         return runWithAttempts(
                 args,
                 this::parse0,
@@ -110,7 +100,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 () -> args.parseAttempts++
         );
     }
-    private CompletionStage<Void> parse0(ExecutionArguments args) {
+    private CompletionStage<Void> parse0(@NotNull ExecutionArguments args) {
         if(args.parseAttempts > MAX_PARSE_ATTEMPTS) {
             logger.debug("Parse attempts exceeded {}", MAX_PARSE_ATTEMPTS);
             return CompletableFuture.failedFuture(
@@ -120,89 +110,78 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         logger.debug("Starting to parse... attempt {}/{}", args.parseAttempts + 1, MAX_PARSE_ATTEMPTS);
 
-        try {
-            return duplexer.duplexAndSync(args.toParsePacket(), (result) -> {
-                logger.trace("parse duplex result: {}", result.packet.getMessageType());
-                switch (result.packet.getMessageType()) {
-                    case ERROR_RESPONSE:
-                        var err = result.packet.as(ErrorResponse.class);
-                        logger.debug("handling error: {}", err.errorCode);
-                        handleCommandError(args, result, err);
-                        return CompletableFuture.completedFuture(null);
-                    case COMMAND_DATA_DESCRIPTION:
-                        var commandDescriptor = result.packet.as(CommandDataDescription.class);
+        return duplexer.duplexAndSync(args.toParsePacket(), (result) -> {
+            logger.trace("parse duplex result: {}", result.packet.getMessageType());
+            switch (result.packet.getMessageType()) {
+                case ERROR_RESPONSE:
+                    var err = result.packet.as(ErrorResponse.class);
+                    logger.debug("handling error: {}", err.errorCode);
+                    handleCommandError(args, result, err);
+                    return CompletableFuture.completedFuture(null);
+                case COMMAND_DATA_DESCRIPTION:
+                    var commandDescriptor = result.packet.as(CommandDataDescription.class);
 
-                        logger.debug("parsing command data description");
+                    logger.debug("parsing command data description");
 
-                        if(!args.capabilities.equals(commandDescriptor.capabilities)) {
-                            logger.debug(
-                                    "actual capabilities differ from the provided ones: provided: {}. actual: {}",
-                                    args.capabilities,
-                                    commandDescriptor.capabilities
-                            );
-                            args.actualCapabilities = commandDescriptor.capabilities;
-                        }
+                    if(!Objects.equals(args.capabilities, commandDescriptor.capabilities)) {
+                        logger.debug(
+                                "actual capabilities differ from the provided ones: provided: {}. actual: {}",
+                                args.capabilities,
+                                commandDescriptor.capabilities
+                        );
+                        args.actualCapabilities = commandDescriptor.capabilities;
+                    }
 
-                        if(args.cardinality != commandDescriptor.cardinality) {
-                            logger.debug(
-                                    "actual cardinality differs from the provided one: provided: {}. actual: {}",
-                                    args.cardinality,
-                                    commandDescriptor.cardinality
-                            );
-                            args.actualCardinality = commandDescriptor.cardinality;
-                        }
+                    if(args.cardinality != commandDescriptor.cardinality) {
+                        logger.debug(
+                                "actual cardinality differs from the provided one: provided: {}. actual: {}",
+                                args.cardinality,
+                                commandDescriptor.cardinality
+                        );
+                        args.actualCardinality = commandDescriptor.cardinality;
+                    }
 
-                        try {
-                            args.codecs = new CodecBuilder.QueryCodecs(
+                    args.codecs = new CodecBuilder.QueryCodecs(
+                            commandDescriptor.inputTypeDescriptorId,
+                            CodecBuilder.buildCodec(
                                     commandDescriptor.inputTypeDescriptorId,
-                                    CodecBuilder.buildCodec(
-                                            this,
-                                            commandDescriptor.inputTypeDescriptorId,
-                                            commandDescriptor.inputTypeDescriptorBuffer
-                                    ),
+                                    commandDescriptor.inputTypeDescriptorBuffer
+                            ),
+                            commandDescriptor.outputTypeDescriptorId,
+                            CodecBuilder.buildCodec(
                                     commandDescriptor.outputTypeDescriptorId,
-                                    CodecBuilder.buildCodec(
-                                            this,
-                                            commandDescriptor.outputTypeDescriptorId,
-                                            commandDescriptor.outputTypeDescriptorBuffer
-                                    )
-                            );
+                                    commandDescriptor.outputTypeDescriptorBuffer
+                            )
+                    );
 
-                            logger.debug(
-                                    "updating codec query cache key {} with I:{} O:{}",
-                                    args.getCacheKey(),
-                                    commandDescriptor.inputTypeDescriptorId,
-                                    commandDescriptor.outputTypeDescriptorId
-                            );
+                    logger.debug(
+                            "updating codec query cache key {} with I:{} O:{}",
+                            args.getCacheKey(),
+                            commandDescriptor.inputTypeDescriptorId,
+                            commandDescriptor.outputTypeDescriptorId
+                    );
 
-                            CodecBuilder.updateCachedCodecs(
-                                    args.getCacheKey(),
-                                    commandDescriptor.inputTypeDescriptorId,
-                                    commandDescriptor.outputTypeDescriptorId
-                            );
-                        } catch (EdgeDBException | OperationNotSupportedException e) {
-                            logger.debug("codec building failed", e);
-                            result.finishExceptionally("Failed to parse in/out codecs", e, EdgeDBException::new);
-                        }
-                        break;
-                    case STATE_DATA_DESCRIPTION:
-                        updateStateCodec(result, args);
-                        break;
-                    case READY_FOR_COMMAND:
-                        var ready = result.packet.as(ReadyForCommand.class);
-                        setTransactionState(ready.transactionState);
-                        args.completedParse = true;
-                        result.finishDuplexing();
-                }
+                    CodecBuilder.updateCachedCodecs(
+                            args.getCacheKey(),
+                            commandDescriptor.inputTypeDescriptorId,
+                            commandDescriptor.outputTypeDescriptorId
+                    );
+                    break;
+                case STATE_DATA_DESCRIPTION:
+                    updateStateCodec(result, args);
+                    break;
+                case READY_FOR_COMMAND:
+                    var ready = result.packet.as(ReadyForCommand.class);
+                    setTransactionState(ready.transactionState);
+                    args.completedParse = true;
+                    result.finishDuplexing();
+            }
 
-                return CompletableFuture.completedFuture(null);
-            });
-        } catch (SSLException e) {
-            return CompletableFuture.failedFuture(e);
-        }
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
-    private CompletionStage<Void> execute(ExecutionArguments args) {
+    private CompletionStage<Void> execute(@NotNull ExecutionArguments args) {
         return runWithAttempts(
                 args,
                 this::execute0,
@@ -210,7 +189,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 () -> args.parseAttempts++
         );
     }
-    private CompletionStage<Void> execute0(ExecutionArguments args) {
+    private CompletionStage<Void> execute0(@NotNull ExecutionArguments args) {
         if(args.parseAttempts > 2) {
             return CompletableFuture.failedFuture(
                     new EdgeDBException("Failed to parse query after " + args.parseAttempts + " attempts")
@@ -255,16 +234,16 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
                 return CompletableFuture.completedFuture(null);
             });
-        } catch (SSLException | OperationNotSupportedException | EdgeDBException e) {
+        } catch (OperationNotSupportedException | EdgeDBException e) {
             return CompletableFuture.failedFuture(e);
         }
     }
 
     private CompletionStage<Void> runWithAttempts(
             ExecutionArguments args,
-            Function<ExecutionArguments, CompletionStage<Void>> delegate,
-            Predicate<ExecutionArguments> completedPredicate,
-            Runnable incrementer
+            @NotNull Function<ExecutionArguments, CompletionStage<Void>> delegate,
+            @NotNull Predicate<ExecutionArguments> completedPredicate,
+            @NotNull Runnable incrementer
     ) {
         return delegate.apply(args)
                 .thenCompose((v) -> {
@@ -277,7 +256,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 });
     }
 
-    private void handleCommandError(ExecutionArguments args, Duplexer.DuplexResult result, ErrorResponse err) {
+    private void handleCommandError(@NotNull ExecutionArguments args, Duplexer.@NotNull DuplexResult result, @NotNull ErrorResponse err) {
         if(err.errorCode == ErrorCode.STATE_MISMATCH_ERROR) {
             // should have new state
             if(!args.stateUpdated) {
@@ -295,14 +274,13 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    private void updateStateCodec(Duplexer.DuplexResult result, ExecutionArguments args) {
+    private void updateStateCodec(Duplexer.@NotNull DuplexResult result, @NotNull ExecutionArguments args) {
         var stateDescriptor = result.packet.as(StateDataDescription.class);
         var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
 
         if(codec == null) {
             try {
                 codec = CodecBuilder.buildCodec(
-                        this,
                         stateDescriptor.typeDescriptorId,
                         stateDescriptor.typeDescriptorBuffer,
                         Map.class
@@ -328,7 +306,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     public final CompletionStage<Void> executeQuery(
-            ExecutionArguments args
+            @NotNull ExecutionArguments args
     ) {
         logger.debug("Execute request: is connected? {}", duplexer.isConnected());
         if(!duplexer.isConnected()) {
@@ -560,11 +538,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     for(int i = 0; i != executeArgs.data.size(); i++) {
                         try {
                             result[i] = new Json(
-                                    (String) Codec.deserializeFromBuffer(
+                                    (String) Objects.requireNonNull(Codec.deserializeFromBuffer(
                                             executeArgs.codecs.outputCodec,
-                                            executeArgs.data.get(i).payloadBuffer,
+                                            Objects.requireNonNull(executeArgs.data.get(i).payloadBuffer),
                                             this.codecContext
-                                    )
+                                    ))
                             );
                         } catch (EdgeDBException | OperationNotSupportedException e) {
                             throw new CompletionException(e);
@@ -576,7 +554,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> CompletionStage<T> deserializeSingleResult(Class<T> cls, ExecutionArguments args, Cardinality expected) {
+    private <T> @NotNull CompletionStage<T> deserializeSingleResult(@NotNull Class<T> cls, @NotNull ExecutionArguments args, @NotNull Cardinality expected) {
         try {
             switch (args.format) {
                 case JSON:
@@ -585,7 +563,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                             return CompletableFuture.completedFuture(
                                     Codec.deserializeFromBuffer(
                                             (Codec<T>)args.codecs.outputCodec,
-                                            args.data.get(0).payloadBuffer,
+                                            Objects.requireNonNull(args.data.get(0).payloadBuffer),
                                             this.codecContext
                                     )
                             );
@@ -656,7 +634,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     private CompletionStage<Void> handlePacket(
-            Receivable packet
+            @NotNull Receivable packet
     ) {
         logger.debug("Processing packet {}", packet.getMessageType());
 
@@ -708,8 +686,9 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                     }
                     break;
                 case SERVER_KEY_DATA:
-                    this.serverKey = new byte[32];
-                    ((ServerKeyData)packet).keyData.readBytes(this.serverKey);
+                    // eventually used
+                    byte[] serverKey = new byte[32];
+                    ((ServerKeyData)packet).keyData.readBytes(serverKey);
                     break;
                 case STATE_DATA_DESCRIPTION:
                     var stateDescriptor = (StateDataDescription)packet;
@@ -720,7 +699,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         assert stateDescriptor.typeDescriptorBuffer != null;
 
                         var reader = new PacketReader(stateDescriptor.typeDescriptorBuffer);
-                        codec = CodecBuilder.buildCodec(this, stateDescriptor.typeDescriptorId, reader, Map.class);
+                        codec = CodecBuilder.buildCodec(stateDescriptor.typeDescriptorId, reader, Map.class);
                     }
 
                     this.stateCodec = codec;
@@ -757,7 +736,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         return CompletableFuture.completedFuture(null);
     }
 
-    private void parseServerSettings(ParameterStatus status) throws EdgeDBException, OperationNotSupportedException {
+    private void parseServerSettings(@NotNull ParameterStatus status) throws EdgeDBException, OperationNotSupportedException {
         switch (status.name) {
             case "suggested_pool_concurrency":
                 assert status.value != null;
@@ -783,7 +762,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
                 if(codec == null) {
                     var descriptorReader = new PacketReader(reader.readBytes(descriptorLength));
-                    codec = CodecBuilder.buildCodec(this, descriptorId, descriptorReader, Map.class);
+                    codec = CodecBuilder.buildCodec(descriptorId, descriptorReader, Map.class);
 
                     if(codec == null) {
                         throw new MissingCodecException("Failed to build codec for system_config");
@@ -798,7 +777,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
     }
 
-    private CompletionStage<Void> startSASLAuthentication(AuthenticationStatus authStatus) throws ScramException {
+    private CompletionStage<Void> startSASLAuthentication(@NotNull AuthenticationStatus authStatus) throws ScramException {
         this.isIdle = false;
 
         final var scram = new Scram();
@@ -930,7 +909,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     private CompletionStage<Void> connectInternal() {
-        if(this.isConnected()) {
+        if(this.duplexer.isConnected()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -982,27 +961,31 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     protected abstract void setTransactionState(TransactionState state);
 
-    protected abstract CompletionStage<Void> openConnection()
-            throws GeneralSecurityException, IOException, TimeoutException;
+    protected abstract CompletionStage<Void> openConnection();
     protected abstract CompletionStage<Void> closeConnection();
+
+    @Override
+    public boolean isConnected() {
+        return this.duplexer.isConnected();
+    }
 
     public final class ExecutionArguments {
         public final String query;
         public final Map<String, Object> args;
         public final Cardinality cardinality;
-        public final EnumSet<Capabilities> capabilities;
+        public final @Nullable EnumSet<Capabilities> capabilities;
         public final IOFormat format;
         public boolean isRetry;
         public final boolean implicitTypeNames;
 
         public Cardinality actualCardinality;
-        public EnumSet<Capabilities> actualCapabilities;
+        public @Nullable EnumSet<Capabilities> actualCapabilities;
 
         private @Nullable Long cacheKey;
 
         public CodecBuilder.QueryCodecs codecs;
 
-        public final List<Data> data;
+        public final @NotNull List<Data> data;
 
         private boolean completedParse;
         private byte parseAttempts;
@@ -1016,7 +999,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 String query,
                 Map<String, Object> args,
                 Cardinality cardinality,
-                EnumSet<Capabilities> capabilities,
+                @Nullable EnumSet<Capabilities> capabilities,
                 IOFormat format,
                 boolean isRetry,
                 boolean implicitTypeNames
@@ -1034,7 +1017,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             this.actualCapabilities = capabilities;
         }
 
-        public ExecutionArguments deriveNew() {
+        public @NotNull ExecutionArguments deriveNew() {
             return new ExecutionArguments(
                     this.query,
                     this.args,
@@ -1066,7 +1049,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             return cacheKey;
         }
 
-        public EnumSet<CompilationFlags> getCompilationFlags() {
+        public @NotNull EnumSet<CompilationFlags> getCompilationFlags() {
             var flags = EnumSet.of(CompilationFlags.NONE);
 
             if(getConfig().getImplicitTypeIds()) {
@@ -1088,7 +1071,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             return getConfig().getImplicitLimit();
         }
 
-        public Parse toParsePacket() {
+        public @NotNull Parse toParsePacket() {
             return new Parse(
                     capabilities,
                     getCompilationFlags(),
@@ -1102,7 +1085,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        public Execute toExecutePacket() throws OperationNotSupportedException, EdgeDBException {
+        public @NotNull Execute toExecutePacket() throws OperationNotSupportedException, EdgeDBException {
             assert codecs != null;
 
             return new Execute(

@@ -1,12 +1,13 @@
 package com.edgedb.driver.namingstrategies;
 
 import com.edgedb.driver.util.StringsUtil;
+import org.jetbrains.annotations.NotNull;
 
 final class SnakeCaseNamingStrategy implements NamingStrategy {
     public static final SnakeCaseNamingStrategy INSTANCE = new SnakeCaseNamingStrategy();
 
     @Override
-    public String convert(String name) {
+    public @NotNull String convert(@NotNull String name) {
         if (StringsUtil.isNullOrEmpty(name)) {
             return name;
         }

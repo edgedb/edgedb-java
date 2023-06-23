@@ -5,15 +5,16 @@ import com.edgedb.driver.ErrorCode;
 import com.edgedb.driver.LogSeverity;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
+import org.jetbrains.annotations.NotNull;
 
 public class LogMessage implements Receivable {
     public final LogSeverity severity;
     public final ErrorCode code;
-    public final String content;
-    public final Annotation[] annotations;
+    public final @NotNull String content;
+    public final Annotation @NotNull [] annotations;
 
 
-    public LogMessage(PacketReader reader) {
+    public LogMessage(@NotNull PacketReader reader) {
         severity = reader.readEnum(LogSeverity.class, Byte.TYPE);
         code = reader.readEnum(ErrorCode.class, Integer.TYPE);
         content = reader.readString();
@@ -25,7 +26,7 @@ public class LogMessage implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.LOG_MESSAGE;
     }
 }

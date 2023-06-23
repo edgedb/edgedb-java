@@ -1,6 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the error severity for an error returned by EdgeDB
@@ -18,7 +19,7 @@ public enum ErrorSeverity implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return value;
     }
 }

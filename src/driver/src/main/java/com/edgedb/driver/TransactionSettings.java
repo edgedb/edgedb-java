@@ -1,5 +1,7 @@
 package com.edgedb.driver;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Represents a collection of settings used when creating a transaction.
  */
@@ -8,14 +10,14 @@ public final class TransactionSettings {
      * Gets a builder used to construct a {@linkplain TransactionSettings}
      * @return A new builder instance.
      */
-    public static Builder builder() {
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
     /**
      * Gets the default transaction settings.
      */
-    public static TransactionSettings DEFAULT = new TransactionSettings();
+    public static final @NotNull TransactionSettings DEFAULT = new TransactionSettings();
 
     TransactionSettings() { }
 
@@ -82,7 +84,7 @@ public final class TransactionSettings {
          * @see TransactionIsolation
          * @see TransactionSettings#getIsolation()
          */
-        public Builder withIsolation(TransactionIsolation isolation) {
+        public @NotNull Builder withIsolation(TransactionIsolation isolation) {
             this.isolation = isolation;
             return this;
         }
@@ -94,7 +96,7 @@ public final class TransactionSettings {
          * @return The current builder.
          * @see TransactionSettings#isReadOnly()
          */
-        public Builder withReadOnly(boolean isReadOnly) {
+        public @NotNull Builder withReadOnly(boolean isReadOnly) {
             this.isReadOnly = isReadOnly;
             return this;
         }
@@ -111,7 +113,7 @@ public final class TransactionSettings {
          * @param isDeferrable The value to set.
          * @return The current builder.
          */
-        public Builder withDeferrable(boolean isDeferrable) {
+        public @NotNull Builder withDeferrable(boolean isDeferrable) {
             this.isDeferrable = isDeferrable;
             return this;
         }
@@ -121,7 +123,7 @@ public final class TransactionSettings {
          * @param retryAttempts The value to set.
          * @return The current builder.
          */
-        public Builder withRetryAttempts(int retryAttempts) {
+        public @NotNull Builder withRetryAttempts(int retryAttempts) {
             this.retryAttempts = retryAttempts;
             return this;
         }
@@ -130,7 +132,7 @@ public final class TransactionSettings {
          * Constructs a new {@linkplain TransactionSettings} from this builder.
          * @return A {@linkplain TransactionSettings} with the values specified in this builder.
          */
-        public TransactionSettings build() {
+        public @NotNull TransactionSettings build() {
             TransactionSettings transactionSettings = new TransactionSettings();
             transactionSettings.retryAttempts = this.retryAttempts;
             transactionSettings.isolation = this.isolation;

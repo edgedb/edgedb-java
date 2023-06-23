@@ -1,6 +1,7 @@
 package com.edgedb.driver.datatypes;
 
 import com.edgedb.driver.datatypes.internal.TupleImpl;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -31,7 +32,7 @@ public interface Tuple {
      * @return The value at the specified index.
      * @throws IndexOutOfBoundsException The index exceeds the size of the tuple.
      */
-    Object get(int index);
+    @Nullable Object get(int index);
 
     /**
      * Gets a {@linkplain Element} at the specified index.
@@ -50,7 +51,7 @@ public interface Tuple {
      * @throws ClassCastException The value at the specified index is not the type supplied.
      * @throws IndexOutOfBoundsException The index exceeds the size of the tuple.
      */
-    <T> T get(int index, Class<T> type);
+    <T> @Nullable T get(int index, Class<T> type);
 
     /**
      * Removes a value at the specified index.
@@ -58,7 +59,7 @@ public interface Tuple {
      * @return The removed value.
      * @throws IndexOutOfBoundsException The index exceeds the size of the tuple.
      */
-    Object remove(int index);
+    @Nullable Object remove(int index);
 
     /**
      * Removes an element at the specified index.
@@ -77,7 +78,7 @@ public interface Tuple {
      * @throws ClassCastException The value at the specified index is not the type supplied.
      * @throws IndexOutOfBoundsException The index exceeds the size of the tuple.
      */
-    <T> T remove(int index, Class<T> type);
+    <T> @Nullable T remove(int index, Class<T> type);
 
     /**
      * Turns the current tuple into a value array.
@@ -102,7 +103,7 @@ public interface Tuple {
      * @param values The element values for the new tuple.
      * @return A tuple with all the values of the supplied array, maintaining arity.
      */
-    static Tuple of(Object... values) {
+    static @NotNull Tuple of(Object... values) {
         return new TupleImpl(values);
     }
 
@@ -111,7 +112,7 @@ public interface Tuple {
      * @param elements The elements for the new tuple.
      * @return A tuple with all the elements of the supplied array, maintaining arity.
      */
-    static Tuple of(Element... elements) {
+    static @NotNull Tuple of(Element... elements) {
         return new TupleImpl(elements);
     }
 
@@ -123,7 +124,7 @@ public interface Tuple {
      * @param elements A collection of elements for the new tuple.
      * @return A tuple with all the elements of the supplied collection, maintaining arity.
      */
-    static Tuple of(Collection<?> elements) {
+    static @NotNull Tuple of(Collection<?> elements) {
         return new TupleImpl(elements);
     }
 
@@ -131,7 +132,7 @@ public interface Tuple {
      * Creates an empty tuple, equivalent of calling {@linkplain Tuple#of(Object...)} with no parameters.
      * @return An empty tuple.
      */
-    static Tuple empty() {
+    static @NotNull Tuple empty() {
         return new TupleImpl();
     }
 
@@ -156,7 +157,7 @@ public interface Tuple {
          * @param value The value for the element.
          * @return A {@linkplain Element} containing the supplied value.
          */
-        static Element of(@Nullable Object value) {
+        static @NotNull Element of(@Nullable Object value) {
             return new TupleImpl.ElementImpl(value);
         }
 
@@ -166,7 +167,7 @@ public interface Tuple {
          * @param type The type for the element.
          * @return A {@linkplain Element} containing the supplied value and type.
          */
-        static Element of(@Nullable Object value, Class<?> type) {
+        static @NotNull Element of(@Nullable Object value, Class<?> type) {
             return new TupleImpl.ElementImpl(type, value);
         }
     }

@@ -6,6 +6,7 @@ import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLResponse;
 import com.edgedb.driver.exceptions.ScramException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
@@ -24,7 +25,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-// TODO: abstract to have a version implemented in .binary that supports packet in and out.
 public class Scram {
     private static final int NONCE_LENGTH = 18;
     private static final SecureRandom random = new SecureRandom();
@@ -47,14 +47,14 @@ public class Scram {
         return bytes;
     }
 
-    private static ByteBuf encodeString(String s) {
+    private static @NotNull ByteBuf encodeString(@NotNull String s) {
         var buffer = ByteBufAllocator.DEFAULT.buffer(BinaryProtocolUtils.sizeOf(s) - 4); // no str length
         var encoded = s.getBytes(StandardCharsets.UTF_8);
         buffer.writeBytes(encoded);
         return buffer;
     }
 
-    private static String decodeString(ByteBuf buffer) {
+    private static @NotNull String decodeString(@NotNull ByteBuf buffer) {
         byte[] strBytes = new byte[buffer.readableBytes()];
 
         buffer.readBytes(strBytes);
@@ -62,7 +62,7 @@ public class Scram {
         return new String(strBytes, StandardCharsets.UTF_8);
     }
 
-    public String buildInitialMessage(String username) {
+    public @NotNull String buildInitialMessage(@NotNull String username) {
         if(this.clientNonce == null) {
             this.clientNonce = generateNonce();
         }
@@ -71,7 +71,7 @@ public class Scram {
         return "n,," + this.rawFirstMessage;
     }
 
-    public AuthenticationSASLInitialResponse buildInitialMessagePacket(String username, String method) {
+    public @NotNull AuthenticationSASLInitialResponse buildInitialMessagePacket(@NotNull String username, String method) {
         var initial = buildInitialMessage(username);
         return new AuthenticationSASLInitialResponse(encodeString(initial), method);
     }
@@ -85,17 +85,17 @@ public class Scram {
             this.signature = signature;
         }
 
-        public AuthenticationSASLResponse buildPacket() {
+        public @NotNull AuthenticationSASLResponse buildPacket() {
             return new AuthenticationSASLResponse(encodeString(this.message));
         }
     }
 
-    public SASLFinalMessage buildFinalMessage(AuthenticationStatus status, String password) throws ScramException {
+    public @NotNull SASLFinalMessage buildFinalMessage(@NotNull AuthenticationStatus status, @NotNull String password) throws ScramException {
         assert status.saslData != null;
         return buildFinalMessage(decodeString(status.saslData), password);
     }
 
-    public SASLFinalMessage buildFinalMessage(String initialResponse, String password) throws ScramException {
+    public @NotNull SASLFinalMessage buildFinalMessage(@NotNull String initialResponse, @NotNull String password) throws ScramException {
         var parsed = parseServerMessage(initialResponse);
 
         if(parsed.size() < 3) {
@@ -131,7 +131,7 @@ public class Scram {
         );
     }
 
-    public static byte[] parseServerFinalMessage(AuthenticationStatus status) {
+    public static byte[] parseServerFinalMessage(@NotNull AuthenticationStatus status) {
         assert status.saslData != null;
         var message = decodeString(status.saslData);
 
@@ -140,7 +140,7 @@ public class Scram {
         return Base64.getDecoder().decode(parsed.get("v"));
     }
 
-    private static byte[] saltPassword(String password, byte[] salt, int iterations) throws ScramException {
+    private static byte[] saltPassword(@NotNull String password, byte @NotNull [] salt, int iterations) throws ScramException {
         var spec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);
 
         try {
@@ -152,18 +152,18 @@ public class Scram {
         }
     }
 
-    private static byte[] getClientKey(byte[] password) throws ScramException {
+    private static byte[] getClientKey(byte @NotNull [] password) throws ScramException {
         return computeHMACHash(password, "Client Key");
     }
 
-    private static byte[] getServerKey(byte[] password) throws ScramException {
+    private static byte[] getServerKey(byte @NotNull [] password) throws ScramException {
         return computeHMACHash(password, "Server Key");
     }
 
-    private static byte[] computeHMACHash(byte[] data, String key) throws ScramException {
+    private static byte[] computeHMACHash(byte @NotNull [] data, @NotNull String key) throws ScramException {
         return computeHMACHash(data, key.getBytes(StandardCharsets.UTF_8));
     }
-    private static byte[] computeHMACHash(byte[] data, byte[] key) throws ScramException {
+    private static byte[] computeHMACHash(byte @NotNull [] data, byte[] key) throws ScramException {
         SecretKeySpec secretKeySpec = new SecretKeySpec(data, "SHA256");
 
         try {
@@ -185,7 +185,7 @@ public class Scram {
         }
     }
 
-    private static byte[] xor(byte[] b1, byte[] b2) {
+    private static byte[] xor(byte @NotNull [] b1, byte[] b2) {
         var length = b1.length;
 
         byte[] result = new byte[length];
@@ -197,7 +197,7 @@ public class Scram {
         return result;
     }
 
-    private static Map<String, String> parseServerMessage(String message) {
+    private static @NotNull Map<String, String> parseServerMessage(@NotNull String message) {
         var matcher = serverMessageParser.matcher(message);
         return matcher.results().collect(Collectors.toMap((v) -> v.group(1), (v) -> v.group(2)));
     }

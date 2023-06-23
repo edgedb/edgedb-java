@@ -9,6 +9,8 @@ import com.edgedb.driver.binary.descriptors.common.ShapeElement;
 import com.edgedb.driver.binary.descriptors.common.TupleElement;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.NoTypeConverterException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -21,11 +23,11 @@ import java.util.function.Function;
 public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Object> {
 
     public static final class TypeInitializedObjectCodec extends ObjectCodec {
-        private final TypeDeserializerInfo<?> deserializer;
+        private final @Nullable TypeDeserializerInfo<?> deserializer;
         private final Class<?> target;
-        private final ObjectCodec parent;
+        private final @NotNull ObjectCodec parent;
 
-        public TypeInitializedObjectCodec(Class<?> target, ObjectCodec parent) throws EdgeDBException {
+        public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
             super(parent.elements);
 
             this.parent = parent;
@@ -33,14 +35,12 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             this.deserializer = TypeBuilder.getDeserializerInfo(target);
 
             if(this.deserializer == null) {
-                // TODO: make NoTypeConverterException class
-                throw new EdgeDBException("Failed to find type deserializer for " + target.getName());
+                throw new NoTypeConverterException("Failed to find type deserializer for " + target.getName());
             }
         }
 
-        public TypeInitializedObjectCodec(TypeDeserializerInfo<?> info, ObjectCodec parent) {
+        public TypeInitializedObjectCodec(@NotNull TypeDeserializerInfo<?> info, @NotNull ObjectCodec parent) {
             super(parent.elements);
-            assert info != null;
 
             this.parent = parent;
             this.target = info.getType();
@@ -48,7 +48,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         @Override
-        public @Nullable Object deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
+        public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException {
             assert deserializer != null;
 
             var enumerator = new ObjectEnumeratorImpl(reader, this, context);
@@ -64,19 +64,19 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             return target;
         }
 
-        public ObjectCodec getParent() {
+        public @NotNull ObjectCodec getParent() {
             return parent;
         }
 
-        public TypeDeserializerInfo<?> getDeserializer() {
+        public @Nullable TypeDeserializerInfo<?> getDeserializer() {
             return deserializer;
         }
     }
 
     public static final class Element {
-        public String name;
+        public final String name;
+        public final @Nullable Cardinality cardinality;
         public Codec<?> codec;
-        public @Nullable Cardinality cardinality;
         public Element(String name, Codec<?> codec, @Nullable Cardinality cardinality) {
             this.name = name;
             this.codec = codec;
@@ -85,7 +85,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     }
 
     public final Element[] elements;
-    private final ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
+    private final @NotNull ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
     private final Object lock = new Object();
 
     public ObjectCodec(Element... elements) {
@@ -94,7 +94,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         this.typeCodecs = new ConcurrentHashMap<>();
     }
 
-    public static ObjectCodec create(Function<Integer, Codec<?>> fetchCodec, ShapeElement[] shape) {
+    public static @NotNull ObjectCodec create(@NotNull Function<Integer, Codec<?>> fetchCodec, ShapeElement @NotNull [] shape) {
         var elements = new Element[shape.length];
 
         for (int i = 0; i < shape.length; i++) {
@@ -110,7 +110,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         return new ObjectCodec(elements);
     }
 
-    public static ObjectCodec create(Function<Short, Codec<?>> fetchCodec, TupleElement[] shape) {
+    public static @NotNull ObjectCodec create(@NotNull Function<Short, Codec<?>> fetchCodec, TupleElement @NotNull [] shape) {
         var elements = new Element[shape.length];
 
         for (int i = 0; i < shape.length; i++) {
@@ -129,7 +129,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws EdgeDBException {
         return getOrCreateTypeCodec(cls, t -> new TypeInitializedObjectCodec(t, this));
     }
-    public TypeInitializedObjectCodec getOrCreateTypeCodec(TypeDeserializerInfo<?> info) throws EdgeDBException {
+    public TypeInitializedObjectCodec getOrCreateTypeCodec(@NotNull TypeDeserializerInfo<?> info) throws EdgeDBException {
         return getOrCreateTypeCodec(info.getType(), t -> new TypeInitializedObjectCodec(info, this));
     }
 
@@ -137,7 +137,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     private interface TypeInitializedCodecFactory {
         TypeInitializedObjectCodec construct(Class<?> cls) throws EdgeDBException;
     }
-    private TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls, TypeInitializedCodecFactory factory) throws EdgeDBException {
+    private TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls, @NotNull TypeInitializedCodecFactory factory) throws EdgeDBException {
         try {
             return typeCodecs.computeIfAbsent(cls, t -> {
                 try {
@@ -157,13 +157,13 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     }
 
     @Override
-    public final void serializeArguments(PacketWriter writer, @Nullable Map<String, ?> value, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public final void serializeArguments(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         this.serialize(writer, value, context);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void serialize(PacketWriter writer, @Nullable Object rawValue, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public final void serialize(@NotNull PacketWriter writer, @Nullable Object rawValue, @NotNull CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(rawValue == null) {
             throw new IllegalArgumentException("Serializable object value cannot be null");
         }
@@ -204,7 +204,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     }
 
     @Override
-    public @Nullable Object deserialize(PacketReader reader, CodecContext context) throws EdgeDBException {
+    public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException {
         var enumerator = new ObjectEnumeratorImpl(reader, this, context);
 
         try {

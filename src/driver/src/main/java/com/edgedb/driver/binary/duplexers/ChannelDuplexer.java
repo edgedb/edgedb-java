@@ -5,6 +5,8 @@ import com.edgedb.driver.binary.packets.receivable.Receivable;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
 import com.edgedb.driver.binary.packets.sendables.Terminate;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.exceptions.ConnectionFailedException;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -13,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLException;
+import javax.naming.OperationNotSupportedException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
@@ -21,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
 import static com.edgedb.driver.util.ComposableUtil.composeWith;
 
@@ -30,8 +31,8 @@ public class ChannelDuplexer extends Duplexer {
 
     public final ChannelHandler channelHandler = new ChannelHandler();
 
-    private final Queue<Receivable> messageQueue;
-    private final Queue<CompletableFuture<Receivable>> readPromises;
+    private final @NotNull Queue<Receivable> messageQueue;
+    private final @NotNull Queue<CompletableFuture<Receivable>> readPromises;
 
     private final ReentrantLock messageEnqueueLock = new ReentrantLock();
 
@@ -57,11 +58,17 @@ public class ChannelDuplexer extends Duplexer {
         }
 
         @Override
-        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        public void userEventTriggered(ChannelHandlerContext ctx, @NotNull Object evt) {
             if(evt.equals("RESET")) {
                 channelActivePromise = new CompletableFuture<>();
             } else if (evt.equals("TIMEOUT")) {
                 var exc = new TimeoutException("A message read process passed the configured message timeout");
+                for(var promise : readPromises) {
+                    promise.completeExceptionally(exc);
+                }
+            } else if (evt.equals("DISCONNECT")) {
+                disconnect();
+                var exc = new ConnectionFailedException("Client requested a disconnect");
                 for(var promise : readPromises) {
                     promise.completeExceptionally(exc);
                 }
@@ -79,7 +86,6 @@ public class ChannelDuplexer extends Duplexer {
             logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
 
             int completeCount = 0;
-
 
             try {
                 if(!messageEnqueueLock.tryLock(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())) {
@@ -146,7 +152,7 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Receivable> readNext() {
+    public @NotNull CompletionStage<Receivable> readNext() {
         logger.debug("Entering message queue lock");
 
         try {
@@ -171,9 +177,7 @@ public class ChannelDuplexer extends Duplexer {
 
                 final var readPromiseId = promise.hashCode();
 
-                promise.whenComplete((v,e) -> {
-                    logger.debug("Read promise completed, ID: {}, is success?: {}", promise.hashCode(), e == null && !promise.isCancelled());
-                });
+                promise.whenComplete((v,e) -> logger.debug("Read promise completed, ID: {}, is success?: {}", promise.hashCode(), e == null && !promise.isCancelled()));
 
                 logger.debug("Enqueueing read promise: ID: {}", readPromiseId);
                 readPromises.add(promise);
@@ -189,18 +193,23 @@ public class ChannelDuplexer extends Duplexer {
         }
     }
 
-    @Override
-    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets){
-        logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
+    private CompletionStage<Void> send0(int attempts, Sendable packet, @Nullable Sendable @Nullable ... packets) {
+        logger.debug("Starting to send packets to {}, is connected? {}, attempts: {}", channel, isConnected, attempts);
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
         return this.channelHandler.whenReady().thenCompose((v) -> {
             if(channel == null || !isConnected) {
+                if(attempts > client.getConfig().getMaxConnectionRetries()) {
+                    return CompletableFuture.failedFuture(
+                            new ConnectionFailedException(attempts)
+                    );
+                }
+
                 logger.debug("Reconnecting...");
                 return client.reconnect().thenCompose((w) -> {
                     logger.debug("Sending after reconnect");
-                    return this.send(packet, packets);
-                }); // TODO: check for recursive loop
+                    return this.send0(attempts + 1, packet, packets);
+                });
             }
 
             logger.debug("Beginning packet encoding and writing...");
@@ -220,27 +229,34 @@ public class ChannelDuplexer extends Duplexer {
     }
 
     @Override
-    public CompletionStage<Void> duplex(Function<DuplexResult, CompletionStage<Void>> func, @NotNull Sendable packet, @Nullable Sendable... packets) throws SSLException {
+    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets){
+       return send0(0, packet, packets);
+    }
+
+    @Override
+    public CompletionStage<Void> duplex(@NotNull DuplexCallback func, @NotNull Sendable packet, @Nullable Sendable... packets) {
         var firstHashcode = packet.hashCode();
         final var duplexId = 31 * firstHashcode + Arrays.hashCode(packets);
         logger.debug("Starting duplex step, ID: {}", duplexId);
         final var duplexPromise = new CompletableFuture<Void>();
 
-        duplexPromise.whenComplete((v,e) -> {
-            logger.debug("Duplex step complete, ID: {}, isCancelled?: {}, isExceptional?: {}", duplexId, duplexPromise.isCancelled(), e != null);
-        });
+        duplexPromise.whenComplete((v,e) -> logger.debug("Duplex step complete, ID: {}, isCancelled?: {}, isExceptional?: {}", duplexId, duplexPromise.isCancelled(), e != null));
 
         return this.send(packet, packets)
                 .thenCompose((v) -> processDuplexStep(func, duplexPromise, duplexId))
                 .thenCompose((v) -> duplexPromise);
     }
 
-    private CompletionStage<Void> processDuplexStep(Function<DuplexResult, CompletionStage<Void>> func, CompletableFuture<Void> promise, int id) {
+    private CompletionStage<Void> processDuplexStep(@NotNull DuplexCallback func, @NotNull CompletableFuture<Void> promise, int id) {
         logger.debug("Handling duplex step, ID: {}", id);
 
         return composeWith(readNext(), (packet) -> {
             logger.debug("Invoking duplex consumer, ID: {}, Message: {}", id, packet.getMessageType());
-            return func.apply(new DuplexResult(packet, promise));
+            try {
+                return func.process(new DuplexResult(packet, promise));
+            } catch (EdgeDBException | OperationNotSupportedException e) {
+                return CompletableFuture.failedFuture(e);
+            }
         }).thenCompose(v -> {
             logger.debug(
                     "Post-invoke duplex step ID: {}, isDone?: {}, isCancelled?: {}, isExceptional?: {}, ",

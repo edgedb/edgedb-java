@@ -4,17 +4,18 @@ import com.edgedb.driver.binary.packets.shared.AuthStatus;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AuthenticationStatus implements Receivable {
     public final AuthStatus authStatus;
     @Nullable
-    public final String[] authenticationMethods;
+    public final String @Nullable [] authenticationMethods;
     @Nullable
     public final ByteBuf saslData;
 
-    public AuthenticationStatus(PacketReader reader) {
-        this.authStatus = AuthStatus.valueOf(reader.readInt32());
+    public AuthenticationStatus(@NotNull PacketReader reader) {
+        this.authStatus = reader.readEnum(AuthStatus.class, Integer.TYPE);
 
         switch (this.authStatus) {
             case AUTHENTICATION_REQUIRED_SASL_MESSAGE:
@@ -41,7 +42,7 @@ public class AuthenticationStatus implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.AUTHENTICATION;
     }
 }

@@ -1,6 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum Capabilities implements BinaryEnum<Long> {
     READ_ONLY         (0),
@@ -17,7 +18,7 @@ public enum Capabilities implements BinaryEnum<Long> {
         this.value = value;
     }
     @Override
-    public Long getValue() {
+    public @NotNull Long getValue() {
         return this.value;
     }
 }

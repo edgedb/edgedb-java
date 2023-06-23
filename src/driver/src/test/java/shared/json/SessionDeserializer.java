@@ -27,7 +27,7 @@ public class SessionDeserializer extends StdDeserializer<Session> {
     }
 
     @Override
-    public Session deserialize(JsonParser parser, DeserializationContext context) throws IOException, JacksonException {
+    public Session deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         var node = parser.getCodec().readTree(parser);
 
         if(!(node instanceof ObjectNode)) {

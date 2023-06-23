@@ -1,12 +1,13 @@
 package com.edgedb.driver.namingstrategies;
 
 import com.edgedb.driver.util.StringsUtil;
+import org.jetbrains.annotations.NotNull;
 
 final class PascalNamingStrategy implements NamingStrategy {
     public static final PascalNamingStrategy INSTANCE = new PascalNamingStrategy();
 
     @Override
-    public String convert(String name) {
+    public @NotNull String convert(@NotNull String name) {
         if (StringsUtil.isNullOrEmpty(name)) {
             return name;
         }

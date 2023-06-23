@@ -1,12 +1,14 @@
 package com.edgedb.driver.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 public class ComposableUtil {
-    public static <T, U extends CompletionStage<T>> CompletableFuture<T> exceptionallyCompose(CompletionStage<T> a, Function<Throwable, U> f) {
+    public static <T, U extends CompletionStage<T>> CompletableFuture<T> exceptionallyCompose(@NotNull CompletionStage<T> a, @NotNull Function<Throwable, U> f) {
         return CompletableFuture.completedFuture(null)
                 .thenCompose(v -> a
                         .thenApply(CompletableFuture::completedFuture)
@@ -16,8 +18,8 @@ public class ComposableUtil {
     }
 
     public static <T, U extends CompletionStage<T>, V extends AutoCloseable> CompletionStage<T> composeWith(
-            V with,
-            Function<V, U> composed
+            @NotNull V with,
+            @NotNull Function<V, U> composed
     ) {
         return composed.apply(with)
                 .thenApply((v) -> {
@@ -34,8 +36,8 @@ public class ComposableUtil {
 
     public static <T, U extends CompletionStage<T>, V extends AutoCloseable, W extends CompletionStage<V>>
     CompletionStage<T> composeWith(
-            W with,
-            Function<V, U> composed
+            @NotNull W with,
+            @NotNull Function<V, U> composed
     ) {
         return with.thenCompose(r -> composeWith(r, composed));
     }

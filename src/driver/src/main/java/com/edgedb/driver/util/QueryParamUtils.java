@@ -1,14 +1,15 @@
 package com.edgedb.driver.util;
 
-import java.io.UnsupportedEncodingException;
+import org.jetbrains.annotations.NotNull;
+
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class QueryParamUtils {
-    public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
-        Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+    public static @NotNull Map<String, String> splitQuery(@NotNull String query) {
+        Map<String, String> query_pairs = new LinkedHashMap<>();
         String[] pairs = query.split("&");
         for (String pair : pairs) {
             int idx = pair.indexOf("=");

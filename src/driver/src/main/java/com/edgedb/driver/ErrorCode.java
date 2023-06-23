@@ -1,6 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents different possible error codes returned by EdgeDB.
@@ -108,7 +109,7 @@ public enum ErrorCode implements BinaryEnum<Integer> {
     }
 
     @Override
-    public Integer getValue() {
+    public @NotNull Integer getValue() {
         return code;
     }
 

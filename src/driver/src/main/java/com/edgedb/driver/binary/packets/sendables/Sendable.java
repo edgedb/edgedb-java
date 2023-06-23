@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.packets.sendables;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.binary.packets.ClientMessageType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -19,7 +20,7 @@ public abstract class Sendable implements SerializableData {
     protected abstract void buildPacket(final PacketWriter writer) throws OperationNotSupportedException;
 
     @Override
-    public void write(final PacketWriter writer) throws OperationNotSupportedException {
+    public void write(final @NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.write(type.getCode());
         writer.write(getDataSize() + 4);
         buildPacket(writer);

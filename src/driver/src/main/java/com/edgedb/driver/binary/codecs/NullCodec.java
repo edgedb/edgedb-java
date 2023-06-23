@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -10,7 +11,7 @@ import java.util.Map;
 
 public final class NullCodec implements Codec<Void>, ArgumentCodec<Void> {
     @Override
-    public void serialize(PacketWriter writer, @Nullable Void value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Void value, CodecContext context) throws OperationNotSupportedException {
         writer.write(0);
     }
 
@@ -21,7 +22,7 @@ public final class NullCodec implements Codec<Void>, ArgumentCodec<Void> {
     }
 
     @Override
-    public Class<Void> getConvertingClass() {
+    public @NotNull Class<Void> getConvertingClass() {
         return Void.class;
     }
 

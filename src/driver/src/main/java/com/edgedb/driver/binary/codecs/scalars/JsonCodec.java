@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -18,7 +19,7 @@ public class JsonCodec extends ScalarCodecBase<Json> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable Json value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Json value, CodecContext context) throws OperationNotSupportedException {
         var data = (value != null ? value.getValue() : "").getBytes(StandardCharsets.UTF_8);
 
         writer.write(JSON_FORMAT);
@@ -26,7 +27,7 @@ public class JsonCodec extends ScalarCodecBase<Json> {
     }
 
     @Override
-    public @Nullable Json deserialize(PacketReader reader, CodecContext context) {
+    public @Nullable Json deserialize(@NotNull PacketReader reader, CodecContext context) {
         reader.skip(BinaryProtocolUtils.BYTE_SIZE);
 
         var data = reader.consumeByteArray();

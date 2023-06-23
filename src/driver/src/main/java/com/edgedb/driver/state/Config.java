@@ -1,5 +1,6 @@
 package com.edgedb.driver.state;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
@@ -19,7 +20,7 @@ public final class Config {
      * Gets a new builder used to build a {@linkplain Config}.
      * @return A new builder instance.
      */
-    public static Builder builder() {
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
@@ -111,7 +112,7 @@ public final class Config {
      * Serializes this config object to a sparse map.
      * @return A map containing the field values, if present.
      */
-    public Map<String, Object> serialize() {
+    public @NotNull Map<String, Object> serialize() {
         return new HashMap<>(){{
             if(idleTransactionTimeout != null) {
                 put("session_idle_transaction_timeout", idleTransactionTimeout);
@@ -150,7 +151,7 @@ public final class Config {
          * @param idleTransactionTimeout The new value.
          * @return The current builder.
          */
-        public Builder withIdleTransactionTimeout(@Nullable Duration idleTransactionTimeout) {
+        public @NotNull Builder withIdleTransactionTimeout(@Nullable Duration idleTransactionTimeout) {
             this.idleTransactionTimeout = idleTransactionTimeout;
             return this;
         }
@@ -160,7 +161,7 @@ public final class Config {
          * @param queryExecutionTimeout The new value.
          * @return The current builder.
          */
-        public Builder withQueryExecutionTimeout(@Nullable Duration queryExecutionTimeout) {
+        public @NotNull Builder withQueryExecutionTimeout(@Nullable Duration queryExecutionTimeout) {
             this.queryExecutionTimeout = queryExecutionTimeout;
             return this;
         }
@@ -170,7 +171,7 @@ public final class Config {
          * @param allowDMLInFunctions The new value.
          * @return The current builder.
          */
-        public Builder allowDMLInFunctions(@Nullable Boolean allowDMLInFunctions) {
+        public @NotNull Builder allowDMLInFunctions(@Nullable Boolean allowDMLInFunctions) {
             this.allowDMLInFunctions = allowDMLInFunctions;
             return this;
         }
@@ -180,7 +181,7 @@ public final class Config {
          * @param allowBareDDL The new value.
          * @return The current builder.
          */
-        public Builder allowBareDDL(@Nullable Boolean allowBareDDL) {
+        public @NotNull Builder allowBareDDL(@Nullable Boolean allowBareDDL) {
             this.allowBareDDL = allowBareDDL;
             return this;
         }
@@ -190,7 +191,7 @@ public final class Config {
          * @param applyAccessPolicies The new value.
          * @return The current builder.
          */
-        public Builder applyAccessPolicies(@Nullable Boolean applyAccessPolicies) {
+        public @NotNull Builder applyAccessPolicies(@Nullable Boolean applyAccessPolicies) {
             this.applyAccessPolicies = applyAccessPolicies;
             return this;
         }
@@ -199,7 +200,7 @@ public final class Config {
          * Constructs a new {@linkplain Config} from this builder.
          * @return A {@linkplain Config} with the values specified in this builder.
          */
-        public Config build() {
+        public @NotNull Config build() {
             return new Config(idleTransactionTimeout, queryExecutionTimeout, allowDMLInFunctions, allowBareDDL, applyAccessPolicies);
         }
     }

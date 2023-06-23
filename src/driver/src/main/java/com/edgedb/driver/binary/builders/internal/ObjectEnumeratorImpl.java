@@ -6,6 +6,7 @@ import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -15,14 +16,14 @@ import java.util.Map;
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public final class ObjectEnumeratorImpl implements ObjectEnumerator {
-    private final PacketReader reader;
+    private final @NotNull PacketReader reader;
     private final CodecContext context;
     private final ObjectCodec codec;
 
     private final int numElements;
     private int position;
 
-    public ObjectEnumeratorImpl(PacketReader reader, ObjectCodec codec, CodecContext context) {
+    public ObjectEnumeratorImpl(@NotNull PacketReader reader, ObjectCodec codec, CodecContext context) {
         this.reader = reader;
         this.context = context;
         this.codec = codec;
@@ -68,7 +69,7 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
     }
 
     @Override
-    public Map<String, Object> flatten() throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Map<String, Object> flatten() throws EdgeDBException, OperationNotSupportedException {
         return new HashMap<>() {
             {
                 ObjectEnumerator.ObjectElement element;

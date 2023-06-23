@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -12,9 +13,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ComplexCodecBase<T> extends CodecBase<T> implements ComplexCodec<T> {
-    private final Map<Class<?>, Codec<?>> runtimeCodecs;
-    private final Map<Class<?>, ComplexCodecConverter<T, ?>> converters;
-    protected final RuntimeCodecFactory runtimeFactory;
+    private final @NotNull Map<Class<?>, Codec<?>> runtimeCodecs;
+    private final @NotNull Map<Class<?>, ComplexCodecConverter<T, ?>> converters;
+    protected final @NotNull RuntimeCodecFactory runtimeFactory;
 
     @SafeVarargs
     public ComplexCodecBase(Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
@@ -23,7 +24,7 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @SafeVarargs
-    public ComplexCodecBase(Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?>... converters) {
+    public ComplexCodecBase(Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?> @NotNull ... converters) {
         super(cls);
 
         this.runtimeFactory = runtimeFactory == null
@@ -36,18 +37,18 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
 
     @Override
     public void buildRuntimeCodecs() {
-        if(converters == null || runtimeCodecs.size() == converters.size()) {
+        if(runtimeCodecs.size() == converters.size()) {
             return;
         }
 
         for(var converter : this.converters.entrySet()) {
-            var codec = runtimeFactory.create(converter.getKey(), this, converter.getValue()); // TODO: cache instance
+            var codec = runtimeFactory.create(converter.getKey(), this, converter.getValue());
             runtimeCodecs.put(converter.getKey(), codec);
         }
     }
 
     @Override
-    public Codec<?> getCodecFor(Class<?> type) {
+    public Codec<?> getCodecFor(@NotNull Class<?> type) {
         if(super.canConvert(type)) {
             return this;
         }
@@ -64,12 +65,12 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
     }
 
     @Override
-    public boolean canConvert(Type type) {
+    public boolean canConvert(@NotNull Type type) {
         return super.canConvert(type) || (type instanceof Class<?> && runtimeCodecs.containsKey((Class<?>)type));
     }
 
     @Override
-    public Collection<Codec<?>> getRuntimeCodecs() {
+    public @NotNull Collection<Codec<?>> getRuntimeCodecs() {
         return runtimeCodecs.values();
     }
 

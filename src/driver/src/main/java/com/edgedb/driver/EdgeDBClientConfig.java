@@ -8,8 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 public class EdgeDBClientConfig {
-    public static EdgeDBClientConfig DEFAULT = new EdgeDBClientConfig();
-    public static Builder builder() {
+    public static final @NotNull EdgeDBClientConfig DEFAULT = new EdgeDBClientConfig();
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
@@ -197,7 +197,7 @@ public class EdgeDBClientConfig {
          * @return The current builder.
          * @exception IllegalArgumentException The pool size must be greater than 0
          */
-        public Builder withPoolSize(int poolSize) {
+        public @NotNull Builder withPoolSize(int poolSize) {
             if(poolSize <= 0) {
                 throw new IllegalArgumentException("Pool size must be at least 1");
             }
@@ -212,7 +212,7 @@ public class EdgeDBClientConfig {
          * @param retryMode The value to set.
          * @return The current builder.
          */
-        public Builder withRetryMode(@NotNull ConnectionRetryMode retryMode) {
+        public @NotNull Builder withRetryMode(@NotNull ConnectionRetryMode retryMode) {
             this.retryMode = retryMode;
             return this;
         }
@@ -222,7 +222,7 @@ public class EdgeDBClientConfig {
          * @param maxConnectionRetries The value to set.
          * @return The current builder.
          */
-        public Builder withMaxConnectionRetries(int maxConnectionRetries) {
+        public @NotNull Builder withMaxConnectionRetries(int maxConnectionRetries) {
             this.maxConnectionRetries = maxConnectionRetries;
             return this;
         }
@@ -233,7 +233,7 @@ public class EdgeDBClientConfig {
          * @param unit The unit of the value.
          * @return The current builder.
          */
-        public Builder withConnectionTimeout(long connectionTimeout, TimeUnit unit) {
+        public @NotNull Builder withConnectionTimeout(long connectionTimeout, TimeUnit unit) {
             this.connectionTimeout = connectionTimeout;
             this.connectionTimeoutUnit = unit;
             return this;
@@ -245,7 +245,7 @@ public class EdgeDBClientConfig {
          * @param unit The unit of the value.
          * @return The current builder.
          */
-        public Builder withMessageTimeout(long messageTimeout, TimeUnit unit) {
+        public @NotNull Builder withMessageTimeout(long messageTimeout, TimeUnit unit) {
             this.messageTimeout = messageTimeout;
             this.messageTimeoutUnit = unit;
             return this;
@@ -257,7 +257,7 @@ public class EdgeDBClientConfig {
          * @param explicitObjectIds The value to set.
          * @return The current builder.
          */
-        public Builder withExplicitObjectIds(boolean explicitObjectIds) {
+        public @NotNull Builder withExplicitObjectIds(boolean explicitObjectIds) {
             this.explicitObjectIds = explicitObjectIds;
             return this;
         }
@@ -267,7 +267,7 @@ public class EdgeDBClientConfig {
          * @param implicitLimit The value to set.
          * @return The current builder.
          */
-        public Builder withImplicitLimit(long implicitLimit) {
+        public @NotNull Builder withImplicitLimit(long implicitLimit) {
             this.implicitLimit = implicitLimit;
             return this;
         }
@@ -277,7 +277,7 @@ public class EdgeDBClientConfig {
          * @param implicitTypeIds The value to set.
          * @return The current builder.
          */
-        public Builder withImplicitTypeIds(boolean implicitTypeIds) {
+        public @NotNull Builder withImplicitTypeIds(boolean implicitTypeIds) {
             this.implicitTypeIds = implicitTypeIds;
             return this;
         }
@@ -292,7 +292,7 @@ public class EdgeDBClientConfig {
          * @see NamingStrategy#pascalCase()
          * @see NamingStrategy#defaultStrategy()
          */
-        public Builder withNamingStrategy(NamingStrategy namingStrategy) {
+        public @NotNull Builder withNamingStrategy(NamingStrategy namingStrategy) {
             this.namingStrategy = namingStrategy;
             return this;
         }
@@ -302,7 +302,7 @@ public class EdgeDBClientConfig {
          * @param useFieldSetters The value to set.
          * @return The current builder.
          */
-        public Builder useFieldSetters(boolean useFieldSetters) {
+        public @NotNull Builder useFieldSetters(boolean useFieldSetters) {
             this.useFieldSetters = useFieldSetters;
             return this;
         }
@@ -313,7 +313,7 @@ public class EdgeDBClientConfig {
          * @return The current builder.
          * @see ClientType
          */
-        public Builder withClientType(@NotNull ClientType clientType) {
+        public @NotNull Builder withClientType(@NotNull ClientType clientType) {
             this.clientType = clientType;
             return this;
         }
@@ -325,7 +325,7 @@ public class EdgeDBClientConfig {
          * @return The current builder.
          * @exception IllegalArgumentException Value must be greater than zero.
          */
-        public Builder withClientAvailability(int clientAvailability) {
+        public @NotNull Builder withClientAvailability(int clientAvailability) {
             if(clientAvailability < 0) {
                 throw new IllegalArgumentException("Client availability must be greater than 0");
             }
@@ -339,7 +339,7 @@ public class EdgeDBClientConfig {
          * @param clientMaxAge The value to set.
          * @return The current builder.
          */
-        public Builder withClientMaxAge(@NotNull Duration clientMaxAge) {
+        public @NotNull Builder withClientMaxAge(@NotNull Duration clientMaxAge) {
             this.clientMaxAge = clientMaxAge;
             return this;
         }
@@ -348,7 +348,7 @@ public class EdgeDBClientConfig {
          * Constructs a {@linkplain EdgeDBClientConfig} from the current builder.
          * @return A {@linkplain EdgeDBClientConfig} that represents the current builder.
          */
-        public EdgeDBClientConfig build() {
+        public @NotNull EdgeDBClientConfig build() {
             EdgeDBClientConfig edgeDBClientConfig = new EdgeDBClientConfig();
             edgeDBClientConfig.clientType = this.clientType;
             edgeDBClientConfig.connectionTimeoutUnit = this.connectionTimeoutUnit;

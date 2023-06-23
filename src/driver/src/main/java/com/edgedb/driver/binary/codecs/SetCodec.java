@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -29,7 +30,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     }
 
     @Override
-    public @Nullable Collection<T> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Collection<T> deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         return deserializeSet(
                 reader,
                 context,
@@ -40,7 +41,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     }
 
     @SuppressWarnings("unchecked")
-    private Collection<T> deserializeSet(PacketReader reader, CodecContext context, SetElementDeserializer<T> elementDeserializer) throws EdgeDBException, OperationNotSupportedException {
+    private @NotNull Collection<T> deserializeSet(@NotNull PacketReader reader, CodecContext context, @NotNull SetElementDeserializer<T> elementDeserializer) throws EdgeDBException, OperationNotSupportedException {
         var dimensions = reader.readInt32();
 
         reader.skip(LONG_SIZE); // flags & reserved
@@ -67,7 +68,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
         return Arrays.asList(result);
     }
 
-    private @Nullable T deserializeEnvelopeElement(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    private @Nullable T deserializeEnvelopeElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         reader.skip(INT_SIZE);
 
         var envelopeElements = reader.readInt32();
@@ -81,7 +82,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
         return innerCodec.deserialize(reader, context);
     }
 
-    private @Nullable T deserializeSetElement(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    private @Nullable T deserializeSetElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var data = reader.readByteArray();
 
         if(data == null) {

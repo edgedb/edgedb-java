@@ -30,7 +30,7 @@ public final class RelativeDuration implements Comparable<RelativeDuration> {
      * Constructs a new {@linkplain RelativeDuration}.
      * @param period The period which to convert to a {@linkplain RelativeDuration}.
      */
-    public RelativeDuration(Period period) {
+    public RelativeDuration(@NotNull Period period) {
         this((int)period.toTotalMonths(), period.getDays(), 0);
     }
 
@@ -38,7 +38,7 @@ public final class RelativeDuration implements Comparable<RelativeDuration> {
      * Constructs a new {@linkplain RelativeDuration}.
      * @param duration The duration which to convert to a {@linkplain RelativeDuration}.
      */
-    public RelativeDuration(Duration duration) {
+    public RelativeDuration(@NotNull Duration duration) {
         this(0, 0, Math.round(duration.toNanos() / 1000d));
     }
 

@@ -60,6 +60,6 @@ class LinkProperties : Example {
                 """.trimIndent()
         ).await()
 
-        logger.info("Person with links: {}", result);
+        logger.info("Person with links: {}", result)
     }
 }
