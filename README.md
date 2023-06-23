@@ -20,13 +20,13 @@ The Java binding is distrubuted via maven central:
 
 #### Gradle
 ```groovy
-implementation 'org.edgedb:edgedb:0.1.0'
+implementation 'com.edgedb:edgedb:0.1.0'
 ```
 
 #### Maven
 ```xml
 <dependency>
-  <groupId>org.edgedb</groupId>
+  <groupId>com.edgedb</groupId>
   <artifactId>edgedb</artifactId>
   <version>0.1.0</version>
 </dependency>
