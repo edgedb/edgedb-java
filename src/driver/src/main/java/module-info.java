@@ -18,6 +18,7 @@ module com.edgedb.driver {
     requires io.netty.handler;
     requires org.jooq.joou;
     requires org.reflections;
+    requires java.net.http;
 
     opens com.edgedb.driver;
 }

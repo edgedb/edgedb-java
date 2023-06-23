@@ -42,7 +42,6 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
         this.duplexer = new ChannelDuplexer(this);
-        setDuplexer(this.duplexer);
 
         this.bootstrap = new Bootstrap()
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -79,6 +78,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                     }
                 });
     }
+
+    @Override
+    protected @NotNull ChannelDuplexer getDuplexer() {
+        return this.duplexer;
+    }
+
     @Override
     protected void setTransactionState(TransactionState state) {
         this.transactionState = state;

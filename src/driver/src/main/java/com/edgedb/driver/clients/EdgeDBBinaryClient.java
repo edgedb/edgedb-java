@@ -55,8 +55,6 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private UUID stateDescriptorId;
 
     private short connectionAttempts;
-
-    protected Duplexer duplexer;
     private boolean isIdle;
     private final @NotNull Semaphore connectionSemaphore;
     private final @NotNull Semaphore querySemaphore;
@@ -70,6 +68,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.readyPromise = new CompletableFuture<>();
         this.stateDescriptorId = CodecBuilder.INVALID_CODEC_ID;
     }
+
+    protected abstract Duplexer getDuplexer();
 
     @Override
     public @NotNull Optional<Long> getSuggestedPoolConcurrency() {
@@ -86,10 +86,6 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     protected void setIsIdle(boolean value) {
         isIdle = value;
-    }
-
-    protected void setDuplexer(Duplexer duplexer) {
-        this.duplexer = duplexer;
     }
 
     private CompletionStage<Void> parse(@NotNull ExecutionArguments args) {
@@ -110,7 +106,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
         logger.debug("Starting to parse... attempt {}/{}", args.parseAttempts + 1, MAX_PARSE_ATTEMPTS);
 
-        return duplexer.duplexAndSync(args.toParsePacket(), (result) -> {
+        return getDuplexer().duplexAndSync(args.toParsePacket(), (result) -> {
             logger.trace("parse duplex result: {}", result.packet.getMessageType());
             switch (result.packet.getMessageType()) {
                 case ERROR_RESPONSE:
@@ -206,7 +202,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
 
         try {
-            return duplexer.duplexAndSync(args.toExecutePacket(), (result) -> {
+            return getDuplexer().duplexAndSync(args.toExecutePacket(), (result) -> {
                 switch (result.packet.getMessageType()) {
                     case DATA:
                         var data = result.packet.as(Data.class);
@@ -285,10 +281,6 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         stateDescriptor.typeDescriptorBuffer,
                         Map.class
                 );
-
-                if(codec == null) {
-                    throw new MissingCodecException("Failed to build state codec");
-                }
             } catch (EdgeDBException | OperationNotSupportedException e) {
                 result.finishExceptionally("Failed to parse state codec", e, EdgeDBException::new);
             }
@@ -308,8 +300,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     public final CompletionStage<Void> executeQuery(
             @NotNull ExecutionArguments args
     ) {
-        logger.debug("Execute request: is connected? {}", duplexer.isConnected());
-        if(!duplexer.isConnected()) {
+        logger.debug("Execute request: is connected? {}", getDuplexer().isConnected());
+        if(!getDuplexer().isConnected()) {
             // TODO: check for recursion
             return reconnect()
                     .thenCompose(v -> executeQuery(args));
@@ -798,7 +790,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         AtomicReference<byte[]> signature = new AtomicReference<>(new byte[0]);
 
         try{
-            return this.duplexer.duplex(initialMessage, (state) -> {
+            return getDuplexer().duplex(initialMessage, (state) -> {
                 logger.debug("Authentication duplex: M:{}", state.packet.getMessageType());
                 try {
                     switch (state.packet.getMessageType()) {
@@ -811,7 +803,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                                 case AUTHENTICATION_SASL_CONTINUE:
                                     var result = scram.buildFinalMessage(auth, connection.getPassword());
                                     signature.set(result.signature);
-                                    return this.duplexer.send(result.buildPacket());
+                                    return getDuplexer().send(result.buildPacket());
                                 case AUTHENTICATION_SASL_FINAL:
                                     var key = Scram.parseServerFinalMessage(auth);
 
@@ -883,7 +875,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     private CompletionStage<Void> doClientHandshake() {
-        return this.duplexer.readNext()
+        return getDuplexer().readNext()
                 .thenCompose(packet -> {
                     logger.debug("Processing handshake step with packet: {}", packet == null ? "NULL" : packet.getMessageType());
 
@@ -905,15 +897,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public CompletionStage<Void> disconnect() {
-        return this.duplexer.disconnect();
+        return getDuplexer().disconnect();
     }
 
     private CompletionStage<Void> connectInternal() {
-        if(this.duplexer.isConnected()) {
+        if(getDuplexer().isConnected()) {
             return CompletableFuture.completedFuture(null);
         }
 
-        this.duplexer.reset();
+        getDuplexer().reset();
 
         return retryableConnect()
                 .thenApply(v -> getConnectionArguments())
@@ -926,7 +918,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         },
                         new ProtocolExtension[0]
                 ))
-                .thenCompose(this.duplexer::send);
+                .thenCompose(getDuplexer()::send);
     }
 
     private CompletionStage<Void> retryableConnect() {
@@ -966,7 +958,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     @Override
     public boolean isConnected() {
-        return this.duplexer.isConnected();
+        return getDuplexer().isConnected();
     }
 
     public final class ExecutionArguments {
