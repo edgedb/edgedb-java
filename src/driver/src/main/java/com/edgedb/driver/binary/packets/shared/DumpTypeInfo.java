@@ -1,15 +1,16 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.PacketReader;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class DumpTypeInfo {
-    public final String name;
-    public final String className;
-    public final UUID id;
+    public final @NotNull String name;
+    public final @NotNull String className;
+    public final @NotNull UUID id;
 
-    public DumpTypeInfo(PacketReader reader) {
+    public DumpTypeInfo(@NotNull PacketReader reader) {
         name = reader.readString();
         className = reader.readString();
         id = reader.readUUID();

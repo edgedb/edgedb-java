@@ -25,7 +25,7 @@ import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public class PacketSerializer {
     private static final Logger logger = LoggerFactory.getLogger(PacketSerializer.class);
-    private static final Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
+    private static final @NotNull Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
     private static final Map<Class<?>, Map<Number, Enum<?>>> binaryEnumMap = new HashMap<>();
 
     static {
@@ -47,11 +47,11 @@ public class PacketSerializer {
         deserializerMap.put(ServerMessageType.STATE_DATA_DESCRIPTION, StateDataDescription::new);
     }
 
-    public static <T extends Enum<?> & BinaryEnum<U>, U extends Number> void registerBinaryEnum(Class<T> cls, T[] values) {
+    public static <T extends Enum<?> & BinaryEnum<U>, U extends Number> void registerBinaryEnum(Class<T> cls, T @NotNull [] values) {
         binaryEnumMap.put(cls, Arrays.stream(values).collect(Collectors.toMap(BinaryEnum::getValue, v -> v)));
     }
 
-    public static <T extends Enum<T> & BinaryEnum<U>, U extends Number> T getEnumValue(Class<T> enumCls, U raw) {
+    public static <T extends Enum<T> & BinaryEnum<U>, U extends Number> T getEnumValue(@NotNull Class<T> enumCls, U raw) {
         if(!binaryEnumMap.containsKey(enumCls)) {
             registerBinaryEnum(enumCls, enumCls.getEnumConstants());
         }
@@ -60,35 +60,28 @@ public class PacketSerializer {
         return (T)binaryEnumMap.get(enumCls).get(raw);
     }
 
-    public static MessageToMessageDecoder<ByteBuf> createDecoder() {
-        return new MessageToMessageDecoder<ByteBuf>() {
+    public static @NotNull MessageToMessageDecoder<ByteBuf> createDecoder() {
+        return new MessageToMessageDecoder<>() {
             private final Map<Channel, PacketContract> contracts = new HashMap<>();
 
             @Override
-            protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-                // TODO: packet contract should be implemented if the 'msg' is partial due to async IO.
-                // packet contracts act as pub-sub in the sense that theres a queue of buffers, successfully
-                // read packets, and completion sources for said packets. consumers pop out either A: a completed
-                // packet contract; B: a packet contract which is partial and awaiting more data from IO; or C:
-                // a completion stage that represents a unfulfilled contract that is completed on the next read.
-
-                while(msg.readableBytes() > 5)
-                {
+            protected void decode(@NotNull ChannelHandlerContext ctx, @NotNull ByteBuf msg, @NotNull List<Object> out) throws Exception {
+                while (msg.readableBytes() > 5) {
                     var type = ServerMessageType.valueOf(msg.readByte());
                     var length = msg.readUnsignedInt() - 4; // remove length of self.
 
                     // can we read this packet?
-                    if(msg.readableBytes() >= length) {
-                        var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int)length));
+                    if (msg.readableBytes() >= length) {
+                        var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int) length));
                         logger.debug("S->C: T:{}", type);
                         out.add(packet);
                         continue;
                     }
 
-                    if(contracts.containsKey(ctx.channel())) {
+                    if (contracts.containsKey(ctx.channel())) {
                         var contract = contracts.get(ctx.channel());
 
-                        if(contract.tryComplete(msg)) {
+                        if (contract.tryComplete(msg)) {
                             out.add(contract.getPacket());
                         }
 
@@ -98,11 +91,11 @@ public class PacketSerializer {
                     }
                 }
 
-                if(msg.readableBytes() > 0){
-                    if(contracts.containsKey(ctx.channel())) {
+                if (msg.readableBytes() > 0) {
+                    if (contracts.containsKey(ctx.channel())) {
                         var contract = contracts.get(ctx.channel());
 
-                        if(contract.tryComplete(msg)) {
+                        if (contract.tryComplete(msg)) {
                             out.add(contract.getPacket());
                         }
                     } else {
@@ -128,18 +121,18 @@ public class PacketSerializer {
                     this.messageType = messageType;
                 }
 
-                public boolean tryComplete(ByteBuf other) {
-                    if(messageType == null) {
+                public boolean tryComplete(@NotNull ByteBuf other) {
+                    if (messageType == null) {
                         messageType = pick(other, b -> ServerMessageType.valueOf(b.readByte()), BYTE_SIZE);
                     }
 
-                    if(length == null) {
+                    if (length == null) {
                         length = pick(other, b -> b.readUnsignedInt() - 4, INT_SIZE);
                     }
 
                     data = Unpooled.wrappedBuffer(data, other);
 
-                    if(data.readableBytes() >= length) {
+                    if (data.readableBytes() >= length) {
                         // read
                         packet = PacketSerializer.deserialize(messageType, length, data);
                         return true;
@@ -148,10 +141,10 @@ public class PacketSerializer {
                     return false;
                 }
 
-                private <T> T pick(ByteBuf other, Function<ByteBuf, T> map, long sz) {
-                    if(data.readableBytes() > sz) {
+                private <T> T pick(@NotNull ByteBuf other, @NotNull Function<ByteBuf, T> map, long sz) {
+                    if (data.readableBytes() > sz) {
                         return map.apply(data);
-                    } else if(other.readableBytes() < sz) {
+                    } else if (other.readableBytes() < sz) {
                         throw new IndexOutOfBoundsException();
                     }
 
@@ -159,7 +152,7 @@ public class PacketSerializer {
                 }
 
                 public @NotNull Receivable getPacket() throws OperationNotSupportedException {
-                    if(packet == null) {
+                    if (packet == null) {
                         throw new OperationNotSupportedException("Packet contract was incomplete");
                     }
 
@@ -169,13 +162,13 @@ public class PacketSerializer {
         };
     }
 
-    public static MessageToMessageEncoder<Sendable> createEncoder() {
-        return new MessageToMessageEncoder<Sendable>() {
+    public static @NotNull MessageToMessageEncoder<Sendable> createEncoder() {
+        return new MessageToMessageEncoder<>() {
 
             @Override
-            protected void encode(ChannelHandlerContext ctx, Sendable msg, List<Object> out) throws Exception {
+            protected void encode(@NotNull ChannelHandlerContext ctx, @NotNull Sendable msg, @NotNull List<Object> out) {
 
-                try{
+                try {
                     var data = PacketSerializer.serialize(msg);
 
                     data.readerIndex(0);
@@ -183,16 +176,16 @@ public class PacketSerializer {
                     logger.debug("C->S: T:{} D:{}", msg.type, HexUtils.bufferToHexString(data));
 
                     out.add(data);
-                }
-                catch (Throwable x) {
+                } catch (Throwable x) {
                     logger.error("Failed to serialize packet", x);
-                    // TODO: close the client
+                    ctx.fireExceptionCaught(x);
+                    ctx.fireUserEventTriggered("DISCONNECT");
                 }
             }
         };
     }
 
-    public static Receivable deserialize(ServerMessageType messageType, long length, ByteBuf buffer) {
+    public static @Nullable Receivable deserialize(ServerMessageType messageType, long length, @NotNull ByteBuf buffer) {
         var reader = new PacketReader(buffer);
 
         if(!deserializerMap.containsKey(messageType)) {
@@ -216,7 +209,7 @@ public class PacketSerializer {
         }
     }
 
-    public static ByteBuf serialize(@NotNull Sendable packet, @Nullable Sendable... packets) throws OperationNotSupportedException {
+    public static ByteBuf serialize(@NotNull Sendable packet, @Nullable Sendable @Nullable ... packets) throws OperationNotSupportedException {
         int size = packet.getSize();
 
         if(packets != null && packets.length > 0) {

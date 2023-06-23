@@ -3,6 +3,7 @@ package com.edgedb.driver.util;
 import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.TLSSecurityMode;
 import io.netty.handler.ssl.SslContextBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -18,7 +19,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class SslUtils {
-    public static void applyTrustManager(EdgeDBConnection connection, SslContextBuilder builder) throws GeneralSecurityException, IOException {
+    public static void applyTrustManager(@NotNull EdgeDBConnection connection, @NotNull SslContextBuilder builder) throws GeneralSecurityException, IOException {
         if(connection.getTLSSecurity() == TLSSecurityMode.INSECURE) {
             builder.trustManager(new X509TrustManager() {
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -37,7 +38,7 @@ public class SslUtils {
         }
     }
 
-    private static TrustManagerFactory getTrustManagerFactory(EdgeDBConnection connection) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
+    private static @NotNull TrustManagerFactory getTrustManagerFactory(@NotNull EdgeDBConnection connection) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
         var authority = connection.getTLSCertificateAuthority();
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

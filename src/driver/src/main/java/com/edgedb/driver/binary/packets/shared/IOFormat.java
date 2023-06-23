@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum IOFormat implements BinaryEnum<Byte> {
     BINARY        (0x62),
@@ -15,7 +16,7 @@ public enum IOFormat implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return this.value;
     }
 }

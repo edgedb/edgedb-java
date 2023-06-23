@@ -3,8 +3,6 @@ package com.edgedb.driver.binary.packets.sendables;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 
-import javax.naming.OperationNotSupportedException;
-
 public class Sync extends Sendable {
     public Sync() {
         super(ClientMessageType.SYNC);
@@ -16,5 +14,5 @@ public class Sync extends Sendable {
     }
 
     @Override
-    protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException { /* no data */ }
+    protected void buildPacket(PacketWriter writer) { /* no data */ }
 }

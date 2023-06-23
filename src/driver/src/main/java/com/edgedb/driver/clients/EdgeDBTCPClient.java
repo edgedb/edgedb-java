@@ -31,16 +31,11 @@ import java.util.concurrent.CompletionStage;
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
-    // placeholders
-    private static final long WRITE_TIMEOUT = 5000;
-    private static final long READ_TIMEOUT = 5000;
-    private static final long CONNECTION_TIMEOUT = 5000;
-
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
     private static final NioEventLoopGroup NETTY_TCP_GROUP = new NioEventLoopGroup();
     private static final EventExecutorGroup DUPLEXER_GROUP = new DefaultEventExecutorGroup(8);
 
-    private final ChannelDuplexer duplexer;
+    private final @NotNull ChannelDuplexer duplexer;
     private final Bootstrap bootstrap;
     private TransactionState transactionState;
 
@@ -129,8 +124,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     }
 
     @Override
-    public CompletionStage<Void> startTransaction(TransactionIsolation isolation, boolean readonly, boolean deferrable) {
-        assert isolation != null;
+    public CompletionStage<Void> startTransaction(@NotNull TransactionIsolation isolation, boolean readonly, boolean deferrable) {
 
         String query = "start transaction isolation " +
                 isolation +

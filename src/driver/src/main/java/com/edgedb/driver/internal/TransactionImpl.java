@@ -29,7 +29,7 @@ public final class TransactionImpl implements Transaction {
     private final TransactableClient client;
     private final TransactionSettings settings;
 
-    private final Semaphore semaphore;
+    private final @NotNull Semaphore semaphore;
 
     public TransactionImpl(TransactableClient client, TransactionSettings settings) {
         this.client = client;
@@ -37,7 +37,7 @@ public final class TransactionImpl implements Transaction {
         this.semaphore = new Semaphore(1);
     }
 
-    public <T> CompletionStage<T> run(Function<com.edgedb.driver.Transaction, CompletionStage<T>> func) {
+    public <T> CompletionStage<T> run(@NotNull Function<com.edgedb.driver.Transaction, CompletionStage<T>> func) {
         return start()
                 .thenCompose((v) -> func.apply(this)
                         .thenApply((u) -> (CompletionStage<T>) CompletableFuture.completedFuture(u))
@@ -73,8 +73,8 @@ public final class TransactionImpl implements Transaction {
             String query,
             @Nullable Map<String, Object> args,
             EnumSet<Capabilities> capabilities,
-            AtomicInteger attempts,
-            QueryDelegate<T, U> delegate
+            @NotNull AtomicInteger attempts,
+            @NotNull QueryDelegate<T, U> delegate
     ) {
         return CompletableFuture.completedFuture(null)
                 .thenCompose((v) ->
@@ -100,7 +100,7 @@ public final class TransactionImpl implements Transaction {
             String query,
             @Nullable Map<String, Object> args,
             EnumSet<Capabilities> capabilities,
-            QueryDelegate<T, U> delegate
+            @NotNull QueryDelegate<T, U> delegate
     ) {
         final AtomicInteger attempts = new AtomicInteger();
 

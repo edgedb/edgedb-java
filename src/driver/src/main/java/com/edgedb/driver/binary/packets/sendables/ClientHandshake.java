@@ -5,11 +5,10 @@ import com.edgedb.driver.binary.packets.shared.ConnectionParam;
 import com.edgedb.driver.binary.packets.shared.ProtocolExtension;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 import org.joou.UShort;
 
 import javax.naming.OperationNotSupportedException;
-
-import static com.edgedb.driver.util.BinaryProtocolUtils.sizeOf;
 
 public class ClientHandshake extends Sendable {
     private final UShort majorVersion;
@@ -31,7 +30,7 @@ public class ClientHandshake extends Sendable {
     }
 
     @Override
-    protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
+    protected void buildPacket(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.write(this.majorVersion);
         writer.write(this.minorVersion);
         writer.writeArray(this.connectionParams, Short.TYPE);

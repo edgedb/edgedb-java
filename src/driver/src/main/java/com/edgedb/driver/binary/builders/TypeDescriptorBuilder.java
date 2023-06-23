@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.builders;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.descriptors.*;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +14,7 @@ import static org.joou.Unsigned.ubyte;
 
 public final class TypeDescriptorBuilder {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private static final Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
+    private static final @NotNull Map<DescriptorType, BiFunction<UUID, PacketReader, ? extends TypeDescriptor>> typeDescriptorFactories;
 
     static {
         typeDescriptorFactories = new HashMap<>() {
@@ -33,7 +34,7 @@ public final class TypeDescriptorBuilder {
         };
     }
 
-    public static TypeDescriptorResult getDescriptor(final PacketReader reader) throws EdgeDBException {
+    public static @NotNull TypeDescriptorResult getDescriptor(final @NotNull PacketReader reader) throws EdgeDBException {
         var type = reader.readEnum(DescriptorType.class, Byte.TYPE);
         var id = reader.readUUID();
 

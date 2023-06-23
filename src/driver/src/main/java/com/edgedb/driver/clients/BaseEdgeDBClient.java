@@ -15,13 +15,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
-    private final AsyncEvent<BaseEdgeDBClient> onReady;
-    private boolean isConnected = false;
+    private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
     private final AutoCloseable poolHandle;
 
-    // TODO: remove when 'clients' are no longer exposed
     protected Session session;
 
     public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
@@ -40,16 +38,9 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
         return this.onReady.dispatch(this);
     }
 
-    public abstract Map<String, Object> getServerConfig();
-
     public abstract Optional<Long> getSuggestedPoolConcurrency();
 
-    void setIsConnected(boolean isConnected) {
-        this.isConnected = isConnected;
-    }
-    public boolean isConnected() {
-        return isConnected;
-    }
+    public abstract boolean isConnected();
 
     public EdgeDBConnection getConnectionArguments() {
         return this.connection;
@@ -59,37 +50,37 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     }
 
     @Override
-    public BaseEdgeDBClient withSession(@NotNull Session session) {
+    public @NotNull BaseEdgeDBClient withSession(@NotNull Session session) {
         this.session = session;
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
+    public @NotNull BaseEdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
         this.session = this.session.withModuleAliases(aliases);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withConfig(@NotNull Config config) {
+    public @NotNull BaseEdgeDBClient withConfig(@NotNull Config config) {
         this.session = this.session.withConfig(config);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
+    public @NotNull BaseEdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
         this.session = this.session.withConfig(func);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
+    public @NotNull BaseEdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
         this.session = this.session.withGlobals(globals);
         return this;
     }
 
     @Override
-    public BaseEdgeDBClient withModule(@NotNull String module) {
+    public @NotNull BaseEdgeDBClient withModule(@NotNull String module) {
         this.session = this.session.withModule(module);
         return this;
     }

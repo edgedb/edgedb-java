@@ -1,8 +1,10 @@
 package com.edgedb.driver.util;
 
+import org.jetbrains.annotations.NotNull;
+
 public final class FastInverseIndexer {
     private final int length;
-    private final byte[] buffer;
+    private final byte @NotNull [] buffer;
     private int trackedLength;
 
     public FastInverseIndexer(int count) {

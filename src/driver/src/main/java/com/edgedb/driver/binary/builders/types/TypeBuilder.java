@@ -8,15 +8,17 @@ import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.datatypes.internal.TupleImpl;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class TypeBuilder {
-    private static final ConcurrentMap<Class<?>, TypeDeserializerInfo<?>> deserializerInfo;
+    private static final @NotNull ConcurrentMap<Class<?>, TypeDeserializerInfo<?>> deserializerInfo;
 
 
     static {
@@ -28,7 +30,7 @@ public final class TypeBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T buildObject(EdgeDBBinaryClient client, Class<T> type, ObjectCodec codec, Data data) throws OperationNotSupportedException, EdgeDBException {
+    public static <T> @Nullable T buildObject(@NotNull EdgeDBBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull Data data) throws OperationNotSupportedException, EdgeDBException {
         var info = getDeserializerInfo(type);
 
         if(info == null) {
@@ -40,33 +42,32 @@ public final class TypeBuilder {
         }
 
 
-        return (T) Codec.deserializeFromBuffer(codec, data.payloadBuffer, client.getCodecContext());
+        return (T) Codec.deserializeFromBuffer(codec, Objects.requireNonNull(data.payloadBuffer), client.getCodecContext());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable TypeDeserializerInfo<T> getDeserializerInfo(Class<T> cls) {
+    public static <T> @Nullable TypeDeserializerInfo<T> getDeserializerInfo(@NotNull Class<T> cls) {
         if(!isValidObjectType(cls)) {
             return null;
         }
 
         var info = (TypeDeserializerInfo<T>) deserializerInfo.computeIfAbsent(cls, TypeDeserializerInfo::new);
 
-        info.scanChildren();;
+        info.scanChildren();
 
         return info;
     }
 
-    public static boolean requiredImplicitTypeNames(Class<?> cls) {
+    public static boolean requiredImplicitTypeNames(@NotNull Class<?> cls) {
         var info = getDeserializerInfo(cls);
         return info != null && info.requiresTypeNameIntrospection();
     }
 
-    private static boolean isValidObjectType(Class<?> type) {
+    private static boolean isValidObjectType(@NotNull Class<?> type) {
         if(deserializerInfo.containsKey(type)) {
             return true;
         }
 
-        // TODO: make this smarter?
         return type.getAnnotation(EdgeDBType.class) != null;
     }
 }

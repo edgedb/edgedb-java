@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -21,7 +22,7 @@ public class Dump extends Sendable {
     }
 
     @Override
-    protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
+    protected void buildPacket(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.writeArray(this.annotations, Short.TYPE);
     }
 }

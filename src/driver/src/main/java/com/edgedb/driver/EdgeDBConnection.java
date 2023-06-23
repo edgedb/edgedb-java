@@ -36,7 +36,7 @@ public class EdgeDBConnection implements Cloneable {
      * Gets a {@linkplain Builder} used to construct a new {@linkplain EdgeDBConnection}.
      * @return A new builder instance.
      */
-    public static Builder builder() {
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
@@ -113,7 +113,7 @@ public class EdgeDBConnection implements Cloneable {
      * Gets the current connections' username field.
      * @return The username part of the connection.
      */
-    public String getUsername() {
+    public @NotNull String getUsername() {
         return user == null ? "edgedb" : user;
     }
 
@@ -145,7 +145,7 @@ public class EdgeDBConnection implements Cloneable {
      * Gets the current connections' hostname field.
      * @return The hostname part of the connection.
      */
-    public String getHostname() {
+    public @NotNull String getHostname() {
         return hostname == null ? "127.0.0.1" : hostname;
     }
 
@@ -154,7 +154,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param value The new hostname
      * @throws ConfigurationException The hostname is invalid
      */
-    protected void setHostname(String value) throws ConfigurationException {
+    protected void setHostname(@NotNull String value) throws ConfigurationException {
         if (value.contains("/")) {
             throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
         }
@@ -186,7 +186,7 @@ public class EdgeDBConnection implements Cloneable {
      * Gets the current connections' database field.
      * @return The database part of the connection.
      */
-    public String getDatabase() {
+    public @NotNull String getDatabase() {
         return database == null ? "edgedb" : database;
     }
 
@@ -219,7 +219,7 @@ public class EdgeDBConnection implements Cloneable {
      * @return The TLS security mode of the connection.
      * @see TLSSecurityMode
      */
-    public TLSSecurityMode getTLSSecurity() {
+    public @NotNull TLSSecurityMode getTLSSecurity() {
         return tlsSecurity == null ? TLSSecurityMode.STRICT : this.tlsSecurity;
     }
 
@@ -239,7 +239,7 @@ public class EdgeDBConnection implements Cloneable {
      * @throws ConfigurationException The DSN is not properly formatted.
      * @throws IOException A file argument within the DSN cannot be found or be read.
      */
-    public static EdgeDBConnection fromDSN(@NotNull String dsn) throws ConfigurationException, IOException {
+    public static @NotNull EdgeDBConnection fromDSN(@NotNull String dsn) throws ConfigurationException, IOException {
         if (!dsn.startsWith("edgedb://")) {
             throw new ConfigurationException(String.format("DSN schema 'edgedb' expected but got '%s'", dsn.split("://")[0]));
         }
@@ -379,7 +379,7 @@ public class EdgeDBConnection implements Cloneable {
      * {@code edgedb.toml} file.
      * @throws IOException The project file or one of its dependants doesn't exist
      */
-    public static EdgeDBConnection fromProjectFile(Path path) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull Path path) throws IOException {
         return fromProjectFile(path.toFile());
     }
 
@@ -390,7 +390,7 @@ public class EdgeDBConnection implements Cloneable {
      * {@code edgedb.toml} file.
      * @throws IOException The project file or one of its dependants doesn't exist
      */
-    public static EdgeDBConnection fromProjectFile(String path) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull String path) throws IOException {
         return fromProjectFile(new File(path));
     }
 
@@ -401,7 +401,7 @@ public class EdgeDBConnection implements Cloneable {
      * {@code edgedb.toml} file.
      * @throws IOException The project file or one of its dependants doesn't exist
      */
-    public static EdgeDBConnection fromProjectFile(File file) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull File file) throws IOException {
         if(!file.exists()) {
             throw new FileNotFoundException("Couldn't find the specified project file");
         }
@@ -537,7 +537,7 @@ public class EdgeDBConnection implements Cloneable {
             @Nullable String connParam,
             @Nullable ConfigureFunction configure,
             boolean autoResolve,
-            Function<String, String> resolveEnv
+            @NotNull Function<String, String> resolveEnv
     ) throws ConfigurationException, IOException {
         var connection = new EdgeDBConnection();
 
@@ -577,7 +577,7 @@ public class EdgeDBConnection implements Cloneable {
         return connection;
     }
 
-    private static EdgeDBConnection applyEnv(EdgeDBConnection connection, Function<String, String> getEnv) throws ConfigurationException, IOException {
+    private static EdgeDBConnection applyEnv(EdgeDBConnection connection, @NotNull Function<String, String> getEnv) throws ConfigurationException, IOException {
         var instanceName = getEnv.apply(EDGEDB_INSTANCE_ENV_NAME);
         var dsn = getEnv.apply(EDGEDB_DSN_ENV_NAME);
         var host = getEnv.apply(EDGEDB_HOST_ENV_NAME);
@@ -652,7 +652,7 @@ public class EdgeDBConnection implements Cloneable {
         return connection;
     }
 
-    private EdgeDBConnection mergeInto(EdgeDBConnection other) {
+    private @NotNull EdgeDBConnection mergeInto(@NotNull EdgeDBConnection other) {
         if(other.tlsSecurity == null) {
             other.tlsSecurity = this.tlsSecurity;
         }
@@ -688,7 +688,7 @@ public class EdgeDBConnection implements Cloneable {
         return mapper.readValue(json, EdgeDBConnection.class);
     }
 
-    private static void setArgument(EdgeDBConnection connection, String name, String value) throws ConfigurationException, IllegalArgumentException, IOException {
+    private static void setArgument(@NotNull EdgeDBConnection connection, @NotNull String name, @NotNull String value) throws ConfigurationException, IllegalArgumentException, IOException {
         if (StringsUtil.isNullOrEmpty(value))
             return;
 
@@ -762,29 +762,26 @@ public class EdgeDBConnection implements Cloneable {
      * @return A DSN string representing the parameters within the current {@linkplain EdgeDBConnection}.
      */
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         var sb = new StringBuilder("edgedb://");
 
-        if(this.getUsername() != null) {
-            sb.append(this.getUsername());
-        }
+        this.getUsername();
+        sb.append(this.getUsername());
 
         if(this.getPassword() != null) {
             sb.append(":");
             sb.append(this.getPassword());
         }
 
-        if(this.getHostname() != null) {
-            sb.append("@");
-            sb.append(this.getHostname());
-            sb.append(":");
-            sb.append(this.getPort());
-        }
+        this.getHostname();
+        sb.append("@");
+        sb.append(this.getHostname());
+        sb.append(":");
+        sb.append(this.getPort());
 
-        if(this.getDatabase() != null) {
-            sb.append("/");
-            sb.append(this.getDatabase());
-        }
+        this.getDatabase();
+        sb.append("/");
+        sb.append(this.getDatabase());
 
         return sb.toString();
     }
@@ -811,7 +808,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param user The new username.
          * @return The current builder.
          */
-        public Builder withUser(String user) {
+        public @NotNull Builder withUser(String user) {
             this.user = user;
             return this;
         }
@@ -821,7 +818,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param password The new password.
          * @return The current builder.
          */
-        public Builder withPassword(String password) {
+        public @NotNull Builder withPassword(String password) {
             this.password = password;
             return this;
         }
@@ -831,7 +828,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param database The new database for the connection.
          * @return The current builder.
          */
-        public Builder withDatabase(String database) {
+        public @NotNull Builder withDatabase(String database) {
             this.database = database;
             return this;
         }
@@ -842,7 +839,7 @@ public class EdgeDBConnection implements Cloneable {
          * @return The current builder
          * @throws ConfigurationException The hostnames format is invalid.
          */
-        public Builder withHostname(String hostname) throws ConfigurationException {
+        public @NotNull Builder withHostname(@NotNull String hostname) throws ConfigurationException {
             if (hostname.contains("/")) {
                 throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
             }
@@ -860,7 +857,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param port The new port for the connection.
          * @return The current builder.
          */
-        public Builder withPort(Integer port) {
+        public @NotNull Builder withPort(Integer port) {
             this.port = port;
             return this;
         }
@@ -870,7 +867,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param tlsca The new tls certificate authority.
          * @return The current builder.
          */
-        public Builder withTlsca(String tlsca) {
+        public @NotNull Builder withTlsca(String tlsca) {
             this.tlsca = tlsca;
             return this;
         }
@@ -880,7 +877,7 @@ public class EdgeDBConnection implements Cloneable {
          * @param tlsSecurity The new tls security policy.
          * @return The current builder.
          */
-        public Builder withTlsSecurity(TLSSecurityMode tlsSecurity) {
+        public @NotNull Builder withTlsSecurity(TLSSecurityMode tlsSecurity) {
             this.tlsSecurity = tlsSecurity;
             return this;
         }
@@ -889,7 +886,7 @@ public class EdgeDBConnection implements Cloneable {
          * Constructs a {@linkplain EdgeDBConnection} from the current builder.
          * @return A {@linkplain EdgeDBConnection} that represents the current builder.
          */
-        public EdgeDBConnection build() {
+        public @NotNull EdgeDBConnection build() {
             return new EdgeDBConnection(
                     this.user, this.password,
                     this.database, this.hostname,

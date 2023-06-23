@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import org.jetbrains.annotations.NotNull;
 
 public final class CodecContext {
     public final EdgeDBBinaryClient client;
@@ -10,7 +11,7 @@ public final class CodecContext {
         this.client = client;
     }
 
-    public TypeVisitor getTypeVisitor() {
+    public @NotNull TypeVisitor getTypeVisitor() {
         return new TypeVisitor(this.client);
     }
 }

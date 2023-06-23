@@ -5,19 +5,20 @@ import com.edgedb.driver.binary.packets.shared.Annotation;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.UUID;
 
 public class CommandComplete implements Receivable {
-    public final EnumSet<Capabilities> capabilities;
-    public final UUID stateTypeDescriptorId;
-    public final String status;
+    public final @NotNull EnumSet<Capabilities> capabilities;
+    public final @NotNull UUID stateTypeDescriptorId;
+    public final @NotNull String status;
     public final @Nullable ByteBuf stateData;
-    public final Annotation[] annotations;
+    public final Annotation @NotNull [] annotations;
 
-    public CommandComplete(PacketReader reader) {
+    public CommandComplete(@NotNull PacketReader reader) {
         this.annotations = reader.readAnnotations();
         this.capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE);
         this.status = reader.readString();
@@ -33,7 +34,7 @@ public class CommandComplete implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.COMMAND_COMPLETE;
     }
 }

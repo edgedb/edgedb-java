@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.complex.ComplexCodecConverter;
 import com.edgedb.driver.datatypes.RelativeDuration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -30,7 +31,7 @@ public final class RelativeDurationCodec extends ComplexScalarCodecBase<Relative
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable RelativeDuration value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable RelativeDuration value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
             writer.write(value.getMicroseconds());
             writer.write(value.getDays());
@@ -39,7 +40,7 @@ public final class RelativeDurationCodec extends ComplexScalarCodecBase<Relative
     }
 
     @Override
-    public RelativeDuration deserialize(PacketReader reader, CodecContext context) {
+    public @NotNull RelativeDuration deserialize(@NotNull PacketReader reader, CodecContext context) {
         var micro = reader.readInt64();
         var days = reader.readInt32();
         var months = reader.readInt32();

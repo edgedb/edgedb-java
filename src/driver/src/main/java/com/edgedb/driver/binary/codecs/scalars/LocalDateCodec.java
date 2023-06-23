@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.util.TemporalUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -16,7 +17,7 @@ public final class LocalDateCodec extends ScalarCodecBase<LocalDate> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable LocalDate value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable LocalDate value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
             var days = ChronoUnit.DAYS.between(TemporalUtils.EDGEDB_EPOC_LOCAL.toLocalDate(), value);
 
@@ -29,7 +30,7 @@ public final class LocalDateCodec extends ScalarCodecBase<LocalDate> {
     }
 
     @Override
-    public LocalDate deserialize(PacketReader reader, CodecContext context) {
+    public LocalDate deserialize(@NotNull PacketReader reader, CodecContext context) {
         return TemporalUtils.EDGEDB_EPOC_LOCAL.plusDays(reader.readInt32()).toLocalDate();
     }
 }

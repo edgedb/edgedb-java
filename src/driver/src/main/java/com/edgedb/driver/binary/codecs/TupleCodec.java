@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -19,7 +20,7 @@ public final class TupleCodec extends CodecBase<Tuple> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable Tuple value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Tuple value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(value == null || value.size() == 0) {
             writer.write(-1);
             return;
@@ -47,7 +48,7 @@ public final class TupleCodec extends CodecBase<Tuple> {
     }
 
     @Override
-    public Tuple deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Tuple deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(innerCodecs.length != numElements) {

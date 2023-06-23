@@ -3,9 +3,11 @@ package com.edgedb.driver.binary.duplexers;
 import com.edgedb.driver.binary.packets.receivable.Receivable;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
 import com.edgedb.driver.binary.packets.sendables.Sync;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.OperationNotSupportedException;
 import javax.net.ssl.SSLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -20,27 +22,33 @@ public abstract class Duplexer {
     public abstract CompletionStage<Receivable> readNext();
     public abstract CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets);
     public abstract CompletionStage<Void> duplex(
-            Function<DuplexResult, CompletionStage<Void>> func,
+            DuplexCallback func,
             @NotNull Sendable packet,
             @Nullable Sendable... packets
-    ) throws SSLException;
+    );
 
     public final CompletionStage<Void> send(Sendable packet) {
         return this.send(packet, (Sendable[]) null);
     }
 
     public final CompletionStage<Void> duplex(
-            Sendable packet,
-            Function<DuplexResult, CompletionStage<Void>> func
-    ) throws SSLException {
+            @NotNull Sendable packet,
+            DuplexCallback func
+    ) {
         return this.duplex(func, packet);
     }
 
     public final CompletionStage<Void> duplexAndSync(
-            Sendable packet,
-            Function<DuplexResult, CompletionStage<Void>> func
-    ) throws SSLException {
+            @NotNull Sendable packet,
+            DuplexCallback func
+    ) {
         return duplex(func, packet, new Sync());
+    }
+
+    @FunctionalInterface
+    public interface DuplexCallback {
+        CompletionStage<Void> process(DuplexResult result)
+        throws EdgeDBException, OperationNotSupportedException;
     }
 
     public static class DuplexResult {
@@ -61,10 +69,10 @@ public abstract class Duplexer {
         public void finishExceptionally(Throwable err) {
             promise.completeExceptionally(err);
         }
-        public <T>  void finishExceptionally(T p, Function<T, Throwable> exceptionFactory) {
+        public <T>  void finishExceptionally(T p, @NotNull Function<T, Throwable> exceptionFactory) {
             promise.completeExceptionally(exceptionFactory.apply(p));
         }
-        public <T, U>  void finishExceptionally(T p1, U p2, BiFunction<T, U, Throwable> exceptionFactory) {
+        public <T, U>  void finishExceptionally(T p1, U p2, @NotNull BiFunction<T, U, Throwable> exceptionFactory) {
             promise.completeExceptionally(exceptionFactory.apply(p1, p2));
         }
 

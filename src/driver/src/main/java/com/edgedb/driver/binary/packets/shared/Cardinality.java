@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum Cardinality implements BinaryEnum<Byte> {
     NO_RESULT    (0x6e),
@@ -17,7 +18,7 @@ public enum Cardinality implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return this.value;
     }
 }

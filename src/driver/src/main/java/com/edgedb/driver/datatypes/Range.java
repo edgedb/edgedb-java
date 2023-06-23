@@ -1,5 +1,6 @@
 package com.edgedb.driver.datatypes;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -125,7 +126,7 @@ public final class Range<T> {
      * @return An empty range of type {@linkplain U}.
      * @param <U> The element type of the range.
      */
-    public static <U> Range<U> empty(Class<U> cls) {
+    public static <U> @NotNull Range<U> empty(Class<U> cls) {
         return new Range<>(cls, null, null);
     }
 
@@ -137,7 +138,7 @@ public final class Range<T> {
      * @return A new {@linkplain Range<U>} of {@linkplain U}.
      * @param <U> The element type of the range.
      */
-    public static <U> Range<U> create(Class<U> cls, @Nullable U lower, @Nullable U upper) {
+    public static <U> @NotNull Range<U> create(Class<U> cls, @Nullable U lower, @Nullable U upper) {
         return new Range<>(cls, lower, upper);
     }
 
@@ -151,7 +152,7 @@ public final class Range<T> {
      * @return A new {@linkplain Range<U>} of {@linkplain U}.
      * @param <U> The element type of the range.
      */
-    public static <U> Range<U> create(
+    public static <U> @NotNull Range<U> create(
             Class<U> cls,
             @Nullable U lower,
             @Nullable U upper,
@@ -170,7 +171,7 @@ public final class Range<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Range<?> range = (Range<?>) o;

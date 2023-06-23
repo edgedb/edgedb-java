@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.TypeUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.util.Stack;
@@ -13,8 +14,8 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("rawtypes")
 public final class TypeVisitor implements CodecVisitor {
-    private final Stack<TypeResultContextFrame> frames;
-    private final FrameHandle handle;
+    private final @NotNull Stack<TypeResultContextFrame> frames;
+    private final @NotNull FrameHandle handle;
     private final EdgeDBBinaryClient client;
 
     public TypeVisitor(EdgeDBBinaryClient client) {
@@ -32,7 +33,7 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     @Override
-    public Codec<?> visit(Codec<?> codec) throws EdgeDBException {
+    public Codec<?> visit(@NotNull Codec<?> codec) throws EdgeDBException {
         if (getContext().type.equals(Void.class)) {
             return codec;
         }
@@ -54,7 +55,7 @@ public final class TypeVisitor implements CodecVisitor {
         return codec;
     }
 
-    private static Codec<?> visitTupleCodec(TypeVisitor visitor, TupleCodec codec) throws EdgeDBException {
+    private static @NotNull Codec<?> visitTupleCodec(@NotNull TypeVisitor visitor, @NotNull TupleCodec codec) throws EdgeDBException {
         for(int i = 0; i != codec.innerCodecs.length; i++) {
             var innerCodec = codec.innerCodecs[i];
             try(var ignored = visitor.enterNewContext(c -> {
@@ -77,7 +78,7 @@ public final class TypeVisitor implements CodecVisitor {
         return codec;
     }
 
-    public static Codec<?> visitObjectCodec(TypeVisitor visitor, ObjectCodec codec) throws EdgeDBException {
+    public static @NotNull Codec<?> visitObjectCodec(@NotNull TypeVisitor visitor, ObjectCodec codec) throws EdgeDBException {
         ObjectCodec.TypeInitializedObjectCodec typeCodec;
 
         if(codec instanceof ObjectCodec.TypeInitializedObjectCodec) {
@@ -124,7 +125,7 @@ public final class TypeVisitor implements CodecVisitor {
         return typeCodec;
     }
 
-    public static Codec<?> visitCompilableCodec(TypeVisitor visitor, CompilableCodec codec) throws EdgeDBException {
+    public static Codec<?> visitCompilableCodec(@NotNull TypeVisitor visitor, @NotNull CompilableCodec codec) throws EdgeDBException {
         Codec innerCodec;
 
         // context type control:
@@ -146,7 +147,7 @@ public final class TypeVisitor implements CodecVisitor {
         return visitor.visit(codec.compile(visitor.getContext().type, innerCodec));
     }
 
-    public static Codec<?> visitComplexCodec(TypeVisitor visitor, ComplexCodec<?> codec) {
+    public static Codec<?> visitComplexCodec(@NotNull TypeVisitor visitor, @NotNull ComplexCodec<?> codec) {
         codec.buildRuntimeCodecs();
 
         if(visitor.getContext().isDynamicType())
@@ -155,7 +156,7 @@ public final class TypeVisitor implements CodecVisitor {
         return codec.getCodecFor(visitor.getContext().type);
     }
 
-    public static Codec<?> visitRuntimeCodec(TypeVisitor visitor, RuntimeCodec<?> codec) {
+    public static Codec<?> visitRuntimeCodec(@NotNull TypeVisitor visitor, @NotNull RuntimeCodec<?> codec) {
         if(!visitor.getContext().type.equals(codec.getConvertingClass())) {
             return codec.getBroker().getCodecFor(visitor.getContext().type);
         }
@@ -166,8 +167,8 @@ public final class TypeVisitor implements CodecVisitor {
         return this.frames.peek();
     }
 
-    private FrameHandle enterNewContext(
-            Consumer<TypeResultContextFrame> func
+    private @NotNull FrameHandle enterNewContext(
+            @NotNull Consumer<TypeResultContextFrame> func
     ) {
         var ctx = frames.empty() ? new TypeResultContextFrame(null, false) : frames.peek().clone();
         func.accept(ctx);
@@ -212,6 +213,6 @@ public final class TypeVisitor implements CodecVisitor {
 
     @FunctionalInterface
     private interface TypeCodecVisitor {
-        Codec<?> visit(TypeVisitor visitor, Codec<?> codec) throws EdgeDBException ;
+        Codec<?> visit(TypeVisitor visitor, Codec<?> codec);
     }
 }

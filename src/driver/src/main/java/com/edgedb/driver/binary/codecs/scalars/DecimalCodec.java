@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.util.StringsUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UShort;
 
@@ -19,7 +20,7 @@ public final class DecimalCodec extends ScalarCodecBase<BigDecimal> {
 
     @Override
     public void serialize(
-            PacketWriter writer,
+            @NotNull PacketWriter writer,
             @Nullable BigDecimal value,
             CodecContext context
     ) throws OperationNotSupportedException {
@@ -58,7 +59,7 @@ public final class DecimalCodec extends ScalarCodecBase<BigDecimal> {
     }
 
     @Override
-    public BigDecimal deserialize(PacketReader reader, CodecContext context) {
+    public @NotNull BigDecimal deserialize(@NotNull PacketReader reader, CodecContext context) {
         var numDigits = reader.readUInt16().intValue();
         var weight = reader.readInt16();
         var isPos = reader.readUInt16().compareTo(ushort(0)) == 0;

@@ -2,12 +2,13 @@ package com.edgedb.driver.util;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
 public class HexUtils {
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-    public static String bufferToHexString(ByteBuffer buffer) {
+    public static @NotNull String bufferToHexString(@NotNull ByteBuffer buffer) {
 
         char[] hexChars = new char[buffer.limit() * 2];
         int j =0;
@@ -20,11 +21,11 @@ public class HexUtils {
         return new String(hexChars);
     }
 
-    public static String bufferToHexString(ByteBuf buffer) {
+    public static @NotNull String bufferToHexString(@NotNull ByteBuf buffer) {
         return ByteBufUtil.hexDump(buffer);
     }
 
-    public static String byteArrayToHexString(byte[] b) {
+    public static @NotNull String byteArrayToHexString(byte @NotNull [] b) {
         StringBuilder result = new StringBuilder();
         for (byte value : b) {
             result.append(Integer.toString((value & 0xff) + 0x100, 16).substring(1));
@@ -32,7 +33,7 @@ public class HexUtils {
         return result.toString();
     }
 
-    public static byte[] hexStringToByteArray(String s) {
+    public static byte[] hexStringToByteArray(@NotNull String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

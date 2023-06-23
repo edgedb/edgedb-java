@@ -3,14 +3,16 @@ package com.edgedb.driver.binary.packets.receivable;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public class StateDataDescription implements Receivable {
-    public final UUID typeDescriptorId;
-    public final ByteBuf typeDescriptorBuffer;
+    public final @NotNull UUID typeDescriptorId;
+    public final @Nullable ByteBuf typeDescriptorBuffer;
 
-    public StateDataDescription(PacketReader reader) {
+    public StateDataDescription(@NotNull PacketReader reader) {
         typeDescriptorId = reader.readUUID();
         typeDescriptorBuffer = reader.readByteArray();
     }
@@ -23,7 +25,7 @@ public class StateDataDescription implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.STATE_DATA_DESCRIPTION;
     }
 }

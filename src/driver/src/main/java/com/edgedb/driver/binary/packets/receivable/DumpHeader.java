@@ -5,18 +5,19 @@ import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.DumpObjectDescriptor;
 import com.edgedb.driver.binary.packets.shared.DumpTypeInfo;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
+import org.jetbrains.annotations.NotNull;
 import org.joou.UInteger;
 import org.joou.UShort;
 
 public class DumpHeader implements Receivable {
-    public final KeyValue[] attributes;
-    public final UShort majorVersion;
-    public final UShort minorVersion;
-    public final String schemaDDL;
-    public final DumpTypeInfo[] typeInfo;
-    public final DumpObjectDescriptor[] descriptors;
+    public final KeyValue @NotNull [] attributes;
+    public final @NotNull UShort majorVersion;
+    public final @NotNull UShort minorVersion;
+    public final @NotNull String schemaDDL;
+    public final DumpTypeInfo @NotNull [] typeInfo;
+    public final DumpObjectDescriptor @NotNull [] descriptors;
 
-    public DumpHeader(PacketReader reader) {
+    public DumpHeader(@NotNull PacketReader reader) {
         attributes = reader.readAttributes();
         majorVersion = reader.readUInt16();
         minorVersion = reader.readUInt16();
@@ -32,7 +33,7 @@ public class DumpHeader implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.DUMP_HEADER;
     }
 }

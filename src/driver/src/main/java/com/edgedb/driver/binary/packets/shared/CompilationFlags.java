@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.packets.shared;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum CompilationFlags implements BinaryEnum<Long> {
     NONE                (0),
@@ -15,7 +16,7 @@ public enum CompilationFlags implements BinaryEnum<Long> {
     }
 
     @Override
-    public Long getValue() {
+    public @NotNull Long getValue() {
         return this.value;
     }
 }

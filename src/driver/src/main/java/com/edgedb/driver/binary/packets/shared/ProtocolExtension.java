@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.packets.shared;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.SerializableData;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -15,13 +16,13 @@ public class ProtocolExtension implements SerializableData {
         this.annotations = annotations;
     }
 
-    public ProtocolExtension(PacketReader reader) {
+    public ProtocolExtension(@NotNull PacketReader reader) {
         this.name = reader.readString();
         this.annotations = reader.readAnnotations();
     }
 
     @Override
-    public void write(PacketWriter writer) throws OperationNotSupportedException {
+    public void write(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.write(this.name);
         writer.writeArray(this.annotations, Short.TYPE);
     }

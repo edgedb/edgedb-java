@@ -35,7 +35,7 @@ public class ResultNodeDeserializer extends StdDeserializer<Object> {
     }
 
     @Override
-    public Object deserialize(JsonParser parser, DeserializationContext context) throws IOException, JacksonException {
+    public Object deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         while(parser.getCurrentToken() == null || !START_TOKENS.contains(parser.getCurrentToken())) {
             parser.nextToken();
         }

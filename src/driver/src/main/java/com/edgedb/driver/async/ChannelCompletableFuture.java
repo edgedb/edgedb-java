@@ -1,11 +1,12 @@
 package com.edgedb.driver.async;
 
 import io.netty.channel.ChannelFuture;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
 public class ChannelCompletableFuture extends CompletableFuture<Void> {
-    public static ChannelCompletableFuture completeFrom(ChannelFuture future) {
+    public static @NotNull ChannelCompletableFuture completeFrom(@NotNull ChannelFuture future) {
         var completableFuture = new ChannelCompletableFuture();
 
         future.addListener((v) -> {
@@ -25,7 +26,7 @@ public class ChannelCompletableFuture extends CompletableFuture<Void> {
         return completableFuture;
     }
 
-    public CompletableFuture<Void> thenCompose(ChannelFuture future) {
+    public CompletableFuture<Void> thenCompose(@NotNull ChannelFuture future) {
         return this.thenCompose((v) -> ChannelCompletableFuture.completeFrom(future));
     }
 }

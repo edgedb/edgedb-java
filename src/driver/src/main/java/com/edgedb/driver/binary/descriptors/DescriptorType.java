@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.descriptors;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum DescriptorType implements BinaryEnum<Byte> {
     SET_DESCRIPTOR              (0x00),
@@ -22,7 +23,7 @@ public enum DescriptorType implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return this.value;
     }
 }

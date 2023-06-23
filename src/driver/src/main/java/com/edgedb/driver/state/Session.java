@@ -1,5 +1,7 @@
 package com.edgedb.driver.state;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -18,7 +20,7 @@ public final class Session {
      * Gets a builder used to construct a {@linkplain Session}.
      * @return A new session builder instance.
      */
-    public static Builder builder() {
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
@@ -87,7 +89,7 @@ public final class Session {
      * Serializes this session object to a sparse map.
      * @return A map containing the field values, if present.
      */
-    public Map<String, Object> serialize() {
+    public @NotNull Map<String, Object> serialize() {
         return new HashMap<>() {
             {
                 if(!module.equals("default")) {
@@ -120,7 +122,7 @@ public final class Session {
      * @param globals The global variables for the new session.
      * @return A copy of the current session with the applied global variables.
      */
-    public Session withGlobals(Map<String, Object> globals) {
+    public @NotNull Session withGlobals(Map<String, Object> globals) {
         return new Session(
                 this.module,
                 this.aliases,
@@ -134,7 +136,7 @@ public final class Session {
      * @param aliases The module aliases for the new session
      * @return A copy of the current session with the applied module aliases.
      */
-    public Session withModuleAliases(Map<String, String> aliases) {
+    public @NotNull Session withModuleAliases(Map<String, String> aliases) {
         return new Session(
                 this.module,
                 aliases,
@@ -148,7 +150,7 @@ public final class Session {
      * @param config The configuration for the new session.
      * @return A copy of the current session with the applied configuration.
      */
-    public Session withConfig(Config config) {
+    public @NotNull Session withConfig(Config config) {
         return new Session(
                 this.module,
                 this.aliases,
@@ -162,7 +164,7 @@ public final class Session {
      * @param func A consumer that populates a configuration builder for the new session.
      * @return A copy of the current session with the applied configuration.
      */
-    public Session withConfig(Consumer<Config.Builder> func) {
+    public @NotNull Session withConfig(@NotNull Consumer<Config.Builder> func) {
         var builder = Config.builder();
         func.accept(builder);
         return new Session(
@@ -178,7 +180,7 @@ public final class Session {
      * @param module The module for the new session.
      * @return A copy of the current session with the applied module.
      */
-    public Session withModule(String module) {
+    public @NotNull Session withModule(String module) {
         return new Session(
                 module,
                 this.aliases,
@@ -201,7 +203,7 @@ public final class Session {
          * @param module The new module value.
          * @return The current builder.
          */
-        public Builder withModule(String module) {
+        public @NotNull Builder withModule(String module) {
             this.module = module;
             return this;
         }
@@ -211,7 +213,7 @@ public final class Session {
          * @param aliases The new module aliases.
          * @return The current builder.
          */
-        public Builder withAliases(Map<String, String> aliases) {
+        public @NotNull Builder withAliases(Map<String, String> aliases) {
             this.aliases = aliases;
             return this;
         }
@@ -221,7 +223,7 @@ public final class Session {
          * @param config The new configuration.
          * @return The current builder.
          */
-        public Builder withConfig(Config config) {
+        public @NotNull Builder withConfig(Config config) {
             this.config = config;
             return this;
         }
@@ -231,7 +233,7 @@ public final class Session {
          * @param func A consumer that populates a configuration builder for the new session.
          * @return The current builder.
          */
-        public Builder withConfig(Consumer<Config.Builder> func) {
+        public @NotNull Builder withConfig(@NotNull Consumer<Config.Builder> func) {
             var builder = Config.builder();
             func.accept(builder);
             return withConfig(builder.build());
@@ -242,7 +244,7 @@ public final class Session {
          * @param globals The new global variables.
          * @return The current builder.
          */
-        public Builder withGlobals(Map<String, Object> globals) {
+        public @NotNull Builder withGlobals(Map<String, Object> globals) {
             this.globals = globals;
             return this;
         }
@@ -251,7 +253,7 @@ public final class Session {
          * Constructs a new {@linkplain Session} from this builder.
          * @return A {@linkplain Session} with the values specified in this builder.
          */
-        public Session build() {
+        public @NotNull Session build() {
             return new Session(module, aliases, config, globals);
         }
     }

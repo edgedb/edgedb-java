@@ -9,12 +9,12 @@ import com.edgedb.driver.binary.codecs.scalars.complex.RelativeDurationCodec;
 import com.edgedb.driver.binary.descriptors.*;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import com.edgedb.driver.binary.packets.shared.IOFormat;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.util.CollectionUtils;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +31,9 @@ public final class CodecBuilder {
 
     public static final UUID NULL_CODEC_ID = new UUID(0L, 0L);
     public static final UUID INVALID_CODEC_ID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
-    private static final ConcurrentMap<UUID, Codec<?>> codecPartsInstanceCache;
-    private static final ConcurrentMap<UUID, Codec<?>> codecCache;
-    private static final ConcurrentMap<Long, QueryCodecCacheEntry> queryCodecCache;
+    private static final @NotNull ConcurrentMap<UUID, Codec<?>> codecPartsInstanceCache;
+    private static final @NotNull ConcurrentMap<UUID, Codec<?>> codecCache;
+    private static final @NotNull ConcurrentMap<Long, QueryCodecCacheEntry> queryCodecCache;
 
     static {
         codecPartsInstanceCache = new ConcurrentHashMap<>(16);
@@ -42,7 +42,7 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable Codec<T> getCodec(UUID id, Class<T> cls) {
+    public static <T> @Nullable Codec<T> getCodec(UUID id, Class<T> ignoredCls) {
         return (Codec<T>) getCodec(id);
     }
     public static @Nullable Codec<?> getCodec(UUID id) {
@@ -50,31 +50,31 @@ public final class CodecBuilder {
         return codec != null ? codec : getScalarCodec(id);
     }
 
-    public static Codec<?> buildCodec(EdgeDBBinaryClient client, UUID id, @Nullable ByteBuf buffer) throws EdgeDBException, OperationNotSupportedException {
+    public static @NotNull Codec<?> buildCodec(@NotNull UUID id, @Nullable ByteBuf buffer) throws EdgeDBException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
             return getOrCreateCodec(NULL_CODEC_ID, NullCodec::new);
         }
 
         var reader = new PacketReader(buffer);
-        return buildCodec(client, id, reader);
+        return buildCodec(id, reader);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Codec<T> buildCodec(EdgeDBBinaryClient client, UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @NotNull Codec<T> buildCodec(@NotNull UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
             return (Codec<T>)getOrCreateCodec(NULL_CODEC_ID, NullCodec::new);
         }
 
         var reader = new PacketReader(buffer);
-        return buildCodec(client, id, reader, cls);
+        return buildCodec(id, reader, cls);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Codec<T> buildCodec(EdgeDBBinaryClient client, UUID id, PacketReader reader, Class<T> codecResult) throws EdgeDBException, OperationNotSupportedException {
-        return (Codec<T>) buildCodec(client, id, reader);
+    public static <T> @NotNull Codec<T> buildCodec(@NotNull UUID id, @NotNull PacketReader reader, Class<T> ignoredCodecResult) throws EdgeDBException {
+        return (Codec<T>) buildCodec(id, reader);
     }
     @SuppressWarnings("unchecked")
-    public static Codec<?> buildCodec(EdgeDBBinaryClient client, UUID id, PacketReader reader) throws EdgeDBException, OperationNotSupportedException {
+    public static @NotNull Codec<?> buildCodec(@NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
         try {
             if(id.equals(NULL_CODEC_ID)) {
                 return getOrCreateCodec(id, NullCodec::new);
@@ -108,7 +108,6 @@ public final class CodecBuilder {
 
                         codec = getOrCreateCodec(descriptor.getId(), () ->
                                 new CompilableCodec(
-                                        descriptor.getId(),
                                         codecs.get(arrayType.typePosition.intValue()),
                                         ArrayCodec::new,
                                         t -> Array.newInstance(t,0).getClass()
@@ -159,7 +158,6 @@ public final class CodecBuilder {
 
                         codec = getOrCreateCodec(descriptor.getId(), () ->
                                 new CompilableCodec(
-                                        descriptor.getId(),
                                         codecs.get(rangeType.typePosition.intValue()),
                                         RangeCodec::new,
                                         t -> Range.empty(t).getClass()
@@ -167,14 +165,13 @@ public final class CodecBuilder {
                         );
                         break;
                     case SCALAR_TYPE_NAME_ANNOTATION:
-                        // TODO: should we do anything here?
+                        // ignored
                         break;
                     case SET_DESCRIPTOR:
                         var setTypes = descriptor.as(SetTypeDescriptor.class);
 
                         codec = getOrCreateCodec(descriptor.getId(), () ->
                                 new CompilableCodec(
-                                        descriptor.getId(),
                                         codecs.get(setTypes.typePosition.intValue()),
                                         SetCodec::new,
                                         t -> Array.newInstance(t, 0).getClass()
@@ -201,7 +198,7 @@ public final class CodecBuilder {
 
     }
 
-    public static Long getCacheKey(String query, Cardinality cardinality, IOFormat format) {
+    public static @NotNull Long getCacheKey(@NotNull String query, @NotNull Cardinality cardinality, @NotNull IOFormat format) {
         return calculateKnuthHash(query) + cardinality.getValue() + format.getValue();
     }
 
@@ -227,7 +224,7 @@ public final class CodecBuilder {
         queryCodecCache.computeIfAbsent(cacheKey, (c) -> new QueryCodecCacheEntry(inCodecId, outCodecId));
     }
 
-    private static Long calculateKnuthHash(String str) {
+    private static @NotNull Long calculateKnuthHash(@NotNull String str) {
         var h = 3074457345618258791L;
 
         for(int i = 0; i != str.length(); i++) {
@@ -239,7 +236,7 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Codec<T> getOrCreateCodec(UUID id, Supplier<Codec<T>> constructor) {
+    private static <T> Codec<T> getOrCreateCodec(UUID id, @NotNull Supplier<Codec<T>> constructor) {
         return (Codec<T>) codecPartsInstanceCache.computeIfAbsent(id, v -> constructor.get());
     }
 

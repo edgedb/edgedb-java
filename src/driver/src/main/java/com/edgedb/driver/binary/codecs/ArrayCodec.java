@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -27,7 +28,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, T @Nullable [] value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, T @Nullable [] value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(value == null) {
             writer.writeArrayWithoutLength(EMPTY_ARRAY);
             return;
@@ -54,7 +55,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T @Nullable [] deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public T @Nullable [] deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
         var dimensions = reader.readInt32();
 
         reader.skip(BinaryProtocolUtils.LONG_SIZE); // reserved
@@ -71,16 +72,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
         var array = (T[])Array.newInstance(innerCodec.getConvertingClass(), numElements);
 
         for(int i = 0; i != numElements; i++) {
-            // TODO: memory falloff here? the buff returned here should have shared lifetime with the
-            // buff in the root packet reader
-            var data = reader.readByteArray();
-
-            if(data == null) {
-                array[i] = null;
-                continue;
-            }
-
-            array[i] = innerCodec.deserialize(new PacketReader(data), context);
+            array[i] = reader.deserializeByteArray(innerCodec, context);
         }
 
         return array;

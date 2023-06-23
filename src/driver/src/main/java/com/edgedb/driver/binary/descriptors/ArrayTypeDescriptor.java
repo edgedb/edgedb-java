@@ -1,18 +1,19 @@
 package com.edgedb.driver.binary.descriptors;
 
 import com.edgedb.driver.binary.PacketReader;
+import org.jetbrains.annotations.NotNull;
 import org.joou.UInteger;
 import org.joou.UShort;
 
 import java.util.UUID;
 
 public final class ArrayTypeDescriptor implements TypeDescriptor {
-    public final UShort typePosition;
-    public final UInteger[] dimensions;
+    public final @NotNull UShort typePosition;
+    public final UInteger @NotNull [] dimensions;
 
     private final UUID id;
 
-    public ArrayTypeDescriptor(final UUID id, final PacketReader reader) {
+    public ArrayTypeDescriptor(final UUID id, final @NotNull PacketReader reader) {
         this.id = id;
 
         this.typePosition = reader.readUInt16();

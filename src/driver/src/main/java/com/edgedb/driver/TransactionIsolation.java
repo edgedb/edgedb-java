@@ -1,7 +1,9 @@
 package com.edgedb.driver;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * Represents the different isolation modes that can be used within a transcation.
+ * Represents the different isolation modes that can be used within a transaction.
  */
 public enum TransactionIsolation {
     /**
@@ -21,7 +23,7 @@ public enum TransactionIsolation {
     REPEATABLE_READ;
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         if(this == SERIALIZABLE) {
             return "serializable";
         }

@@ -1,5 +1,7 @@
 package com.edgedb.driver.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -40,7 +42,7 @@ public final class TemporalUtils {
         return ChronoUnit.MICROS.between(EDGEDB_EPOC, temporal);
     }
 
-    public static <T extends Temporal> T fromMicrosecondsSinceEpoc(long micros, Function<ZonedDateTime, T> mapper) {
+    public static <T extends Temporal> T fromMicrosecondsSinceEpoc(long micros, @NotNull Function<ZonedDateTime, T> mapper) {
         return mapper.apply(EDGEDB_EPOC.plus(micros, ChronoUnit.MICROS));
     }
 }

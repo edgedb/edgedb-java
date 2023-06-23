@@ -14,7 +14,7 @@ public class CDurationDeserializer extends CFormatBase<Duration> {
     }
 
     @Override
-    public Duration deserialize(JsonParser parser, DeserializationContext context) throws IOException, JacksonException {
+    public Duration deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         return fromString(parser.getCodec().readValue(parser, String.class), ChronoUnit.SECONDS);
     }
 }

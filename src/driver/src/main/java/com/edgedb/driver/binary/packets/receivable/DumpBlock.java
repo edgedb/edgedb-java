@@ -3,11 +3,12 @@ package com.edgedb.driver.binary.packets.receivable;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
+import org.jetbrains.annotations.NotNull;
 
 public class DumpBlock implements Receivable {
-    public final KeyValue[] attributes;
+    public final KeyValue @NotNull [] attributes;
 
-    public DumpBlock(PacketReader reader) {
+    public DumpBlock(@NotNull PacketReader reader) {
         attributes = reader.readAttributes();
     }
 
@@ -17,7 +18,7 @@ public class DumpBlock implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.DUMP_BLOCK;
     }
 }

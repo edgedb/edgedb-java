@@ -12,5 +12,5 @@ public enum ClientType {
     /**
      * An HTTP client using the EdgeDB Binary protocol.
      */
-    HTTP;
+    HTTP
 }

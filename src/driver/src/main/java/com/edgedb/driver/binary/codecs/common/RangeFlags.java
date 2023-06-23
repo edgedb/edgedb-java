@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.codecs.common;
 
 import com.edgedb.driver.binary.BinaryEnum;
+import org.jetbrains.annotations.NotNull;
 
 public enum RangeFlags implements BinaryEnum<Byte> {
     EMPTY (1),
@@ -15,7 +16,7 @@ public enum RangeFlags implements BinaryEnum<Byte> {
     }
 
     @Override
-    public Byte getValue() {
+    public @NotNull Byte getValue() {
         return this.value;
     }
 }

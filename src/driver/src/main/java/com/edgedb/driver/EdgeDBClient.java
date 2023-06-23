@@ -56,7 +56,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
     }
 
     private final AtomicInteger clientCount = new AtomicInteger();
-    private final ConcurrentLinkedQueue<PooledClient> clients;
+    private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
     private final ClientPoolHolder poolHolder;
@@ -70,7 +70,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config) throws ConfigurationException {
+    public EdgeDBClient(EdgeDBConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -80,7 +80,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientAvailability = config.getClientAvailability();
     }
 
-    private ClientFactory createClientFactory() throws ConfigurationException {
+    private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
         if(config.getClientType() == ClientType.TCP) {
             return EdgeDBTCPClient::new;
         }
@@ -103,7 +103,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @throws IOException The connection arguments couldn't be automatically resolved.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBClientConfig config) throws IOException, ConfigurationException {
+    public EdgeDBClient(@NotNull EdgeDBClientConfig config) throws IOException, ConfigurationException {
         this(EdgeDBConnection.resolveEdgeDBTOML(), config);
     }
 
@@ -116,7 +116,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.DEFAULT);
     }
 
-    private EdgeDBClient(EdgeDBClient other, Session session) {
+    private EdgeDBClient(@NotNull EdgeDBClient other, Session session) {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = other.config;
         this.connection = other.connection;
@@ -144,7 +144,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      */
     public <T> CompletionStage<T> transaction(
             TransactionSettings settings,
-            Function<Transaction, CompletionStage<T>> func
+            @NotNull Function<Transaction, CompletionStage<T>> func
     ) {
         return getTransactableClient().thenCompose(client -> client.transaction(settings, func));
     }
@@ -156,7 +156,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * transaction. The result of the {@linkplain CompletionStage} is the result of the supplied callback.
      * @param <T> The result of the query.
      */
-    public <T> CompletionStage<T> transaction(Function<Transaction, CompletionStage<T>> func) {
+    public <T> CompletionStage<T> transaction(@NotNull Function<Transaction, CompletionStage<T>> func) {
         return getTransactableClient().thenCompose(client -> client.transaction(func));
     }
 
@@ -168,7 +168,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied session, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withSession(@NotNull Session session) {
+    public @NotNull EdgeDBClient withSession(@NotNull Session session) {
         return new EdgeDBClient(this, session);
     }
 
@@ -180,7 +180,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
+    public @NotNull EdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
         return new EdgeDBClient(this, this.session.withModuleAliases(aliases));
     }
 
@@ -192,7 +192,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withConfig(@NotNull Config config) {
+    public @NotNull EdgeDBClient withConfig(@NotNull Config config) {
         return new EdgeDBClient(this, this.session.withConfig(config));
     }
 
@@ -204,7 +204,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
+    public @NotNull EdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
         return new EdgeDBClient(this, this.session.withConfig(func));
     }
 
@@ -216,7 +216,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
+    public @NotNull EdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
         return new EdgeDBClient(this, this.session.withGlobals(globals));
     }
 
@@ -228,7 +228,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public EdgeDBClient withModule(@NotNull String module) {
+    public @NotNull EdgeDBClient withModule(@NotNull String module) {
         return new EdgeDBClient(this, this.session.withModule(module));
     }
 
@@ -244,7 +244,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
 
     private <T, U> CompletionStage<U> executePooledQuery(
             Class<T> cls, String query, Map<String, Object> args,
-            EnumSet<Capabilities> capabilities, ClientQueryDelegate<T, U> delegate
+            EnumSet<Capabilities> capabilities, @NotNull ClientQueryDelegate<T, U> delegate
     ) {
         return getClient()
                 .thenCompose(client ->
@@ -254,13 +254,17 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
                                 query,
                                 args,
                                 capabilities
-                        ).thenApply(r -> new ExecutePair<>(client, r))
+                        ).handle((r, x) -> new ExecutePair<>(client, r))
                 )
-                .thenApply(pair -> {
+                .handle((pair, exc) -> {
                     try {
                         pair.client.close();
                     } catch (Exception e) {
                         throw new CompletionException(e);
+                    }
+
+                    if(exc != null) {
+                        throw new CompletionException(exc);
                     }
 
                     return pair.result;
@@ -358,7 +362,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         }
     }
 
-    private synchronized CompletionStage<Void> onClientReady(BaseEdgeDBClient client) {
+    private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseEdgeDBClient client) {
         var suggestedConcurrency = client.getSuggestedPoolConcurrency();
 
         suggestedConcurrency.ifPresent(this.poolHolder::resize);

@@ -1,18 +1,21 @@
 package com.edgedb.driver.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class StringsUtil {
-    public static boolean isNullOrEmpty(String s) {
+    public static boolean isNullOrEmpty(@Nullable String s) {
         return s == null || s.equals("");
     }
 
-    public static String padLeft(String s, int count) {
+    public static @NotNull String padLeft(@NotNull String s, int count) {
         return padLeft(s, ' ', count);
     }
-    public static String padRight(String s, int count) {
+    public static @NotNull String padRight(@NotNull String s, int count) {
         return padRight(s, ' ', count);
     }
 
-    public static String padLeft(String str, char character, int count) {
+    public static @NotNull String padLeft(@NotNull String str, char character, int count) {
         StringBuilder s = new StringBuilder(str);
 
         while(s.length() < count) {
@@ -21,7 +24,7 @@ public class StringsUtil {
 
         return s.toString();
     }
-    public static String padRight(String str, char character, int count) {
+    public static @NotNull String padRight(@NotNull String str, char character, int count) {
         StringBuilder s = new StringBuilder(str);
 
         while(s.length() < count) {

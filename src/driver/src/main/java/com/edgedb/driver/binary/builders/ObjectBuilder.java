@@ -7,6 +7,8 @@ import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
 import com.edgedb.driver.binary.packets.receivable.Data;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +21,7 @@ public final class ObjectBuilder {
         T convert(Object[] value);
     }
 
-    private static final Map<Class<?>, CollectionConverter<?>> collectionConverters;
+    private static final @NotNull Map<Class<?>, CollectionConverter<?>> collectionConverters;
 
     static {
         collectionConverters = new HashMap<>(){{
@@ -28,22 +30,21 @@ public final class ObjectBuilder {
         }};
     }
 
-    public static <T> T buildResult(EdgeDBBinaryClient client, Codec<?> codec, Data data, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @Nullable T buildResult(@NotNull EdgeDBBinaryClient client, Codec<?> codec, @NotNull Data data, @NotNull Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
         var visitor = new TypeVisitor(client);
         visitor.setTargetType(cls);
         codec = visitor.visit(codec);
 
         if(codec instanceof ObjectCodec) {
-            // TODO: type builder
             return TypeBuilder.buildObject(client, cls, (ObjectCodec)codec, data);
         }
 
-        var value = Codec.deserializeFromBuffer(codec, data.payloadBuffer, client.getCodecContext());
+        var value = Codec.deserializeFromBuffer(codec, Objects.requireNonNull(data.payloadBuffer), client.getCodecContext());
         return convertTo(cls, value);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T convertTo(Class<T> cls, Object value) throws EdgeDBException {
+    public static <T> @Nullable T convertTo(@NotNull Class<T> cls, @Nullable Object value) throws EdgeDBException {
         try {
             if(value == null) {
                 return null;
@@ -56,7 +57,8 @@ public final class ObjectBuilder {
             }
 
             if(cls.isEnum() && value instanceof String) {
-                return (T)cls.getMethod("valueOf", String.class).invoke(null, (String) value);
+                //noinspection JavaReflectionInvocation
+                return (T)cls.getMethod("valueOf", String.class).invoke(null, value);
             }
 
             if(Iterable.class.isAssignableFrom(cls)) {
@@ -71,7 +73,7 @@ public final class ObjectBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T convertCollection(Class<T> target, Object value) throws OperationNotSupportedException {
+    private static <T> T convertCollection(@NotNull Class<T> target, Object value) throws OperationNotSupportedException {
         if(!(value instanceof Object[])) {
             throw new IllegalArgumentException("Value is not a collection");
         }

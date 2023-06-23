@@ -1,12 +1,13 @@
 package com.edgedb.driver.namingstrategies;
 
 import com.edgedb.driver.util.StringsUtil;
+import org.jetbrains.annotations.NotNull;
 
 final class CamelCaseNamingStrategy implements NamingStrategy {
     public static final CamelCaseNamingStrategy INSTANCE = new CamelCaseNamingStrategy();
 
     @Override
-    public String convert(String name) {
+    public @NotNull String convert(@NotNull String name) {
         if (StringsUtil.isNullOrEmpty(name)) {
             return name;
         }

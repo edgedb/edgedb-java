@@ -14,7 +14,7 @@ public class CRelativeDurationDeserializer extends CFormatBase<RelativeDuration>
     }
 
     @Override
-    public RelativeDuration deserialize(JsonParser parser, DeserializationContext context) throws IOException, JacksonException {
+    public RelativeDuration deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         return new RelativeDuration(super.fromString(parser.getCodec().readValue(parser, String.class), ChronoUnit.SECONDS));
     }
 }

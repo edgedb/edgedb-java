@@ -5,6 +5,7 @@ import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -13,10 +14,10 @@ import java.util.stream.Collectors;
 
 @EdgeDBType
 public final class TupleImpl implements Tuple {
-    private final List<Element> elements;
+    private final @NotNull List<Element> elements;
 
     @EdgeDBDeserializer
-    public TupleImpl(ObjectEnumerator enumerator) throws EdgeDBException, OperationNotSupportedException {
+    public TupleImpl(@NotNull ObjectEnumerator enumerator) throws EdgeDBException, OperationNotSupportedException {
         elements = new ArrayList<>();
 
         while(enumerator.hasRemaining()) {
@@ -28,7 +29,7 @@ public final class TupleImpl implements Tuple {
         }
     }
 
-    public TupleImpl(Object... values) {
+    public TupleImpl(Object @Nullable ... values) {
         if(values == null) {
             this.elements = new ArrayList<>();
             return;
@@ -39,7 +40,7 @@ public final class TupleImpl implements Tuple {
                 .collect(Collectors.toList());
     }
 
-    public TupleImpl(Collection<?> values) {
+    public TupleImpl(@Nullable Collection<?> values) {
         if(values == null) {
             this.elements = new ArrayList<>();
             return;
@@ -51,7 +52,7 @@ public final class TupleImpl implements Tuple {
     }
 
     @SafeVarargs
-    public <T extends Element> TupleImpl(T... elements) {
+    public <T extends Element> TupleImpl(T @Nullable ... elements) {
         this.elements = elements == null
                 ? new ArrayList<>()
                 : Arrays.asList(elements);
@@ -67,7 +68,7 @@ public final class TupleImpl implements Tuple {
     }
 
     @Override
-    public Object get(int index) {
+    public @Nullable Object get(int index) {
         return this.getElement(index).getValue();
     }
 
@@ -77,14 +78,14 @@ public final class TupleImpl implements Tuple {
     }
 
     @Override
-    public <T> T get(int index, Class<T> type) {
+    public <T> @Nullable T get(int index, @NotNull Class<T> type) {
         var element = this.getElement(index);
 
         return elementAs(element, type);
     }
 
     @Override
-    public Object remove(int index) {
+    public @Nullable Object remove(int index) {
         return this.removeElement(index).getValue();
     }
 
@@ -94,24 +95,24 @@ public final class TupleImpl implements Tuple {
     }
 
     @Override
-    public <T> T remove(int index, Class<T> type) {
+    public <T> @Nullable T remove(int index, @NotNull Class<T> type) {
         var removed = removeElement(index);
 
         return elementAs(removed, type);
     }
 
     @Override
-    public Object[] toArray() {
+    public Object @NotNull [] toArray() {
         return this.elements.stream().map(Element::getValue).toArray();
     }
 
     @Override
-    public Element[] toElementArray() {
+    public Element @NotNull [] toElementArray() {
         var arr = new Element[this.elements.size()];
         return this.elements.toArray(arr);
     }
 
-    private <T> T elementAs(Element element, Class<T> type) {
+    private <T> @Nullable T elementAs(@NotNull Element element, @NotNull Class<T> type) {
         if(!type.isAssignableFrom(element.getType())) {
             throw new ClassCastException(String.format("Element type is not of %s. Actual: %s", type.getName(), element.getType().getName()));
         }

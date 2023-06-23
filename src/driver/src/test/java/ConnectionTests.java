@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings({"SpellCheckingInspection", "unchecked"})
+@SuppressWarnings({"SpellCheckingInspection"})
 public class ConnectionTests {
 
     @Test

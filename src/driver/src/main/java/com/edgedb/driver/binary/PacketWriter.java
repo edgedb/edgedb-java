@@ -4,6 +4,7 @@ import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
 import org.joou.UInteger;
@@ -28,7 +29,7 @@ public class PacketWriter implements AutoCloseable {
         void write(PacketWriter writer, Number value) throws OperationNotSupportedException;
     }
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private static final HashMap<Class<?>, PrimitiveWriter> primitiveNumberWriters;
+    private static final @NotNull HashMap<Class<?>, PrimitiveWriter> primitiveNumberWriters;
 
     public PacketWriter(int size, boolean isDynamic) {
         this.isDynamic = isDynamic;
@@ -97,7 +98,7 @@ public class PacketWriter implements AutoCloseable {
         this.buffer.writerIndex(position);
     }
 
-    private <T> void write(T value, int size, BiFunction<ByteBuf, T, ByteBuf> writer) throws OperationNotSupportedException {
+    private <T> void write(T value, int size, @NotNull BiFunction<ByteBuf, T, ByteBuf> writer) throws OperationNotSupportedException {
         ensureCanWrite(size);
         // we have to use a bi-func here, since 'ensureCanWrite' can rescale the buffer, changing the
         // 'this.buffer' reference which the delegate can hold an old reference.
@@ -128,19 +129,19 @@ public class PacketWriter implements AutoCloseable {
         write((int)value, BYTE_SIZE, ByteBuf::writeByte);
     }
 
-    public void write(ULong value) throws OperationNotSupportedException {
+    public void write(@NotNull ULong value) throws OperationNotSupportedException {
         this.write(value.longValue());
     }
 
-    public void write(UInteger value) throws OperationNotSupportedException {
+    public void write(@NotNull UInteger value) throws OperationNotSupportedException {
         write(value.intValue());
     }
 
-    public void write(UShort value) throws OperationNotSupportedException {
+    public void write(@NotNull UShort value) throws OperationNotSupportedException {
         write(value.shortValue());
     }
 
-    public void write(UByte value) throws OperationNotSupportedException {
+    public void write(@NotNull UByte value) throws OperationNotSupportedException {
         write(value.byteValue());
     }
 
@@ -152,16 +153,16 @@ public class PacketWriter implements AutoCloseable {
         write(value, BOOL_SIZE, ByteBuf::writeBoolean);
     }
 
-    public void write(UUID uuid) throws OperationNotSupportedException {
+    public void write(@NotNull UUID uuid) throws OperationNotSupportedException {
         write(uuid.getMostSignificantBits());
         write(uuid.getLeastSignificantBits());
     }
 
-    public void write(String value) throws OperationNotSupportedException {
+    public void write(@NotNull String value) throws OperationNotSupportedException {
         writeArray(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    public <T extends Number> void writePrimitive(T value) throws OperationNotSupportedException {
+    public <T extends Number> void writePrimitive(@NotNull T value) throws OperationNotSupportedException {
         primitiveNumberWriters.get(value.getClass()).write(this, value);
     }
 
@@ -171,7 +172,6 @@ public class PacketWriter implements AutoCloseable {
             return;
         }
 
-        // TODO: ensure that this is the correct way to write a buff to this one
         ensureCanWrite(buffer.writerIndex() + INT_SIZE); // arr length (i32)
 
         write(buffer.writerIndex());
@@ -181,7 +181,7 @@ public class PacketWriter implements AutoCloseable {
         }
     }
 
-    public void writeArray(byte[] array) throws OperationNotSupportedException {
+    public void writeArray(byte @NotNull [] array) throws OperationNotSupportedException {
         if(array.length == 0) {
             write(0);
             return;
@@ -192,7 +192,7 @@ public class PacketWriter implements AutoCloseable {
         writeArrayWithoutLength(array);
     }
 
-    public void writeArrayWithoutLength(byte[] array) throws OperationNotSupportedException {
+    public void writeArrayWithoutLength(byte @NotNull [] array) throws OperationNotSupportedException {
         if(array.length == 0) {
             return;
         }
@@ -201,12 +201,12 @@ public class PacketWriter implements AutoCloseable {
         this.buffer.writeBytes(array);
     }
 
-    public <T extends SerializableData> void write(T serializable) throws OperationNotSupportedException {
+    public <T extends SerializableData> void write(@NotNull T serializable) throws OperationNotSupportedException {
         ensureCanWrite(serializable.getSize());
         serializable.write(this);
     }
 
-    public <T extends SerializableData, U extends Number> void writeArray(T[] serializableArray, Class<U> lengthPrimitive) throws OperationNotSupportedException {
+    public <T extends SerializableData, U extends Number> void writeArray(T @NotNull [] serializableArray, @NotNull Class<U> lengthPrimitive) throws OperationNotSupportedException {
         ensureCanWrite(BinaryProtocolUtils.sizeOf(serializableArray, lengthPrimitive));
 
         var len = BinaryProtocolUtils.castNumber(serializableArray.length, lengthPrimitive);
@@ -218,7 +218,7 @@ public class PacketWriter implements AutoCloseable {
         }
     }
 
-    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> void writeEnumSet(EnumSet<T> enumSet, Class<U> primitive) throws OperationNotSupportedException {
+    public <U extends Number, T extends Enum<T> & BinaryEnum<U>> void writeEnumSet(@NotNull EnumSet<T> enumSet, Class<U> primitive) throws OperationNotSupportedException {
         long flags = 0L;
 
         for (T v: enumSet) {
@@ -233,7 +233,7 @@ public class PacketWriter implements AutoCloseable {
         void consume(PacketWriter writer) throws OperationNotSupportedException, EdgeDBException;
     }
 
-    public void writeDelegateWithLength(WriterDelegate delegate) throws OperationNotSupportedException, EdgeDBException {
+    public void writeDelegateWithLength(@NotNull WriterDelegate delegate) throws OperationNotSupportedException, EdgeDBException {
         ensureCanWrite(INT_SIZE);
 
         var currentIndex = this.getPosition();
@@ -241,7 +241,7 @@ public class PacketWriter implements AutoCloseable {
         delegate.consume(this);
         var lastIndex = this.getPosition();
         seek(currentIndex);
-        write((int)(lastIndex - currentIndex - INT_SIZE));
+        write(lastIndex - currentIndex - INT_SIZE);
         seek(lastIndex);
     }
 

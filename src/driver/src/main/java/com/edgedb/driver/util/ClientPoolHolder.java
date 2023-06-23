@@ -1,8 +1,12 @@
 package com.edgedb.driver.util;
 
 import com.edgedb.driver.clients.BaseEdgeDBClient;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,10 +14,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 public final class ClientPoolHolder {
-    private long size;
-    private final ConcurrentLinkedQueue<CompletableFuture<Void>> queue;
+    private static final Logger logger = LoggerFactory.getLogger(ClientPoolHolder.class);
 
-    private final AtomicLong count;
+    private long size;
+    private final @NotNull ConcurrentLinkedQueue<CompletableFuture<Void>> queue;
+
+    private final @NotNull AtomicLong count;
 
     public ClientPoolHolder(int initialSize) {
         this.size = initialSize;
@@ -51,17 +57,22 @@ public final class ClientPoolHolder {
         }
     }
 
-    private PoolContract lendContract() {
+    private @NotNull PoolContract lendContract() {
         return new PoolContract(this::completeContract);
     }
 
     private void completeContract(PoolContract contract) {
+        logger.debug("Completing contract {}...", contract);
+
         if(queue.isEmpty()) {
+            logger.debug("Empty contract queue, incrementing count");
             count.incrementAndGet();
             return;
         }
 
-        queue.poll().complete(null);
+
+        logger.debug("Polling queue and completing...");
+        Objects.requireNonNull(queue.poll()).complete(null);
     }
 
     public static class PoolContract implements AutoCloseable {
@@ -85,6 +96,11 @@ public final class ClientPoolHolder {
             if(client != null && onComplete != null) {
                 onComplete.accept(client);
             }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Contract(client := %s|onComplete := %s)", client, onComplete);
         }
     }
 }

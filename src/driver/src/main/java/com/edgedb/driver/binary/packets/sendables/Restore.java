@@ -5,10 +5,9 @@ import com.edgedb.driver.binary.packets.ClientMessageType;
 import com.edgedb.driver.binary.packets.shared.KeyValue;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 import javax.naming.OperationNotSupportedException;
-
-import static com.edgedb.driver.util.BinaryProtocolUtils.sizeOf;
 
 public class Restore extends Sendable{
     private final KeyValue[] attributes;
@@ -28,7 +27,7 @@ public class Restore extends Sendable{
     }
 
     @Override
-    protected void buildPacket(PacketWriter writer) throws OperationNotSupportedException {
+    protected void buildPacket(@NotNull PacketWriter writer) throws OperationNotSupportedException {
         writer.writeArray(attributes, Short.TYPE);
         writer.write(jobs);
         writer.writeArray(headerData);

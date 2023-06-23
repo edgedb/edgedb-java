@@ -11,6 +11,7 @@ import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.edgedb.driver.util.FastInverseIndexer;
 import com.edgedb.driver.util.StringsUtil;
 import com.edgedb.driver.util.TypeUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -35,11 +36,11 @@ public class TypeDeserializerInfo<T> {
     private Reflections reflection;
     private Collection<Class<?>> bases;
 
-    private final Map<NamingStrategy, NamingStrategyMap<Parameter>> constructorNamingMap;
-    private final Map<NamingStrategy, NamingStrategyMap<FieldInfo>> fieldNamingMap;
-    private final Map<String, TypeDeserializerInfo<? extends T>> children;
+    private final @NotNull Map<NamingStrategy, NamingStrategyMap<Parameter>> constructorNamingMap;
+    private final @NotNull Map<NamingStrategy, NamingStrategyMap<FieldInfo>> fieldNamingMap;
+    private final @NotNull Map<String, TypeDeserializerInfo<? extends T>> children;
 
-    public TypeDeserializerInfo(Class<T> type) {
+    public TypeDeserializerInfo(@NotNull Class<T> type) {
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.type = type;
@@ -48,7 +49,7 @@ public class TypeDeserializerInfo<T> {
 
         try {
             this.factory = createFactory();
-        } catch (ReflectiveOperationException | EdgeDBException e) {
+        } catch (ReflectiveOperationException e) {
             logger.error("Failed to create type deserialization factory", e);
             throw new RuntimeException(e);
         }
@@ -63,7 +64,7 @@ public class TypeDeserializerInfo<T> {
         this.children = new HashMap<>();
     }
 
-    private synchronized Reflections getReflection() {
+    private synchronized @NotNull Reflections getReflection() {
         if(reflection == null) {
             this.reflection = new Reflections(this.type);
         }
@@ -71,7 +72,7 @@ public class TypeDeserializerInfo<T> {
         return this.reflection;
     }
 
-    private synchronized Collection<Class<?>> getBases() {
+    private synchronized @NotNull Collection<Class<?>> getBases() {
         if(bases == null) {
             var bases = new ArrayList<Class<?>>();
             Class<?> tempType = type;
@@ -87,7 +88,7 @@ public class TypeDeserializerInfo<T> {
         return bases;
     }
 
-    private synchronized List<FieldInfo> getFields() {
+    private synchronized @NotNull List<FieldInfo> getFields() {
         if(fields == null) {
             var fields = type.getDeclaredFields();
             var setterMethods = getSetterMethods();
@@ -105,7 +106,7 @@ public class TypeDeserializerInfo<T> {
         return fields;
     }
 
-    public synchronized Map<String, Method> getSetterMethods() {
+    public synchronized @NotNull Map<String, Method> getSetterMethods() {
         if(setterMethods == null) {
             var methods = type.getDeclaredMethods();
             var setterMethods = Arrays.stream(methods);
@@ -172,12 +173,12 @@ public class TypeDeserializerInfo<T> {
         return module;
     }
 
-    private boolean isValidField(Field field) {
+    private boolean isValidField(@NotNull Field field) {
         return field.getAnnotation(EdgeDBIgnore.class) == null;
     }
 
     @SuppressWarnings("unchecked")
-    private TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException, EdgeDBException {
+    private @NotNull TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException {
         // check for constructor deserializer
         var constructors = this.type.getDeclaredConstructors();
 
@@ -263,7 +264,7 @@ public class TypeDeserializerInfo<T> {
                 for (var child : children.entrySet()) {
                     var module = child.getValue().getModuleName();
 
-                    if((module == null || split[0] == module) && child.getKey().equals(split[1])) {
+                    if((module == null || split[0].equals(module)) && child.getKey().equals(split[1])) {
                         return child.getValue().factory.deserialize(enumerator, (i, v) -> {
                             if(namingStrategyEntry.map.containsKey(v.getName())) {
                                 var fieldInfo = namingStrategyEntry.map.get(v.getName());
@@ -310,14 +311,14 @@ public class TypeDeserializerInfo<T> {
         };
     }
 
-    public NamingStrategyMap<FieldInfo> getFieldMap(NamingStrategy strategy) {
+    public @NotNull NamingStrategyMap<FieldInfo> getFieldMap(NamingStrategy strategy) {
         return fieldNamingMap.computeIfAbsent(
                 strategy,
                 (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), getFields())
         );
     }
 
-    private <U extends AnnotatedElement> String getNameOrAnnotated(U value, Function<U, String> getName) {
+    private <U extends AnnotatedElement> String getNameOrAnnotated(@NotNull U value, @NotNull Function<U, String> getName) {
         var anno = value.getAnnotation(EdgeDBName.class);
         if(anno != null && anno.value() != null) {
             return anno.value();
@@ -328,13 +329,13 @@ public class TypeDeserializerInfo<T> {
 
     public static class FieldInfo {
         public final EdgeDBName edgedbNameAnno;
-        public final Class<?> fieldType;
-        public final Field field;
+        public final @NotNull Class<?> fieldType;
+        public final @NotNull Field field;
         private final @Nullable Method setMethod;
 
         private final @Nullable EdgeDBLinkType linkType;
 
-        public FieldInfo(Field field, Map<String, Method> setters) {
+        public FieldInfo(@NotNull Field field, @NotNull Map<String, Method> setters) {
             this.field = field;
             this.fieldType = field.getType();
 
@@ -361,7 +362,7 @@ public class TypeDeserializerInfo<T> {
             return fieldType;
         }
 
-        private Class<?> extractCollectionInnerType(Class<?> cls) throws EdgeDBException {
+        private Class<?> extractCollectionInnerType(@NotNull Class<?> cls) throws EdgeDBException {
             if(linkType != null) {
                 return linkType.value();
             }
@@ -371,7 +372,6 @@ public class TypeDeserializerInfo<T> {
             }
 
             if (Collection.class.isAssignableFrom(cls)) {
-                // TODO: can this be improved?
                 var generic = field.getGenericType();
 
                 if (!(generic instanceof ParameterizedType)) {
@@ -393,7 +393,7 @@ public class TypeDeserializerInfo<T> {
             throw new EdgeDBException("Cannot find element type of the collection " + cls.getName());
         }
 
-        public String getFieldName() {
+        public @NotNull String getFieldName() {
             return this.field.getName();
         }
 
@@ -407,7 +407,7 @@ public class TypeDeserializerInfo<T> {
             }
         }
 
-        private Object convertToType(Object value) throws EdgeDBException {
+        private @Nullable Object convertToType(@Nullable Object value) throws EdgeDBException {
             // TODO: custom converters?
 
             if(value == null) {
@@ -419,12 +419,12 @@ public class TypeDeserializerInfo<T> {
     }
 
     public static class NamingStrategyMap<T> {
-        public final NamingStrategy strategy;
-        public final Map<String, T> map;
-        public final Map<String, Integer> nameIndexMap;
-        public final List<T> values;
+        public final @NotNull NamingStrategy strategy;
+        public final @NotNull Map<String, T> map;
+        public final @NotNull Map<String, Integer> nameIndexMap;
+        public final @NotNull List<T> values;
 
-        public NamingStrategyMap(NamingStrategy strategy, Function<T, String> getName, List<T> values) {
+        public NamingStrategyMap(@NotNull NamingStrategy strategy, @NotNull Function<T, String> getName, @NotNull List<T> values) {
             this.map = new HashMap<>(values.size());
             this.nameIndexMap = new HashMap<>(values.size());
             this.values = values;
@@ -442,7 +442,7 @@ public class TypeDeserializerInfo<T> {
             }
         }
 
-        public NamingStrategyMap(NamingStrategy strategy, Function<T, String> getName, T[] values) {
+        public NamingStrategyMap(@NotNull NamingStrategy strategy, @NotNull Function<T, String> getName, T[] values) {
             this(strategy, getName, List.of(values));
         }
 

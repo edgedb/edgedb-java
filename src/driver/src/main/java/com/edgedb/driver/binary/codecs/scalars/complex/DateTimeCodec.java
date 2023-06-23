@@ -5,6 +5,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.complex.ComplexCodecConverter;
 import com.edgedb.driver.util.TemporalUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -25,14 +26,14 @@ public final class DateTimeCodec extends ComplexScalarCodecBase<OffsetDateTime> 
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable OffsetDateTime value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable OffsetDateTime value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
             writer.write(TemporalUtils.toMicrosecondsSinceEpoc(value));
         }
     }
 
     @Override
-    public @Nullable OffsetDateTime deserialize(PacketReader reader, CodecContext context) {
+    public @Nullable OffsetDateTime deserialize(@NotNull PacketReader reader, CodecContext context) {
         return TemporalUtils.fromMicrosecondsSinceEpoc(reader.readInt64(), ZonedDateTime::toOffsetDateTime);
     }
 }

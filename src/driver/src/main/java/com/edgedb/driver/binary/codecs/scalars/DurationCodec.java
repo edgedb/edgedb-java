@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -16,7 +17,7 @@ public final class DurationCodec extends ScalarCodecBase<Duration> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable Duration value, CodecContext context) throws OperationNotSupportedException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Duration value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
             writer.write(Math.round(value.toNanos() / 1000d));
 
@@ -27,7 +28,7 @@ public final class DurationCodec extends ScalarCodecBase<Duration> {
     }
 
     @Override
-    public @Nullable Duration deserialize(PacketReader reader, CodecContext context) {
+    public @Nullable Duration deserialize(@NotNull PacketReader reader, CodecContext context) {
         var duration = Duration.of(reader.readInt64(), ChronoUnit.MICROS);
 
         // deprecated: days & months

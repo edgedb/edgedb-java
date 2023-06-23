@@ -6,21 +6,22 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.shared.Cardinality;
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.UUID;
 
 public class CommandDataDescription implements Receivable {
-    public final Annotation[] annotations;
-    public final EnumSet<Capabilities> capabilities;
+    public final Annotation @NotNull [] annotations;
+    public final @NotNull EnumSet<Capabilities> capabilities;
     public final Cardinality cardinality;
-    public final UUID inputTypeDescriptorId;
-    public final UUID outputTypeDescriptorId;
+    public final @NotNull UUID inputTypeDescriptorId;
+    public final @NotNull UUID outputTypeDescriptorId;
     public final @Nullable ByteBuf inputTypeDescriptorBuffer;
     public final @Nullable ByteBuf outputTypeDescriptorBuffer;
 
-    public CommandDataDescription(PacketReader reader) {
+    public CommandDataDescription(@NotNull PacketReader reader) {
         annotations = reader.readAnnotations();
         capabilities = reader.readEnumSet(Capabilities.class, Long.TYPE);
         cardinality = reader.readEnum(Cardinality.class, Byte.TYPE);
@@ -42,7 +43,7 @@ public class CommandDataDescription implements Receivable {
     }
 
     @Override
-    public ServerMessageType getMessageType() {
+    public @NotNull ServerMessageType getMessageType() {
         return ServerMessageType.COMMAND_DATA_DESCRIPTION;
     }
 }
