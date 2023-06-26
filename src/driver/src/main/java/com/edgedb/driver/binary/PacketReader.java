@@ -61,6 +61,21 @@ public class PacketReader {
         this.buffer.skipBytes(count);
     }
 
+    public void skip(long count) {
+        if(count >> 32 == 0) {
+            // can convert to int
+            skip((int)count);
+            return;
+        }
+
+        var temp = count;
+        do {
+            this.buffer.skipBytes((int) temp);
+            temp -= Integer.MAX_VALUE;
+        }
+        while (temp >= Integer.MAX_VALUE);
+    }
+
     public boolean isEmpty() {
         return this.buffer.readableBytes() == 0;
     }

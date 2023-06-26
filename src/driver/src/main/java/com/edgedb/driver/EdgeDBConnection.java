@@ -146,7 +146,7 @@ public class EdgeDBConnection implements Cloneable {
      * @return The hostname part of the connection.
      */
     public @NotNull String getHostname() {
-        return hostname == null ? "127.0.0.1" : hostname;
+        return hostname == null ? "localhost" : hostname;
     }
 
     /**

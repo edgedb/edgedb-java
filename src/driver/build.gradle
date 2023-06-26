@@ -20,7 +20,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation 'org.burningwave:core:12.62.6'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_databind_version'
+    testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
     testImplementation "ch.qos.logback:logback-classic:$logback_version"
     testImplementation "ch.qos.logback:logback-core:$logback_version"
 }
@@ -33,12 +33,23 @@ jar {
     }
 }
 
-tasks.register('copyJarToBin') {
+def deleteOldJar = tasks.register('deleteOldJarInBin') {
+    var path = Paths.get(project.rootDir.toString(), 'examples', 'scala-examples', 'lib')
+    var paths = path.toFile().listFiles((FileFilter) { File f -> f.name.startsWith('com.edgedb.driver') })
+    delete files(paths)
+}
+
+def copyJar = tasks.register('copyJarToBin') {
     copy {
         from jar
         into Paths.get(project.rootDir.toString(), 'examples', 'scala-examples', 'lib')
     }
 }
+
+copyJar.configure {
+    dependsOn(deleteOldJar, compileJava)
+}
+
 
 publishing {
     publications {

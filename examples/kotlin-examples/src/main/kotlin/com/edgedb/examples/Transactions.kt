@@ -10,6 +10,12 @@ class Transactions : Example {
     }
 
     override suspend fun runAsync(client: EdgeDBClient) {
+        // verify we can run transactions
+        if (!client.supportsTransactions()) {
+            logger.info("Skipping transactions, client type {} doesn't support it", client.clientType)
+            return
+        }
+
         val transactionResult = client.transaction { tx ->
             tx.queryRequiredSingle(String::class.java, "SELECT 'Hello from transaction!'")
         }.await()

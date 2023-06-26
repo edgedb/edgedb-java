@@ -169,7 +169,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 case READY_FOR_COMMAND:
                     var ready = result.packet.as(ReadyForCommand.class);
                     setTransactionState(ready.transactionState);
-                    args.completedParse = true;
+                    args.completedParse = args.codecs != null;
                     result.finishDuplexing();
             }
 
@@ -254,16 +254,14 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
 
     private void handleCommandError(@NotNull ExecutionArguments args, Duplexer.@NotNull DuplexResult result, @NotNull ErrorResponse err) {
         if(err.errorCode == ErrorCode.STATE_MISMATCH_ERROR) {
+            logger.debug("Has updated state?: {}", args.stateUpdated);
             // should have new state
             if(!args.stateUpdated) {
                 result.finishExceptionally(
                         "Failed to properly encode state data, this is a bug",
                         EdgeDBException::new
                 );
-                return;
             }
-
-            result.finishDuplexing();
         }
         else {
             result.finishExceptionally(err, args.query, ErrorResponse::toException);

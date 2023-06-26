@@ -3,6 +3,8 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import com.edgedb.driver.binary.packets.receivable.*;
 import com.edgedb.driver.binary.packets.sendables.Sendable;
+import com.edgedb.driver.exceptions.ConnectionFailedException;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.HexUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -16,7 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
+import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,7 +74,7 @@ public class PacketSerializer {
             @Override
             protected void decode(@NotNull ChannelHandlerContext ctx, @NotNull ByteBuf msg, @NotNull List<Object> out) throws Exception {
                 while (msg.readableBytes() > 5) {
-                    var type = ServerMessageType.valueOf(msg.readByte());
+                    var type = getEnumValue(ServerMessageType.class, msg.readByte());
                     var length = msg.readUnsignedInt() - 4; // remove length of self.
 
                     // can we read this packet?
@@ -123,7 +130,7 @@ public class PacketSerializer {
 
                 public boolean tryComplete(@NotNull ByteBuf other) {
                     if (messageType == null) {
-                        messageType = pick(other, b -> ServerMessageType.valueOf(b.readByte()), BYTE_SIZE);
+                        messageType = pick(other, b -> getEnumValue(ServerMessageType.class, b.readByte()), BYTE_SIZE);
                     }
 
                     if (length == null) {
@@ -187,15 +194,28 @@ public class PacketSerializer {
 
     public static @Nullable Receivable deserialize(ServerMessageType messageType, long length, @NotNull ByteBuf buffer) {
         var reader = new PacketReader(buffer);
+        return deserializeSingle(messageType, length, reader, true);
+    }
 
-        if(!deserializerMap.containsKey(messageType)) {
-            logger.error("Unknown packet type {}", messageType);
-            reader.skip((int)length);
+    public static @Nullable Receivable deserializeSingle(PacketReader reader) {
+        var messageType = reader.readEnum(ServerMessageType.class, Byte.TYPE);
+        var length = reader.readUInt32().longValue();
+
+        return deserializeSingle(messageType, length, reader, false);
+    }
+
+    public static @Nullable Receivable deserializeSingle(
+            ServerMessageType type, long length, @NotNull PacketReader reader,
+            boolean verifyEmpty
+    ) {
+        if(!deserializerMap.containsKey(type)) {
+            logger.error("Unknown packet type {}", type);
+            reader.skip(length);
             return null;
         }
 
         try {
-            return deserializerMap.get(messageType).apply(reader);
+            return deserializerMap.get(type).apply(reader);
         }
         catch (Exception x) {
             logger.error("Failed to deserialize packet", x);
@@ -203,8 +223,96 @@ public class PacketSerializer {
         }
         finally {
             // ensure we read the entire packet
-            if(!reader.isEmpty()) {
-                logger.warn("Hanging data left inside packet reader of type {} with length {}", messageType, length);
+            if(verifyEmpty && !reader.isEmpty()) {
+                logger.warn("Hanging data left inside packet reader of type {} with length {}", type, length);
+            }
+        }
+    }
+
+    public static HttpResponse.BodyHandler<List<Receivable>> PACKET_BODY_HANDLER = new PacketBodyHandler();
+
+    private static class PacketBodyHandler implements HttpResponse.BodyHandler<List<Receivable>> {
+        @Override
+        public HttpResponse.BodySubscriber<List<Receivable>> apply(HttpResponse.ResponseInfo responseInfo) {
+            // ensure success
+            var isSuccess = responseInfo.statusCode() / 100 == 2;
+
+            return isSuccess
+                    ? new PacketBodySubscriber()
+                    : new PacketBodySubscriber(responseInfo.statusCode());
+        }
+
+        private static class PacketBodySubscriber implements HttpResponse.BodySubscriber<List<Receivable>> {
+            private final @Nullable List<@NotNull ByteBuf> buffers;
+            private final CompletableFuture<List<Receivable>> promise;
+
+            public PacketBodySubscriber(int errorCode) {
+                buffers = null;
+                promise = CompletableFuture.failedFuture(
+                        new ConnectionFailedException("Got HTTP error code " + errorCode)
+                );
+            }
+
+            public PacketBodySubscriber() {
+                promise = new CompletableFuture<>();
+                buffers = new ArrayList<>();
+            }
+
+            @Override
+            public CompletionStage<List<Receivable>> getBody() {
+                return promise;
+            }
+
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+                if(buffers == null) {
+                    return; // failed
+                }
+
+                subscription.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(List<ByteBuffer> items) {
+                if(buffers == null) {
+                    return; // failed
+                }
+
+                for(var item : items) {
+                    buffers.add(Unpooled.wrappedBuffer(item));
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                promise.completeExceptionally(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                if(buffers == null) {
+                    return; // failed
+                }
+
+                var completeBuffer = Unpooled.wrappedBuffer(buffers.toArray(new ByteBuf[0]));
+
+                var reader = new PacketReader(completeBuffer);
+                var data = new ArrayList<Receivable>();
+
+                while(completeBuffer.readableBytes() > 0) {
+                    var packet = deserializeSingle(reader);
+
+                    if(packet == null && completeBuffer.readableBytes() > 0) {
+                        promise.completeExceptionally(
+                                new EdgeDBException("Failed to deserialize packet, buffer had " + completeBuffer.readableBytes() + " bytes remaining")
+                        );
+                        return;
+                    }
+
+                    data.add(packet);
+                }
+
+                promise.complete(data);
             }
         }
     }

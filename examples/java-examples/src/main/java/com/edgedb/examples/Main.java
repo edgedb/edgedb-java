@@ -1,7 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.*;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import org.slf4j.Logger;
@@ -24,6 +23,8 @@ public class Main {
         runJavaExamples(client);
 
         logger.info("Examples complete");
+
+        System.exit(0);
     }
 
     private static void runJavaExamples(EdgeDBClient client) {

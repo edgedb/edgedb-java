@@ -1,9 +1,8 @@
 package com.edgedb.driver.binary.packets;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.edgedb.driver.binary.BinaryEnum;
 
-public enum ServerMessageType {
+public enum ServerMessageType implements BinaryEnum<Byte> {
     AUTHENTICATION (0x52),
     COMMAND_COMPLETE (0x43),
     COMMAND_DATA_DESCRIPTION (0x54),
@@ -20,23 +19,13 @@ public enum ServerMessageType {
     SERVER_KEY_DATA (0x4b);
 
     private final byte code;
-    private final static Map<Byte, ServerMessageType> map = new HashMap<>();
 
     ServerMessageType(int code) {
         this.code = (byte)code;
     }
 
-    static {
-        for (ServerMessageType v : ServerMessageType.values()) {
-            map.put(v.code, v);
-        }
-    }
-
-    public static ServerMessageType valueOf(Byte raw) {
-        return map.get(raw);
-    }
-
-    public byte getCode() {
+    @Override
+    public Byte getValue() {
         return code;
     }
 }

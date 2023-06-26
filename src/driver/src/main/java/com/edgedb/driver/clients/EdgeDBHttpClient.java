@@ -6,16 +6,26 @@ import com.edgedb.driver.TransactionState;
 import com.edgedb.driver.binary.duplexers.Duplexer;
 import com.edgedb.driver.binary.duplexers.HttpDuplexer;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
+import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.ScramException;
 import com.edgedb.driver.util.Scram;
+import com.edgedb.driver.util.SslUtils;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
@@ -25,18 +35,31 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
+    private static final Logger logger = LoggerFactory.getLogger(EdgeDBHttpClient.class);
     private static final String HTTP_TOKEN_AUTH_METHOD = "SCRAM-SHA-256";
     private final HttpDuplexer duplexer;
-    private final HttpClient client;
+    public final HttpClient httpClient;
 
     private @Nullable String authToken;
     private @Nullable URI baseUri;
     private @Nullable URI authUri;
+    private @Nullable URI execUri;
 
-    public EdgeDBHttpClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public EdgeDBHttpClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
         super(connection, config, poolHandle);
         this.duplexer = new HttpDuplexer(this);
-        this.client = HttpClient.newHttpClient();
+        SSLContext context;
+        try {
+            context = SSLContext.getInstance("TLS");
+            SslUtils.initContextWithConnectionDetails(context, getConnectionArguments());
+        } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException | IOException |
+                 KeyManagementException e) {
+            throw new EdgeDBException("Failed to initialize SSL context", e);
+        }
+
+        this.httpClient = HttpClient.newBuilder()
+                .sslContext(context)
+                .build();
     }
 
     public String getToken() {
@@ -50,6 +73,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
     private CompletionStage<String> authenticate() {
         return CompletableFuture
                 .supplyAsync(() -> {
+                    logger.debug("Creating SCRAM and initial auth message...");
                     var scram = new Scram();
 
                     var first = scram.buildInitialMessage(getConnectionArguments().getUsername());
@@ -70,13 +94,19 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
 
                     return Map.entry(scram, request);
                 })
-                .thenCompose(entry ->
-                        client.sendAsync(entry.getValue(), HttpResponse.BodyHandlers.ofByteArray())
-                                .thenApply(response -> Map.entry(entry.getKey(), response))
-                )
-                .thenCompose(EdgeDBHttpClient::ensureSuccess)
+                .thenCompose(entry -> {
+                    logger.debug("Executing initial auth request");
+
+                    return httpClient.sendAsync(entry.getValue(), HttpResponse.BodyHandlers.ofByteArray())
+                            .thenApply(response -> Map.entry(entry.getKey(), response));
+                })
                 .thenCompose(entry -> {
                     var authenticate = entry.getValue().headers().firstValue("www-authenticate");
+
+                    logger.debug(
+                            "Verifying response authenticate, is match?: {}",
+                            authenticate.isPresent() && authenticate.get().startsWith(HTTP_TOKEN_AUTH_METHOD)
+                    );
 
                     if(authenticate.isEmpty()) {
                         return CompletableFuture.failedFuture(
@@ -91,11 +121,13 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
                     Scram.SASLFinalMessage finalMsg;
 
                     try {
+                        logger.debug("Building final message...");
                         finalMsg = entry.getKey().buildFinalMessage(
                                 new String(Base64.getDecoder().decode(keys.get("data")), StandardCharsets.UTF_8),
                                 getConnectionArguments().getPassword()
                         );
                     } catch (ScramException e) {
+                        logger.debug("Failed to build final message", e);
                         return CompletableFuture.failedFuture(e);
                     }
 
@@ -113,13 +145,16 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
                             .GET()
                             .build();
 
-                    return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+                    logger.debug("Sending final auth message...");
+
+                    return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
                 })
                 .thenCompose(EdgeDBHttpClient::ensureSuccess)
                 .thenApply(HttpResponse::body);
     }
 
-    private static <T> CompletionStage<HttpResponse<T>> ensureSuccess(HttpResponse<T> response) {
+    public static <T> CompletionStage<HttpResponse<T>> ensureSuccess(HttpResponse<T> response) {
+        logger.debug("Verifying success for code {}", response.statusCode());
         if(response.statusCode() / 100 != 2) {
             return CompletableFuture.failedFuture(
                     new ConnectionFailedException(
@@ -147,7 +182,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
                 ));
     }
 
-    private synchronized URI getAuthUri() {
+    public synchronized URI getAuthUri() {
         if(authUri != null) {
             return authUri;
         }
@@ -155,14 +190,22 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
         return authUri = getBaseUri().resolve("/auth/token");
     }
 
-    private synchronized URI getBaseUri() {
-        if(authUri != null) {
-            return authUri;
+    public synchronized URI getBaseUri() {
+        if(baseUri != null) {
+            return baseUri;
         }
 
-        return authUri = URI.create(
+        return baseUri = URI.create(
                 "https://" + getConnectionArguments().getHostname() + ":" + getConnectionArguments().getPort()
         );
+    }
+
+    public synchronized URI getExecUri() {
+        if(execUri != null) {
+            return execUri;
+        }
+
+        return execUri = getBaseUri().resolve("/db/" + getConnectionArguments().getDatabase());
     }
 
     @Override
@@ -177,6 +220,11 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
 
     @Override
     protected CompletionStage<Void> openConnection() {
+        return CompletableFuture.completedFuture(null); // not valid for this client.
+    }
+
+    @Override
+    public CompletionStage<Void> connect() {
         if(authToken == null) {
             return authenticate()
                     .thenAccept(token -> this.authToken = token);

@@ -32,6 +32,8 @@ def main(): Unit = {
     Await.ready(runExample(logger, client, example), Duration.Inf)
 
   logger.info("Examples complete!")
+
+  System.exit(0)
 }
 
 private def runExample(logger: Logger, client: EdgeDBClient, example: Example)(implicit context: ExecutionContext): Future[Unit] = {
