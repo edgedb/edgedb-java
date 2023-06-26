@@ -39,16 +39,7 @@ public class HttpDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Receivable> readNext() {
-        return CompletableFuture
-                .supplyAsync(() -> {
-                    try {
-                        lock.tryAcquire(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())
-                    } catch (InterruptedException v) {
-                        throw new CompletionException(v);
-                    }
-
-                    return (Void)null;
-                }, lockExecutor)
+        return acquireLock()
                 .thenCompose((v) -> readNext0())
                 .whenCompleteAsync((v,e) -> lock.release(), lockExecutor);
     }
@@ -65,8 +56,32 @@ public class HttpDuplexer extends Duplexer {
 
     @Override
     public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets) {
-        return null;
+        return acquireLock()
+                .thenCompose((v) -> send0(packet, packets));
     }
+
+    private CompletionStage<Void> send0(Sendable packet, @Nullable Sendable... packets) {
+
+    }
+
+    private CompletionStage<Void> acquireLock() {
+        return CompletableFuture
+                .runAsync(() -> {
+                    try {
+                        if(!lock.tryAcquire(
+                                client.getConfig().getMessageTimeoutValue(),
+                                client.getConfig().getMessageTimeoutUnit())
+                        ) {
+                            throw new CompletionException(
+                                    new TimeoutException("A message read process passed the configured message timeout")
+                            );
+                        }
+                    } catch (InterruptedException v) {
+                        throw new CompletionException(v);
+                    }
+                }, lockExecutor);
+    }
+
 
     @Override
     public CompletionStage<Void> duplex(DuplexCallback func, @NotNull Sendable packet, @Nullable Sendable... packets) {
