@@ -916,14 +916,22 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.duplexer.reset();
 
         return retryableConnect()
-                .thenApply(v -> getConnectionArguments())
-                .thenApply(connection -> new ClientHandshake(
+                .thenApply(v -> {
+                    var connection = getConnectionArguments();
+                    return connection.getSecretKey() != null
+                            ? new ConnectionParam[] {
+                                    new ConnectionParam("user", connection.getUsername()),
+                                    new ConnectionParam("database", connection.getDatabase()),
+                                    new ConnectionParam("secret_key", connection.getSecretKey())
+                            } : new ConnectionParam[] {
+                                    new ConnectionParam("user", connection.getUsername()),
+                                    new ConnectionParam("database", connection.getDatabase())
+                            };
+                })
+                .thenApply(connectionParams -> new ClientHandshake(
                         PROTOCOL_MAJOR_VERSION,
                         PROTOCOL_MINOR_VERSION,
-                        new ConnectionParam[] {
-                                new ConnectionParam("user", connection.getUsername()),
-                                new ConnectionParam("database", connection.getDatabase())
-                        },
+                        connectionParams,
                         new ProtocolExtension[0]
                 ))
                 .thenCompose(this.duplexer::send);

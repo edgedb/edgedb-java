@@ -233,12 +233,20 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
     }
 
     private static final class ExecutePair<U> {
-        public final BaseEdgeDBClient client;
-        public final U result;
+        private final BaseEdgeDBClient client;
+        private final @Nullable U result;
 
-        private ExecutePair(BaseEdgeDBClient client, U result) {
+        private ExecutePair(BaseEdgeDBClient client, @Nullable U result) {
             this.client = client;
             this.result = result;
+        }
+
+        public @Nullable U getResult() {
+            return result;
+        }
+
+        public BaseEdgeDBClient getClient() {
+            return client;
         }
     }
 
@@ -254,21 +262,18 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
                                 query,
                                 args,
                                 capabilities
-                        ).handle((r, x) -> new ExecutePair<>(client, r))
+                        ).thenApply(r -> new ExecutePair<>(client, r))
                 )
-                .handle((pair, exc) -> {
-                    try {
-                        pair.client.close();
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
+                .whenComplete((entry, exc) -> {
+                    if(entry != null) {
+                        try {
+                            entry.getClient().close();
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
                     }
-
-                    if(exc != null) {
-                        throw new CompletionException(exc);
-                    }
-
-                    return pair.result;
-                });
+                })
+                .thenApply(ExecutePair::getResult);
     }
 
     @Override
