@@ -416,7 +416,8 @@ public class EdgeDBConnection implements Cloneable {
      * @param path The path to the {@code edgedb.toml} file
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
-     * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws IOException The project file or one of its dependants doesn't exist.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
     public static EdgeDBConnection fromProjectFile(@NotNull Path path) throws IOException, ConfigurationException {
         return fromProjectFile(path.toFile());
@@ -427,7 +428,8 @@ public class EdgeDBConnection implements Cloneable {
      * @param path The path to the {@code edgedb.toml} file
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
-     * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws IOException The project file or one of its dependants doesn't exist.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
     public static EdgeDBConnection fromProjectFile(@NotNull String path) throws IOException, ConfigurationException {
         return fromProjectFile(new File(path));
@@ -439,6 +441,7 @@ public class EdgeDBConnection implements Cloneable {
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
      * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
     public static EdgeDBConnection fromProjectFile(@NotNull File file) throws IOException, ConfigurationException {
         if(!file.exists()) {
@@ -469,7 +472,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param instanceName The name of the instance.
      * @return A {@linkplain EdgeDBConnection} that targets the specified instance.
      * @throws IOException The instance could not be found or one of its configuration files cannot be read.
-     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      * format.
      */
     public static EdgeDBConnection fromInstanceName(String instanceName) throws IOException, ConfigurationException {
@@ -482,7 +485,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param cloudProfile The optional cloud profile name if the instance is a cloud instance.
      * @return A {@linkplain EdgeDBConnection} that targets the specified instance.
      * @throws IOException The instance could not be found or one of its configuration files cannot be read.
-     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      * format.
      */
     public static EdgeDBConnection fromInstanceName(String instanceName, @Nullable String cloudProfile) throws IOException, ConfigurationException {
@@ -509,6 +512,7 @@ public class EdgeDBConnection implements Cloneable {
      * file to use to create the {@linkplain EdgeDBConnection}.
      * @return A resolved {@linkplain EdgeDBConnection}.
      * @throws IOException No {@code edgedb.toml} file could be found, or one of its configuration files cannot be read.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid
      */
     public static EdgeDBConnection resolveEdgeDBTOML() throws IOException, ConfigurationException {
         var dir = Paths.get(System.getProperty("user.dir"));
