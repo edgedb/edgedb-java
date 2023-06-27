@@ -2,10 +2,8 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.1.3"
 
-//resolvers += Resolver.file("my-test-repo", file("test"))
-
 libraryDependencies ++= Seq(
-  "com.edgedb" % "driver" % "0.0.1" from "file:///" + System.getProperty("user.dir") + "/lib/com.edgedb.driver-0.0.1-SNAPSHOT.jar",
+  "com.edgedb" % "driver" % "0.1.1" from "file:///" + System.getProperty("user.dir") + "/lib/com.edgedb.driver-0.1.1-SNAPSHOT.jar",
   "ch.qos.logback" % "logback-classic" % "1.4.7",
   "ch.qos.logback" % "logback-core" % "1.4.7",
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.1",
