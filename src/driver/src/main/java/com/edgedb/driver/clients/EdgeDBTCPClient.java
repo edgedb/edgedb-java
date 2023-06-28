@@ -15,7 +15,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +53,6 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                         var pipeline = ch.pipeline();
 
                         var builder = SslContextBuilder.forClient()
-                                .sslProvider(SslProvider.JDK)
                                 .protocols("TLSv1.3")
                                 .applicationProtocolConfig(new ApplicationProtocolConfig(
                                         ApplicationProtocolConfig.Protocol.ALPN,
@@ -65,7 +63,14 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
                         SslUtils.applyTrustManager(getConnectionArguments(), builder);
 
-                        pipeline.addLast("ssl", builder.build().newHandler(ch.alloc()));
+                        pipeline.addLast(
+                                "ssl",
+                                builder.build().newHandler(
+                                        ch.alloc(),
+                                        getConnectionArguments().getHostname(), // SNI
+                                        getConnectionArguments().getPort() // SNI
+                                )
+                        );
 
                         // edgedb-binary protocol and duplexer
                         pipeline.addLast(

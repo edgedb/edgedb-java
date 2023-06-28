@@ -1,13 +1,11 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.exceptions.ConfigurationException;
-import com.edgedb.driver.util.ConfigUtils;
-import com.edgedb.driver.util.EnumsUtil;
-import com.edgedb.driver.util.QueryParamUtils;
-import com.edgedb.driver.util.StringsUtil;
+import com.edgedb.driver.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -21,8 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -48,6 +45,10 @@ public class EdgeDBConnection implements Cloneable {
     private static final String EDGEDB_DATABASE_ENV_NAME = "EDGEDB_DATABASE";
     private static final String EDGEDB_HOST_ENV_NAME = "EDGEDB_HOST";
     private static final String EDGEDB_PORT_ENV_NAME = "EDGEDB_PORT";
+
+    private static final String EDGEDB_CLOUD_PROFILE_ENV_NAME = "EDGEDB_CLOUD_PROFILE";
+    private static final String EDGEDB_SECRET_KEY_ENV_NAME = "EDGEDB_SECRET_KEY";
+    private static final int DOMAIN_NAME_MAX_LEN = 62;
 
     private static final Pattern DSN_FORMATTER = Pattern.compile("^([a-z]+)://");
     private static final Pattern DSN_QUERY_PARAMETERS = Pattern.compile("((?:.(?!\\?))+$)");
@@ -108,6 +109,12 @@ public class EdgeDBConnection implements Cloneable {
 
     @JsonProperty("tls_security")
     private @Nullable TLSSecurityMode tlsSecurity;
+
+    @JsonIgnore
+    private @Nullable String secretKey;
+
+    @JsonIgnore
+    private @Nullable String cloudProfile;
 
     /**
      * Gets the current connections' username field.
@@ -230,6 +237,38 @@ public class EdgeDBConnection implements Cloneable {
      */
     protected void setTLSSecurity(TLSSecurityMode value) {
         tlsSecurity = value;
+    }
+
+    /**
+     * Gets the secret key used to authenticate with cloud instances.
+     * @return The secret key if present; otherwise {@code null}.
+     */
+    public @Nullable String getSecretKey() {
+        return this.secretKey;
+    }
+
+    /**
+     * Sets the secret key used to authenticate with cloud instances.
+     * @param secretKey The secret key for cloud authentication.
+     */
+    protected void setSecretKey(@Nullable String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    /**
+     * Gets the name of the cloud profile to use to resolve the secret key.
+     * @return The cloud profile if present; otherwise {@code null}.
+     */
+    public @Nullable String getCloudProfile() {
+        return this.cloudProfile == null ? "default" : this.cloudProfile;
+    }
+
+    /**
+     * Sets the name of the cloud profile to use to resolve the secret key.
+     * @param cloudProfile The name of the cloud profile.
+     */
+    protected void setCloudProfile(@Nullable String cloudProfile) {
+        this.cloudProfile = cloudProfile;
     }
 
     /**
@@ -377,9 +416,10 @@ public class EdgeDBConnection implements Cloneable {
      * @param path The path to the {@code edgedb.toml} file
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
-     * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws IOException The project file or one of its dependants doesn't exist.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
-    public static EdgeDBConnection fromProjectFile(@NotNull Path path) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull Path path) throws IOException, ConfigurationException {
         return fromProjectFile(path.toFile());
     }
 
@@ -388,9 +428,10 @@ public class EdgeDBConnection implements Cloneable {
      * @param path The path to the {@code edgedb.toml} file
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
-     * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws IOException The project file or one of its dependants doesn't exist.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
-    public static EdgeDBConnection fromProjectFile(@NotNull String path) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull String path) throws IOException, ConfigurationException {
         return fromProjectFile(new File(path));
     }
 
@@ -400,8 +441,9 @@ public class EdgeDBConnection implements Cloneable {
      * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
      * @throws IOException The project file or one of its dependants doesn't exist
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
      */
-    public static EdgeDBConnection fromProjectFile(@NotNull File file) throws IOException {
+    public static EdgeDBConnection fromProjectFile(@NotNull File file) throws IOException, ConfigurationException {
         if(!file.exists()) {
             throw new FileNotFoundException("Couldn't find the specified project file");
         }
@@ -416,9 +458,13 @@ public class EdgeDBConnection implements Cloneable {
             throw new FileNotFoundException(String.format("Couldn't find project directory for %s: %s", file, projectDir));
         }
 
-        var instanceName = Files.readString(projectDir.resolve("instance-name"), StandardCharsets.UTF_8);
+        var instanceDetails = ConfigUtils.tryResolveInstanceCloudProfile(projectDir);
 
-        return fromInstanceName(instanceName);
+        if(instanceDetails.isEmpty() || instanceDetails.get().getLinkedInstanceName() == null) {
+            throw new FileNotFoundException("Could not find instance name under project directory " + projectDir);
+        }
+
+        return fromInstanceName(instanceDetails.get().getLinkedInstanceName(), instanceDetails.get().getProfile());
     }
 
     /**
@@ -426,14 +472,39 @@ public class EdgeDBConnection implements Cloneable {
      * @param instanceName The name of the instance.
      * @return A {@linkplain EdgeDBConnection} that targets the specified instance.
      * @throws IOException The instance could not be found or one of its configuration files cannot be read.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
+     * format.
      */
-    public static EdgeDBConnection fromInstanceName(String instanceName) throws IOException {
-        var configPath = Paths.get(ConfigUtils.getCredentialsDir(), instanceName + ".json");
+    public static EdgeDBConnection fromInstanceName(String instanceName) throws IOException, ConfigurationException {
+        return fromInstanceName(instanceName, null);
+    }
 
-        if(!Files.exists(configPath))
-            throw new FileNotFoundException("Config file couldn't be found at " + configPath);
+    /**
+     * Creates a new {@linkplain EdgeDBConnection} from an instance name.
+     * @param instanceName The name of the instance.
+     * @param cloudProfile The optional cloud profile name if the instance is a cloud instance.
+     * @return A {@linkplain EdgeDBConnection} that targets the specified instance.
+     * @throws IOException The instance could not be found or one of its configuration files cannot be read.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
+     * format.
+     */
+    public static EdgeDBConnection fromInstanceName(String instanceName, @Nullable String cloudProfile) throws IOException, ConfigurationException {
+        if(Pattern.matches("^\\w(-?\\w)*$", instanceName)) {
+            var configPath = Paths.get(ConfigUtils.getCredentialsDir(), instanceName + ".json");
 
-        return fromJSON(Files.readString(configPath, StandardCharsets.UTF_8));
+            if(!Files.exists(configPath))
+                throw new FileNotFoundException("Config file couldn't be found at " + configPath);
+
+            return fromJSON(Files.readString(configPath, StandardCharsets.UTF_8));
+        } else if (Pattern.matches("^([A-Za-z0-9](-?[A-Za-z0-9])*)/([A-Za-z0-9](-?[A-Za-z0-9])*)$", instanceName)) {
+            var connection = new EdgeDBConnection();
+            connection.parseCloudInstanceName(instanceName, cloudProfile);
+            return connection;
+        } else {
+            throw new ConfigurationException(
+                    String.format("Invalid instance name '%s'", instanceName)
+            );
+        }
     }
 
     /**
@@ -441,8 +512,9 @@ public class EdgeDBConnection implements Cloneable {
      * file to use to create the {@linkplain EdgeDBConnection}.
      * @return A resolved {@linkplain EdgeDBConnection}.
      * @throws IOException No {@code edgedb.toml} file could be found, or one of its configuration files cannot be read.
+     * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid
      */
-    public static EdgeDBConnection resolveEdgeDBTOML() throws IOException {
+    public static EdgeDBConnection resolveEdgeDBTOML() throws IOException, ConfigurationException {
         var dir = Paths.get(System.getProperty("user.dir"));
 
         while(true) {
@@ -459,6 +531,75 @@ public class EdgeDBConnection implements Cloneable {
             }
 
             dir = parent;
+        }
+    }
+
+    private void parseCloudInstanceName(String name, @Nullable String cloudProfile) throws ConfigurationException, IOException {
+        if(name.length() > DOMAIN_NAME_MAX_LEN) {
+            throw new ConfigurationException(
+                    String.format(
+                            "Cloud instance name must be %d characters or less in length",
+                            DOMAIN_NAME_MAX_LEN
+                    )
+            );
+        }
+
+        var secretKey = this.secretKey;
+
+        if(secretKey == null) {
+            if(cloudProfile == null) {
+                cloudProfile = getCloudProfile();
+            }
+
+            var profile = ConfigUtils.readCloudProfile(cloudProfile, mapper);
+
+            if(profile.secretKey == null) {
+                throw new ConfigurationException(
+                        String.format("Secret key in cloud profile '%s' cannot be null", cloudProfile)
+                );
+            }
+
+            secretKey = profile.secretKey;
+        }
+
+        var spl = secretKey.split("\\.");
+
+        if(spl.length < 2) {
+            throw new ConfigurationException("Invalid secret key: doesn't contain payload");
+        }
+
+        TypeReference<HashMap<String, String>> typeRef = new TypeReference<>() {};
+
+        var json = Base64.getDecoder().decode(spl[1]);
+        var jsonData = mapper.readValue(json, typeRef);
+
+        if(!jsonData.containsKey("iss")) {
+            throw new ConfigurationException(
+                    "Invalid secret key: payload doesn't contain 'iss' value"
+            );
+        }
+
+        name = name.toLowerCase(Locale.ROOT);
+
+        var dnsBucket = StringsUtil.padLeft(
+                Integer.toString((CRCHQX.CRCHqx(name.getBytes(StandardCharsets.UTF_8), 0) % 100)),
+                '0',
+                2
+        );
+
+        spl = name.split("/");
+
+        setHostname(
+                String.format(
+                        "%s--%s.c-%s.i.%s",
+                        spl[1],
+                        spl[0],
+                        dnsBucket,
+                        jsonData.get("iss")
+        ));
+
+        if(this.secretKey == null) {
+            setSecretKey(secretKey);
         }
     }
 
@@ -543,7 +684,7 @@ public class EdgeDBConnection implements Cloneable {
 
         boolean isDSN = false;
 
-        if(autoResolve) {
+        if(autoResolve && !((connParam != null && connParam.contains("/")) || (connParam != null && !connParam.startsWith("edgedb://")))) {
             try {
                 connection = connection.mergeInto(resolveEdgeDBTOML());
             } catch (IOException x) {
@@ -586,13 +727,31 @@ public class EdgeDBConnection implements Cloneable {
         var user = getEnv.apply(EDGEDB_USER_ENV_NAME);
         var pass = getEnv.apply(EDGEDB_PASSWORD_ENV_NAME);
         var db = getEnv.apply(EDGEDB_DATABASE_ENV_NAME);
+        var cloudProfile = getEnv.apply(EDGEDB_CLOUD_PROFILE_ENV_NAME);
+        var cloudSecret = getEnv.apply(EDGEDB_SECRET_KEY_ENV_NAME);
+
+        if(cloudProfile != null) {
+            connection = connection.mergeInto(new EdgeDBConnection(){{
+                setCloudProfile(cloudProfile);
+            }});
+        }
+
+        if(cloudSecret != null) {
+            connection = connection.mergeInto(new EdgeDBConnection(){{
+                setSecretKey(cloudSecret);
+            }});
+        }
 
         if(instanceName != null) {
             connection = connection.mergeInto(fromInstanceName(instanceName));
         }
 
         if(dsn != null) {
-            connection = connection.mergeInto(fromDSN(dsn));
+            if(Pattern.matches("^([A-Za-z0-9](-?[A-Za-z0-9])*)/([A-Za-z0-9](-?[A-Za-z0-9])*)$", dsn)) {
+                connection.parseCloudInstanceName(dsn, null);
+            } else {
+                connection = connection.mergeInto(fromDSN(dsn));
+            }
         }
 
         if(host != null) {
