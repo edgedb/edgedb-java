@@ -6,6 +6,7 @@ import com.edgedb.driver.binary.packets.sendables.Sendable;
 import com.edgedb.driver.binary.packets.sendables.Terminate;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
+import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,9 +23,11 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.edgedb.driver.util.ComposableUtil.composeWith;
+import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
 public class ChannelDuplexer extends Duplexer {
     private static final Logger logger = LoggerFactory.getLogger(ChannelDuplexer.class);
@@ -193,23 +196,15 @@ public class ChannelDuplexer extends Duplexer {
         }
     }
 
-    private CompletionStage<Void> send0(int attempts, Sendable packet, @Nullable Sendable @Nullable ... packets) {
-        logger.debug("Starting to send packets to {}, is connected? {}, attempts: {}", channel, isConnected, attempts);
+    private CompletionStage<Void> send1(Sendable packet, @Nullable Sendable @Nullable ... packets) {
+        logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
 
         // return attachment to ready promise to "queue" to send if this client hasn't connected.
         return this.channelHandler.whenReady().thenCompose((v) -> {
             if(channel == null || !isConnected) {
-                if(attempts > client.getConfig().getMaxConnectionRetries()) {
-                    return CompletableFuture.failedFuture(
-                            new ConnectionFailedException(attempts)
-                    );
-                }
-
-                logger.debug("Reconnecting...");
-                return client.reconnect().thenCompose((w) -> {
-                    logger.debug("Sending after reconnect");
-                    return this.send0(attempts + 1, packet, packets);
-                });
+                return CompletableFuture.failedFuture(
+                        new ConnectionFailedTemporarilyException("Cannot send message to a closed connection")
+                );
             }
 
             logger.debug("Beginning packet encoding and writing...");
@@ -228,9 +223,34 @@ public class ChannelDuplexer extends Duplexer {
         });
     }
 
+    public CompletionStage<Void> send0(AtomicInteger attempts, Sendable packet, @Nullable Sendable... packets) {
+        return exceptionallyCompose(send1(packet, packets), e -> {
+            logger.debug("Caught failed send attempt");
+
+            if(e instanceof EdgeDBException && ((EdgeDBException)e).shouldRetry && !((EdgeDBException)e).shouldReconnect) {
+                logger.debug(
+                        "Retrying send attempt based off of exception {}. attempt: {}/{}",
+                        e.getClass().getSimpleName(), attempts.get() + 1, client.getConfig().getMaxConnectionRetries()
+                );
+
+                if(attempts.incrementAndGet() > client.getConfig().getMaxConnectionRetries()) {
+                    return CompletableFuture.failedFuture(e);
+                }
+
+                return send0(attempts, packet, packets);
+            }
+
+            logger.debug("Returning exception to callee");
+
+            return CompletableFuture.failedFuture(e);
+        });
+    }
+
     @Override
-    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets){
-       return send0(0, packet, packets);
+    public CompletionStage<Void> send(Sendable packet, @Nullable Sendable... packets) {
+        AtomicInteger attempts = new AtomicInteger(0);
+        logger.debug("Initializing send attempts to 0");
+        return send0(attempts, packet, packets);
     }
 
     @Override
