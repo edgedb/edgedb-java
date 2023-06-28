@@ -223,7 +223,7 @@ public class ChannelDuplexer extends Duplexer {
         });
     }
 
-    public CompletionStage<Void> send0(AtomicInteger attempts, Sendable packet, @Nullable Sendable... packets) {
+    private CompletionStage<Void> send0(AtomicInteger attempts, Sendable packet, @Nullable Sendable... packets) {
         return exceptionallyCompose(send1(packet, packets), e -> {
             logger.debug("Caught failed send attempt");
 
