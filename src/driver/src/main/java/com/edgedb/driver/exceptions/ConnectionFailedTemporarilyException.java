@@ -12,4 +12,12 @@ public class ConnectionFailedTemporarilyException extends EdgeDBException {
     public ConnectionFailedTemporarilyException(Throwable err) {
         super("The connection could not be established at this time", err, true, true);
     }
+
+    /**
+     * Constructs a new {@linkplain ConnectionFailedTemporarilyException}.
+     * @param message A detailed message describing why this exception was raised.
+     */
+    public ConnectionFailedTemporarilyException(String message) {
+        super(message);
+    }
 }

@@ -940,7 +940,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> retryableConnect() {
         try {
             return exceptionallyCompose(this.openConnection(), err -> {
-                if(err.getCause() instanceof ConnectionFailedTemporarilyException) {
+                if(err instanceof EdgeDBException && ((EdgeDBException)err).shouldReconnect) {
                     if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
                         return CompletableFuture.failedFuture(new ConnectionFailedException(err));
                     }
