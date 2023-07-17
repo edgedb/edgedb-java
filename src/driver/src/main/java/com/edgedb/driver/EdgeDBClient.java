@@ -1,10 +1,7 @@
 package com.edgedb.driver;
 
 import com.edgedb.driver.abstractions.ClientQueryDelegate;
-import com.edgedb.driver.clients.BaseEdgeDBClient;
-import com.edgedb.driver.clients.EdgeDBTCPClient;
-import com.edgedb.driver.clients.StatefulClient;
-import com.edgedb.driver.clients.TransactableClient;
+import com.edgedb.driver.clients.*;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConfigurationException;
 import com.edgedb.driver.exceptions.EdgeDBException;
@@ -80,14 +77,6 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientAvailability = config.getClientAvailability();
     }
 
-    private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
-        if(config.getClientType() == ClientType.TCP) {
-            return EdgeDBTCPClient::new;
-        }
-
-        throw new ConfigurationException(String.format("No such implementation for client type %s found", this.config.getClientType()));
-    }
-
     /**
      * Constructs a new {@linkplain EdgeDBClient}.
      * @param connection The connection parameters used to connect this client to EdgeDB.
@@ -124,6 +113,25 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientFactory = other.clientFactory;
         this.session = session;
         this.clientAvailability = other.clientAvailability;
+    }
+
+    private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
+        if(config.getClientType() == ClientType.TCP) {
+            return EdgeDBTCPClient::new;
+        } else if (config.getClientType() == ClientType.HTTP) {
+            return EdgeDBHttpClient::new;
+        }
+
+        throw new ConfigurationException(String.format("No such implementation for client type %s found", this.config.getClientType()));
+    }
+
+    /**
+     * Gets the underlying client type for this client pool.
+     * @return The underlying client type, usually based on transport.
+     * @see ClientType
+     */
+    public ClientType getClientType() {
+        return config.getClientType();
     }
 
     /**
@@ -232,6 +240,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         return new EdgeDBClient(this, this.session.withModule(module));
     }
 
+    // added because Map.entry cannot contain nulls
     private static final class ExecutePair<U> {
         private final BaseEdgeDBClient client;
         private final @Nullable U result;
@@ -379,7 +388,12 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         return this.poolHolder.acquireContract()
                 .thenApply(contract -> {
                     logger.trace("Contract acquired, remaining handles: {}", this.poolHolder.remaining());
-                    var client = clientFactory.create(this.connection, this.config, contract);
+                    BaseEdgeDBClient client;
+                    try {
+                        client = clientFactory.create(this.connection, this.config, contract);
+                    } catch (EdgeDBException e) {
+                        throw new CompletionException(e);
+                    }
                     contract.register(client, this::acceptClient);
                     client.onReady(this::onClientReady);
                     logger.debug("client instance created: {}", client);
@@ -390,6 +404,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
 
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle);
+        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
+                throws EdgeDBException;
     }
 }

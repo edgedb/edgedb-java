@@ -2,8 +2,12 @@ package com.edgedb.driver.binary.packets.receivable;
 
 import com.edgedb.driver.binary.packets.ServerMessageType;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface Receivable extends AutoCloseable {
+    Logger logger = LoggerFactory.getLogger(Receivable.class);
+
     ServerMessageType getMessageType();
 
     @SuppressWarnings("unchecked")
@@ -18,5 +22,7 @@ public interface Receivable extends AutoCloseable {
     }
 
     @Override
-    default void close() throws Exception {}
+    default void close() throws Exception {
+        logger.debug("Closed {}:{}", this.hashCode(), getMessageType());
+    }
 }
