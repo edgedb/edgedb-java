@@ -464,7 +464,14 @@ public class EdgeDBConnection implements Cloneable {
             throw new FileNotFoundException("Could not find instance name under project directory " + projectDir);
         }
 
-        return fromInstanceName(instanceDetails.get().getLinkedInstanceName(), instanceDetails.get().getProfile());
+        var connection = fromInstanceName(instanceDetails.get().getLinkedInstanceName(), instanceDetails.get().getProfile());
+
+        Optional<String> database;
+        if((database = ConfigUtils.tryResolveProjectDatabase(projectDir)).isPresent()) {
+            connection.setDatabase(database.get());
+        }
+
+        return connection;
     }
 
     /**

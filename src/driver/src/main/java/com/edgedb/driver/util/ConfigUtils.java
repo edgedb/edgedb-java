@@ -121,6 +121,20 @@ public class ConfigUtils {
         return Optional.empty();
     }
 
+    public static Optional<String> tryResolveProjectDatabase(Path stashDir) throws IOException {
+        if(!Files.exists(stashDir)) {
+            return Optional.empty();
+        }
+
+        var databasePath = stashDir.resolve("database");
+
+        if(!Files.exists(databasePath)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Files.readString(databasePath, StandardCharsets.UTF_8));
+    }
+
     public static class CloudInstanceDetails {
         private final @Nullable String profile;
         private final @Nullable String linkedInstanceName;
