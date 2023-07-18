@@ -466,8 +466,8 @@ public class EdgeDBConnection implements Cloneable {
 
         var connection = fromInstanceName(instanceDetails.get().getLinkedInstanceName(), instanceDetails.get().getProfile());
 
-        Optional<String> database;
-        if((database = ConfigUtils.tryResolveProjectDatabase(projectDir)).isPresent()) {
+        Optional<String> database = ConfigUtils.tryResolveProjectDatabase(projectDir);
+        if(database.isPresent()) {
             connection.setDatabase(database.get());
         }
 
