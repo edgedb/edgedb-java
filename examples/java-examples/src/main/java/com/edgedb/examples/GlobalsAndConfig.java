@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 public final class GlobalsAndConfig implements Example {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractTypes.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalsAndConfig.class);
 
     @Override
     public CompletionStage<Void> run(EdgeDBClient client) {
