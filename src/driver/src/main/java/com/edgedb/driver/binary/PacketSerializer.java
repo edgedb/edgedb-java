@@ -27,9 +27,6 @@ import java.util.concurrent.Flow;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.edgedb.driver.util.BinaryProtocolUtils.BYTE_SIZE;
-import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
-
 public class PacketSerializer {
     private static final Logger logger = LoggerFactory.getLogger(PacketSerializer.class);
     private static final @NotNull Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
@@ -73,6 +70,26 @@ public class PacketSerializer {
 
             @Override
             protected void decode(@NotNull ChannelHandlerContext ctx, @NotNull ByteBuf msg, @NotNull List<Object> out) throws Exception {
+                var fromContract = false;
+
+                if(contracts.containsKey(ctx.channel())){
+                    var contract = contracts.get(ctx.channel());
+
+                    logger.debug("Attempting to complete contract {}", contract);
+
+                    if (contract.tryComplete(msg)) {
+                        logger.debug("Contract completed of type {} with size {}", contract.messageType, contract.length);
+
+                        out.add(contract.getPacket());
+                        contracts.remove(ctx.channel());
+                        fromContract = true;
+                        msg = contract.data;
+                    } else {
+                        logger.debug("Contract pending [{}]: {}/{}", contract.messageType, contract.getSize(), contract.length);
+                        return;
+                    }
+                }
+
                 while (msg.readableBytes() > 5) {
                     var type = getEnumValue(ServerMessageType.class, msg.readByte());
                     var length = msg.readUnsignedInt() - 4; // remove length of self.
@@ -80,34 +97,31 @@ public class PacketSerializer {
                     // can we read this packet?
                     if (msg.readableBytes() >= length) {
                         var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int) length));
+
+                        if(packet == null) {
+                            logger.error("Got null result for packet type {}", type);
+                            throw new EdgeDBException("Failed to read message type: malformed data");
+                        }
+
                         logger.debug("S->C: T:{}", type);
                         out.add(packet);
                         continue;
                     }
 
-                    if (contracts.containsKey(ctx.channel())) {
-                        var contract = contracts.get(ctx.channel());
-
-                        if (contract.tryComplete(msg)) {
-                            out.add(contract.getPacket());
-                        }
-
-                        return;
-                    } else {
-                        contracts.put(ctx.channel(), new PacketContract(msg, type, length));
-                    }
+                    // if we cannot read the full packet, create a contract for it.
+                    msg.retain();
+                    contracts.put(ctx.channel(), new PacketContract(msg, type, length));
+                    return;
                 }
 
-                if (msg.readableBytes() > 0) {
-                    if (contracts.containsKey(ctx.channel())) {
-                        var contract = contracts.get(ctx.channel());
+                if(msg.readableBytes() > 0){
+                    msg.retain();
+                    contracts.put(ctx.channel(), new PacketContract(msg, null, null));
+                    return;
+                }
 
-                        if (contract.tryComplete(msg)) {
-                            out.add(contract.getPacket());
-                        }
-                    } else {
-                        contracts.put(ctx.channel(), new PacketContract(msg, null, null));
-                    }
+                if(fromContract){
+                    msg.release();
                 }
             }
 
@@ -118,6 +132,8 @@ public class PacketSerializer {
                 private @Nullable ServerMessageType messageType;
                 private @Nullable Long length;
 
+                private final List<ByteBuf> components;
+
                 public PacketContract(
                         ByteBuf data,
                         @Nullable ServerMessageType messageType,
@@ -126,36 +142,45 @@ public class PacketSerializer {
                     this.data = data;
                     this.length = length;
                     this.messageType = messageType;
+
+                    this.components = new ArrayList<>() {{
+                        add(data);
+                    }};
+                }
+
+                public long getSize() {
+                    long size = 0;
+
+                    for (var component : components) {
+                        size += component.readableBytes();
+                    }
+
+                    return size;
                 }
 
                 public boolean tryComplete(@NotNull ByteBuf other) {
+                    var orig = data.slice();
+                    data = Unpooled.wrappedBuffer(orig, other);
+
                     if (messageType == null) {
-                        messageType = pick(other, b -> getEnumValue(ServerMessageType.class, b.readByte()), BYTE_SIZE);
+                        messageType = getEnumValue(ServerMessageType.class, data.readByte());
                     }
 
                     if (length == null) {
-                        length = pick(other, b -> b.readUnsignedInt() - 4, INT_SIZE);
+                        length = data.readUnsignedInt() - 4;
                     }
 
-                    data = Unpooled.wrappedBuffer(data, other);
+                    other.retain();
+                    components.add(other);
 
                     if (data.readableBytes() >= length) {
                         // read
-                        packet = PacketSerializer.deserialize(messageType, length, data);
+                        packet = PacketSerializer.deserialize(messageType, length, data, false);
+
                         return true;
                     }
 
                     return false;
-                }
-
-                private <T> T pick(@NotNull ByteBuf other, @NotNull Function<ByteBuf, T> map, long sz) {
-                    if (data.readableBytes() > sz) {
-                        return map.apply(data);
-                    } else if (other.readableBytes() < sz) {
-                        throw new IndexOutOfBoundsException();
-                    }
-
-                    return map.apply(other);
                 }
 
                 public @NotNull Receivable getPacket() throws OperationNotSupportedException {
@@ -192,9 +217,18 @@ public class PacketSerializer {
         };
     }
 
-    public static @Nullable Receivable deserialize(ServerMessageType messageType, long length, @NotNull ByteBuf buffer) {
+    public static @Nullable Receivable deserialize(
+            ServerMessageType messageType, long length, @NotNull ByteBuf buffer
+    ) {
         var reader = new PacketReader(buffer);
         return deserializeSingle(messageType, length, reader, true);
+    }
+
+    public static @Nullable Receivable deserialize(
+            ServerMessageType messageType, long length, @NotNull ByteBuf buffer, boolean verifyEmpty
+    ) {
+        var reader = new PacketReader(buffer);
+        return deserializeSingle(messageType, length, reader, verifyEmpty);
     }
 
     public static @Nullable Receivable deserializeSingle(PacketReader reader) {
