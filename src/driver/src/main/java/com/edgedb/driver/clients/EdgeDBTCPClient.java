@@ -73,7 +73,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
                         // edgedb-binary protocol and duplexer
                         pipeline.addLast(
-                                PacketSerializer.createDecoder(),
+                                PacketSerializer.createDecoder(EdgeDBTCPClient.this),
                                 PacketSerializer.createEncoder()
                         );
 
@@ -85,12 +85,12 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     }
 
     @Override
-    protected @NotNull ChannelDuplexer getDuplexer() {
+    public @NotNull ChannelDuplexer getDuplexer() {
         return this.duplexer;
     }
 
     @Override
-    protected void setTransactionState(TransactionState state) {
+    public void setTransactionState(TransactionState state) {
         this.transactionState = state;
     }
 

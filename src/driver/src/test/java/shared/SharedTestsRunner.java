@@ -4,9 +4,9 @@ import com.edgedb.driver.EdgeDBClient;
 import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
-import com.edgedb.driver.binary.packets.receivable.Data;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
-import com.edgedb.driver.binary.packets.shared.IOFormat;
+import com.edgedb.driver.binary.protocol.QueryParameters;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.clients.BaseEdgeDBClient;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.netty.buffer.ByteBuf;
 import shared.json.CDurationDeserializer;
 import shared.json.CPeriodDeserializer;
 import shared.json.CRelativeDurationDeserializer;
@@ -31,10 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -120,7 +118,7 @@ public class SharedTestsRunner {
                 try {
                     // store reader index before build
                     var readerIndexes = executionResult.data.stream()
-                            .mapToInt(v -> v.payloadBuffer.readerIndex())
+                            .mapToInt(ByteBuf::readerIndex)
                             .toArray();
 
                     value = buildResult(clientHandle, resultType, executionResult);
@@ -128,7 +126,7 @@ public class SharedTestsRunner {
                     // restore reader indexes post-build
                     IntStream.range(0, executionResult.data.size())
                             .mapToObj(k -> Map.entry(executionResult.data.get(k), readerIndexes[k]))
-                            .forEach(v -> v.getKey().payloadBuffer.readerIndex(v.getValue()));
+                            .forEach(v -> v.getKey().readerIndex(v.getValue()));
                 } catch (EdgeDBException | OperationNotSupportedException e) {
                     throw new RuntimeException(e);
                 }
@@ -150,7 +148,7 @@ public class SharedTestsRunner {
                 var arr = (Object[])Array.newInstance(type, result.data.size());
 
                 for(int i = 0; i != result.data.size(); i++) {
-                    var value = ObjectBuilder.buildResult(client, result.deserializer, result.data.get(i), type);
+                    var value = ObjectBuilder.buildResult(client, result.deserializer, Objects.requireNonNull(result.data.get(i)), type);
                     arr[i] = value;
                 }
 
@@ -159,12 +157,12 @@ public class SharedTestsRunner {
                 if(result.data.size() == 0)
                     return null;
 
-                return ObjectBuilder.buildResult(client, result.deserializer, result.data.get(0), type);
+                return ObjectBuilder.buildResult(client, result.deserializer, Objects.requireNonNull(result.data.get(0)), type);
             case ONE:
                 if(result.data.size() != 1)
                     throw new IllegalArgumentException("Missing data for result");
 
-                return ObjectBuilder.buildResult(client, result.deserializer, result.data.get(0), type);
+                return ObjectBuilder.buildResult(client, result.deserializer, Objects.requireNonNull(result.data.get(0)), type);
             default:
                 if(result.data.size() > 0)
                     throw new IllegalArgumentException("Unknown cardinality path for remaining data");
@@ -190,10 +188,10 @@ public class SharedTestsRunner {
 
     private static final class BinaryResult {
         public final Codec<?> deserializer;
-        public final List<Data> data;
+        public final List<ByteBuf> data;
         public final Cardinality cardinality;
 
-        private BinaryResult(Codec<?> deserializer, List<Data> data, Cardinality cardinality) {
+        private BinaryResult(Codec<?> deserializer, List<ByteBuf> data, Cardinality cardinality) {
             this.deserializer = deserializer;
             this.data = data;
             this.cardinality = cardinality;
@@ -223,19 +221,18 @@ public class SharedTestsRunner {
                 break;
         }
 
-        var executionArgs = client.new ExecutionArguments(
+        var executionArgs = new QueryParameters(
                 query.value,
                 args,
-                queryCard,
                 query.getCapabilities(),
+                queryCard,
                 query.getCardinality() == Cardinality.NO_RESULT ? IOFormat.NONE : IOFormat.BINARY,
-                false,
                 false
         );
 
-        client.executeQuery(executionArgs).toCompletableFuture().get();
+        var result = client.executeQuery(executionArgs).toCompletableFuture().get();
 
-        return new BinaryResult(executionArgs.codecs.outputCodec, executionArgs.data, executionArgs.cardinality);
+        return new BinaryResult(result.codec, result.data, executionArgs.cardinality);
     }
 
 }

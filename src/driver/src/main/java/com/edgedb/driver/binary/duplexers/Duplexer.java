@@ -1,20 +1,20 @@
 package com.edgedb.driver.binary.duplexers;
 
-import com.edgedb.driver.binary.packets.receivable.Receivable;
-import com.edgedb.driver.binary.packets.sendables.Sendable;
-import com.edgedb.driver.binary.packets.sendables.Sync;
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
+import com.edgedb.driver.binary.protocol.Receivable;
+import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
-import javax.net.ssl.SSLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class Duplexer {
+    public abstract ProtocolProvider getProtocolProvider();
     public abstract void reset();
     public abstract boolean isConnected();
 
@@ -42,7 +42,11 @@ public abstract class Duplexer {
             @NotNull Sendable packet,
             DuplexCallback func
     ) {
-        return duplex(func, packet, new Sync());
+        return duplex(func, packet, getProtocolProvider().sync());
+    }
+
+    public final CompletionStage<Receivable> duplexSingle(Sendable packet) {
+        return send(packet).thenCompose(v -> readNext());
     }
 
     @FunctionalInterface

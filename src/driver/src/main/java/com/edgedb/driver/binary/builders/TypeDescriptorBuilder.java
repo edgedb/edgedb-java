@@ -1,7 +1,7 @@
 package com.edgedb.driver.binary.builders;
 
 import com.edgedb.driver.binary.PacketReader;
-import com.edgedb.driver.binary.descriptors.*;
+import com.edgedb.driver.binary.protocol.v1.descriptors.*;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,17 +19,7 @@ public final class TypeDescriptorBuilder {
     static {
         typeDescriptorFactories = new HashMap<>() {
             {
-                put(DescriptorType.ARRAY_TYPE_DESCRIPTOR,       ArrayTypeDescriptor::new);
-                put(DescriptorType.BASE_SCALAR_TYPE_DESCRIPTOR, BaseScalarTypeDescriptor::new);
-                put(DescriptorType.ENUMERATION_TYPE_DESCRIPTOR, EnumerationTypeDescriptor::new);
-                put(DescriptorType.NAMED_TUPLE_DESCRIPTOR,      NamedTupleTypeDescriptor::new);
-                put(DescriptorType.OBJECT_SHAPE_DESCRIPTOR,     ObjectShapeDescriptor::new);
-                put(DescriptorType.SCALAR_TYPE_DESCRIPTOR,      ScalarTypeDescriptor::new);
-                put(DescriptorType.SCALAR_TYPE_NAME_ANNOTATION, ScalarTypeNameAnnotation::new);
-                put(DescriptorType.SET_DESCRIPTOR,              SetTypeDescriptor::new);
-                put(DescriptorType.TUPLE_TYPE_DESCRIPTOR,       TupleTypeDescriptor::new);
-                put(DescriptorType.INPUT_SHAPE_DESCRIPTOR,      InputShapeDescriptor::new);
-                put(DescriptorType.RANGE_TYPE_DESCRIPTOR,       RangeTypeDescriptor::new);
+
             }
         };
     }
@@ -64,11 +54,6 @@ public final class TypeDescriptorBuilder {
 
         public UUID getId() {
             return descriptor.getId();
-        }
-
-        @SuppressWarnings("unchecked")
-        public <T extends TypeDescriptor> T as(Class<T> ignored) {
-            return (T)descriptor;
         }
     }
 }

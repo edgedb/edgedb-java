@@ -1,9 +1,10 @@
 package com.edgedb.driver.binary.duplexers;
 
 import com.edgedb.driver.async.ChannelCompletableFuture;
-import com.edgedb.driver.binary.packets.receivable.Receivable;
-import com.edgedb.driver.binary.packets.sendables.Sendable;
-import com.edgedb.driver.binary.packets.sendables.Terminate;
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
+import com.edgedb.driver.binary.protocol.Receivable;
+import com.edgedb.driver.binary.protocol.Sendable;
+import com.edgedb.driver.binary.protocol.v1.sendables.Terminate;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
@@ -152,6 +153,11 @@ public class ChannelDuplexer extends Duplexer {
         this.client = client;
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
+    }
+
+    @Override
+    public ProtocolProvider getProtocolProvider() {
+        return client.getProtocolProvider();
     }
 
     @Override

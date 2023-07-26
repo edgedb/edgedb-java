@@ -1,17 +1,17 @@
 package com.edgedb.driver.binary.builders;
 
 import com.edgedb.driver.binary.PacketReader;
-import com.edgedb.driver.binary.codecs.*;
+import com.edgedb.driver.binary.codecs.Codec;
+import com.edgedb.driver.binary.codecs.NullCodec;
 import com.edgedb.driver.binary.codecs.scalars.*;
 import com.edgedb.driver.binary.codecs.scalars.complex.BytesCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.DateTimeCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.RelativeDurationCodec;
-import com.edgedb.driver.binary.descriptors.*;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
-import com.edgedb.driver.binary.packets.shared.IOFormat;
-import com.edgedb.driver.datatypes.Range;
+import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.binary.protocol.common.IOFormat;
+import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
-import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.util.CollectionUtils;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -74,122 +73,64 @@ public final class CodecBuilder {
         return (Codec<T>) buildCodec(id, reader);
     }
     @SuppressWarnings("unchecked")
-    public static @NotNull Codec<?> buildCodec(@NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
+    public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
         try {
             if(id.equals(NULL_CODEC_ID)) {
                 return getOrCreateCodec(id, NullCodec::new);
             }
 
-            List<Codec<?>> codecs = new ArrayList<>();
+            var descriptors = new ArrayList<TypeDescriptorInfo<?>>();
 
             while(!reader.isEmpty()) {
                 var start = reader.position();
-                var descriptor = TypeDescriptorBuilder.getDescriptor(reader);
+                var descriptor = client.getProtocolProvider().readDescriptor(reader);
                 var end = reader.position();
 
                 logger.trace("{}/{}: read {}, size {}", end, reader.size(), descriptor.type, end-start);
 
-                Codec<?> codec;
-
-                if(codecCache.containsKey(descriptor.getId())) {
-                    codec = codecCache.get(descriptor.getId());
-                } else {
-                    codec = getScalarCodec(descriptor.getId());
-                }
-
-                if(codec != null) {
-                    codecs.add(codec);
-                    continue;
-                }
-
-                switch (descriptor.type) {
-                    case ARRAY_TYPE_DESCRIPTOR:
-                        var arrayType = descriptor.as(ArrayTypeDescriptor.class);
-
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(arrayType.typePosition.intValue()),
-                                        ArrayCodec::new,
-                                        t -> Array.newInstance(t,0).getClass()
-                                )
-                        );
-                        break;
-                    case SCALAR_TYPE_DESCRIPTOR:
-                    case BASE_SCALAR_TYPE_DESCRIPTOR:
-                        // should be resolved by the above case, getting here is an error
-                        throw new MissingCodecException(String.format("Could not find the scalar type %s", descriptor.getId().toString()));
-                    case ENUMERATION_TYPE_DESCRIPTOR:
-                        codec = getOrCreateCodec(descriptor.getId(), TextCodec::new);
-                        break;
-                    case INPUT_SHAPE_DESCRIPTOR:
-                        var inputShape = descriptor.as(InputShapeDescriptor.class);
-                        var inputShapeCodecs = new Codec[inputShape.shapes.length];
-                        var inputShapeNames = new String[inputShape.shapes.length];
-
-                        for (int i = 0; i != inputShape.shapes.length; i++) {
-                            inputShapeCodecs[i] = codecs.get(inputShape.shapes[i].typePosition.intValue());
-                            inputShapeNames[i] = inputShape.shapes[i].name;
-                        }
-
-                        codec = getOrCreateCodec(descriptor.getId(), () -> new SparseObjectCodec(inputShapeCodecs, inputShapeNames));
-                        break;
-
-
-                    case TUPLE_TYPE_DESCRIPTOR:
-                        var tupleType = descriptor.as(TupleTypeDescriptor.class);
-                        var innerCodecs = new Codec<?>[tupleType.elementTypeDescriptorPositions.length];
-
-                        for(int i = 0; i != innerCodecs.length; i++) {
-                            innerCodecs[i] = codecs.get(tupleType.elementTypeDescriptorPositions[i].intValue());
-                        }
-
-                        codec = getOrCreateCodec(descriptor.getId(), () -> new TupleCodec(innerCodecs));
-                        break;
-                    case NAMED_TUPLE_DESCRIPTOR:
-                        var tupleShape = descriptor.as(NamedTupleTypeDescriptor.class);
-                        codec = getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(codecs::get, tupleShape.elements));
-                        break;
-                    case OBJECT_SHAPE_DESCRIPTOR:
-                        var objectShape = descriptor.as(ObjectShapeDescriptor.class);
-                        codec = getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(codecs::get, objectShape.shapes));
-                        break;
-                    case RANGE_TYPE_DESCRIPTOR:
-                        var rangeType = descriptor.as(RangeTypeDescriptor.class);
-
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(rangeType.typePosition.intValue()),
-                                        RangeCodec::new,
-                                        t -> Range.empty(t).getClass()
-                                )
-                        );
-                        break;
-                    case SCALAR_TYPE_NAME_ANNOTATION:
-                        // ignored
-                        break;
-                    case SET_DESCRIPTOR:
-                        var setTypes = descriptor.as(SetTypeDescriptor.class);
-
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(setTypes.typePosition.intValue()),
-                                        SetCodec::new,
-                                        t -> Array.newInstance(t, 0).getClass()
-                                )
-                        );
-                        break;
-                    default:
-                        throw new MissingCodecException(String.format("Could not find a type descriptor with the type %s", descriptor.getId().toString()));
-                }
-
-                codecs.add(codec);
+                descriptors.add(descriptor);
             }
 
-            var finalCodec = CollectionUtils.last(codecs);
+            var codecs = new ArrayList<Codec<?>>();
 
-            codecCache.putIfAbsent(id, finalCodec);
+            for(var i = 0; i != descriptors.size(); i++) {
 
-            return finalCodec;
+            }
+
+            //List<Codec<?>> codecs = new ArrayList<>();
+//
+//            while(!reader.isEmpty()) {
+//                var start = reader.position();
+//                var descriptor = TypeDescriptorBuilder.getDescriptor(reader);
+//                var end = reader.position();
+//
+//                logger.trace("{}/{}: read {}, size {}", end, reader.size(), descriptor.type, end-start);
+//
+//                Codec<?> codec;
+//
+//                if(codecCache.containsKey(descriptor.getId())) {
+//                    codec = codecCache.get(descriptor.getId());
+//                } else {
+//                    codec = getScalarCodec(descriptor.getId());
+//                }
+//
+//                if(codec != null) {
+//                    codecs.add(codec);
+//                    continue;
+//                }
+//
+//                switch (descriptor.type) {
+//
+//                }
+//
+//                codecs.add(codec);
+//            }
+//
+//            var finalCodec = CollectionUtils.last(codecs);
+//
+//            codecCache.putIfAbsent(id, finalCodec);
+//
+//            return finalCodec;
         }
         catch (Throwable x) {
             logger.error("Failed to build codec", x);
@@ -236,7 +177,7 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Codec<T> getOrCreateCodec(UUID id, @NotNull Supplier<Codec<T>> constructor) {
+    public static <T> Codec<T> getOrCreateCodec(UUID id, @NotNull Supplier<Codec<T>> constructor) {
         return (Codec<T>) codecPartsInstanceCache.computeIfAbsent(id, v -> constructor.get());
     }
 

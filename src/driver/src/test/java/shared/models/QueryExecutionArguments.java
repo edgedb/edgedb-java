@@ -2,7 +2,7 @@ package shared.models;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.binary.PacketSerializer;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.state.Session;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import shared.json.SessionDeserializer;

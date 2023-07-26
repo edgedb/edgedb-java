@@ -2,8 +2,8 @@ package com.edgedb.driver.binary;
 
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.CodecContext;
-import com.edgedb.driver.binary.packets.shared.Annotation;
-import com.edgedb.driver.binary.packets.shared.KeyValue;
+import com.edgedb.driver.binary.protocol.common.Annotation;
+import com.edgedb.driver.binary.protocol.common.KeyValue;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;

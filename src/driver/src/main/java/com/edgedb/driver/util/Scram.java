@@ -1,8 +1,8 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.binary.packets.receivable.AuthenticationStatus;
-import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLInitialResponse;
-import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLResponse;
+import com.edgedb.driver.binary.protocol.v1.receivables.AuthenticationStatus;
+import com.edgedb.driver.binary.protocol.v1.sendables.AuthenticationSASLInitialResponse;
+import com.edgedb.driver.binary.protocol.v1.sendables.AuthenticationSASLResponse;
 import com.edgedb.driver.exceptions.ScramException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;

@@ -3,17 +3,16 @@ package com.edgedb.driver.binary.builders.types;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
-import com.edgedb.driver.binary.packets.receivable.Data;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.datatypes.internal.TupleImpl;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -30,7 +29,7 @@ public final class TypeBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable T buildObject(@NotNull EdgeDBBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull Data data) throws OperationNotSupportedException, EdgeDBException {
+    public static <T> @Nullable T buildObject(@NotNull EdgeDBBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull ByteBuf data) throws OperationNotSupportedException, EdgeDBException {
         var info = getDeserializerInfo(type);
 
         if(info == null) {
@@ -42,7 +41,7 @@ public final class TypeBuilder {
         }
 
 
-        return (T) Codec.deserializeFromBuffer(codec, Objects.requireNonNull(data.payloadBuffer), client.getCodecContext());
+        return (T) Codec.deserializeFromBuffer(codec, data, client.getCodecContext());
     }
 
     @SuppressWarnings("unchecked")
