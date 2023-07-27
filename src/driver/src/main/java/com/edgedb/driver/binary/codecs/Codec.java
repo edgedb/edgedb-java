@@ -9,8 +9,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 public interface Codec<T> {
+    UUID getId();
+
     void serialize(final PacketWriter writer, final @Nullable T value, final CodecContext context) throws OperationNotSupportedException, EdgeDBException;
     @Nullable T deserialize(final PacketReader reader, final CodecContext context) throws EdgeDBException, OperationNotSupportedException;
 

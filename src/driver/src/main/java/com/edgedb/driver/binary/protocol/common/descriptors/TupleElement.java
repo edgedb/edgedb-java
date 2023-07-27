@@ -1,4 +1,4 @@
-package com.edgedb.driver.binary.protocol.v1.descriptors.common;
+package com.edgedb.driver.binary.protocol.common.descriptors;
 
 import com.edgedb.driver.binary.PacketReader;
 import org.jetbrains.annotations.NotNull;

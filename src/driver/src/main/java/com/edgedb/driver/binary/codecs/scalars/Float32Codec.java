@@ -7,10 +7,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public final class Float32Codec extends ScalarCodecBase<Float> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000106");
     public Float32Codec() {
-        super(Float.class);
+        super(ID, Float.class);
     }
 
     @Override

@@ -13,11 +13,12 @@ import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public abstract class ComplexScalarCodecBase<T> extends ComplexCodecBase<T> implements ScalarCodec<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public ComplexScalarCodecBase(Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
-        super(cls, (c, p, cv) -> new RuntimeScalarCodecImpl(c, p, cv), converters);
+    public ComplexScalarCodecBase(UUID id, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
+        super(id, cls, (c, p, cv) -> new RuntimeScalarCodecImpl(c, p, cv), converters);
     }
 
 }
@@ -28,7 +29,7 @@ final class RuntimeScalarCodecImpl<T, U> extends ScalarCodecBase<U> implements R
 
 
     public RuntimeScalarCodecImpl(Class<U> cls, ComplexCodecBase<T> parent, ComplexCodecConverter<T, U> converter) {
-        super(cls);
+        super(parent.id, cls);
         this.parent = parent;
         this.converter = converter;
     }

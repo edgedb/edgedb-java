@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,7 +29,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         private final @NotNull ObjectCodec parent;
 
         public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
-            super(parent.elements);
+            super(parent.id, parent.elements);
 
             this.parent = parent;
             this.target = target;
@@ -40,7 +41,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         public TypeInitializedObjectCodec(@NotNull TypeDeserializerInfo<?> info, @NotNull ObjectCodec parent) {
-            super(parent.elements);
+            super(parent.id, parent.elements);
 
             this.parent = parent;
             this.target = info.getType();
@@ -87,8 +88,8 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     public final ObjectProperty[] elements;
     private final @NotNull ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
 
-    public ObjectCodec(ObjectProperty... elements) {
-        super(Object.class);
+    public ObjectCodec(UUID id, ObjectProperty... elements) {
+        super(id, Object.class);
         this.elements = elements;
         this.typeCodecs = new ConcurrentHashMap<>();
     }

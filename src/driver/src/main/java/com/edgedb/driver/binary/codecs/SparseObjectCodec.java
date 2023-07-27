@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,8 +19,8 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     private final @NotNull Map<String, Integer> propertyNamesMap;
     private final String @NotNull [] propertyNames;
 
-    public SparseObjectCodec(Codec[] innerCodecs, String @NotNull [] propertyNames) {
-        super((Class<Map<String,?>>) Map.of().getClass());
+    public SparseObjectCodec(UUID id, Codec[] innerCodecs, String @NotNull [] propertyNames) {
+        super(id, (Class<Map<String,?>>) Map.of().getClass());
         this.innerCodecs = innerCodecs;
 
         this.propertyNames = propertyNames;

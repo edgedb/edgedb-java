@@ -11,11 +11,15 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.time.Duration;
 import java.time.Period;
+import java.util.UUID;
 
 public final class RelativeDurationCodec extends ComplexScalarCodecBase<RelativeDuration> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000111");
+
     @SuppressWarnings("unchecked")
     public RelativeDurationCodec() {
         super(
+                ID,
                 RelativeDuration.class,
                 new ComplexCodecConverter<>(
                         Period.class,

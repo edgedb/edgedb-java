@@ -13,15 +13,17 @@ import javax.naming.OperationNotSupportedException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.joou.Unsigned.uint;
 import static org.joou.Unsigned.ushort;
 
 public final class BigIntCodec extends ScalarCodecBase<BigInteger> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000110");
     private static final BigInteger BASE = new BigInteger("10000");
 
     public BigIntCodec() {
-        super(BigInteger.class);
+        super(ID, BigInteger.class);
     }
 
     @Override

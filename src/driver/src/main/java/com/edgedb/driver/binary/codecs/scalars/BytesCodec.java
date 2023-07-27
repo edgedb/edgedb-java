@@ -1,17 +1,18 @@
-package com.edgedb.driver.binary.codecs.scalars.complex;
+package com.edgedb.driver.binary.codecs.scalars;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.CodecContext;
-import com.edgedb.driver.binary.codecs.scalars.ScalarCodecBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public final class BytesCodec extends ScalarCodecBase<Byte[]> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000102");
     public BytesCodec() {
-        super(Byte[].class);
+        super(ID, Byte[].class);
     }
 
     @Override

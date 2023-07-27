@@ -7,25 +7,33 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Type;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
 public final class CompilableCodec implements Codec {
+    @FunctionalInterface
+    public interface CompilableFactory {
+        Codec<?> compile(UUID id, Class<?> cls, Codec<?> innerCodec);
+    }
+
     private final Codec<?> innerCodec;
-    private final BiFunction<Class<?>, Codec<?>, Codec<?>> factory;
+    private final CompilableFactory factory;
     private final @NotNull ConcurrentMap<Class<?>, Codec<?>> instanceCache;
     private final Function<Class<?>, Class<?>> compilableTypeFactory;
+    private final UUID id;
 
     private @Nullable Class<?> compilableType;
 
     public CompilableCodec(
+            UUID id,
             Codec<?> innerCodec,
-            BiFunction<Class<?>, Codec<?>, Codec<?>> factory,
+            CompilableFactory factory,
             Function<Class<?>, Class<?>> compilableTypeFactory
     ) {
+        this.id = id;
         this.factory = factory;
         this.innerCodec = innerCodec;
         this.instanceCache = new ConcurrentHashMap<>();
@@ -45,13 +53,18 @@ public final class CompilableCodec implements Codec {
     }
 
     public Codec<?> compile(Class<?> cls, Codec<?> innerCodec) {
-        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.apply(c, innerCodec));
+        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.compile(this.id, c, innerCodec));
     }
 
     public Class<?> getInnerType() {
         return this.innerCodec instanceof CompilableCodec
                 ? ((CompilableCodec)this.innerCodec).getCompilableType()
                 : this.innerCodec.getConvertingClass();
+    }
+
+    @Override
+    public UUID getId() {
+        return this.id;
     }
 
     @Override

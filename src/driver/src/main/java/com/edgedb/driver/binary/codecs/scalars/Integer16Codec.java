@@ -7,10 +7,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public final class Integer16Codec extends ScalarCodecBase<Short> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000103");
     public Integer16Codec() {
-        super(Short.class);
+        super(ID, Short.class);
     }
 
     @Override

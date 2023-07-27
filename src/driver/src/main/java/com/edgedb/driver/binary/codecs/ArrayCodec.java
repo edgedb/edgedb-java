@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
+import java.util.UUID;
 
 public class ArrayCodec<T> extends CodecBase<T[]> {
     private static final byte[] EMPTY_ARRAY = new byte[] {
@@ -22,8 +23,8 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public ArrayCodec(Class<?> cls, Codec<?> codec) {
-        super((Class<T[]>) cls);
+    public ArrayCodec(UUID id, Class<?> cls, Codec<?> codec) {
+        super(id, (Class<T[]>) cls);
         this.innerCodec = (Codec<T>) codec;
     }
 

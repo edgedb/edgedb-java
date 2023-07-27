@@ -8,10 +8,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public final class MemoryCodec extends ScalarCodecBase<Memory> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000130");
+
     public MemoryCodec() {
-        super(Memory.class);
+        super(ID, Memory.class);
     }
 
     @Override

@@ -8,10 +8,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public final class TextCodec extends ScalarCodecBase<String> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000101");
+
     public TextCodec() {
-        super(String.class);
+        super(ID, String.class);
     }
 
     @Override

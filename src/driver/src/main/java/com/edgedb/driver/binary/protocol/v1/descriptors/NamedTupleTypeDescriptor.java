@@ -2,7 +2,7 @@ package com.edgedb.driver.binary.protocol.v1.descriptors;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.protocol.TypeDescriptor;
-import com.edgedb.driver.binary.protocol.v1.descriptors.common.TupleElement;
+import com.edgedb.driver.binary.protocol.common.descriptors.TupleElement;
 import org.jetbrains.annotations.NotNull;
 import org.joou.UShort;
 

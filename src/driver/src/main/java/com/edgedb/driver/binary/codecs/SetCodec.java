@@ -11,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 import static com.edgedb.driver.util.BinaryProtocolUtils.LONG_SIZE;
@@ -19,8 +20,8 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public SetCodec(Class<?> cls, Codec<?> innerCodec) {
-        super((Class<Collection<T>>) cls);
+    public SetCodec(UUID id, Class<?> cls, Codec<?> innerCodec) {
+        super(id, (Class<Collection<T>>) cls);
         this.innerCodec = (Codec<T>) innerCodec;
     }
 

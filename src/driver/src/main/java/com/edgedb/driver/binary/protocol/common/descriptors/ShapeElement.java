@@ -1,7 +1,8 @@
-package com.edgedb.driver.binary.protocol.v1.descriptors.common;
+package com.edgedb.driver.binary.protocol.common.descriptors;
 
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.PacketReader;
+import com.edgedb.driver.binary.protocol.common.descriptors.ShapeElementFlags;
 import org.jetbrains.annotations.NotNull;
 import org.joou.UInteger;
 import org.joou.UShort;

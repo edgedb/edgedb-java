@@ -12,13 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 
 import java.util.EnumSet;
+import java.util.UUID;
 
 public final class RangeCodec<T> extends CodecBase<Range<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public RangeCodec(Class<?> cls, Codec<?> innerCodec) {
-        super((Class<Range<T>>) cls);
+    public RangeCodec(UUID id, Class<?> cls, Codec<?> innerCodec) {
+        super(id, (Class<Range<T>>) cls);
         this.innerCodec = (Codec<T>) innerCodec;
     }
 

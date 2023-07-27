@@ -7,10 +7,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.UUID;
 
 public final class BoolCodec extends ScalarCodecBase<Boolean> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000109");
     public BoolCodec() {
-        super(Boolean.class);
+        super(ID, Boolean.class);
     }
 
     @Override

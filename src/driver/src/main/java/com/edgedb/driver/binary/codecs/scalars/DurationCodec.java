@@ -10,10 +10,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 public final class DurationCodec extends ScalarCodecBase<Duration> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-00000000010E");
     public DurationCodec() {
-        super(Duration.class);
+        super(ID, Duration.class);
     }
 
     @Override

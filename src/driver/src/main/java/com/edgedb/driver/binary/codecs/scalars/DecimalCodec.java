@@ -10,12 +10,14 @@ import org.joou.UShort;
 
 import javax.naming.OperationNotSupportedException;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.joou.Unsigned.ushort;
 
 public final class DecimalCodec extends ScalarCodecBase<BigDecimal> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000108");
     public DecimalCodec() {
-        super(BigDecimal.class);
+        super(ID, BigDecimal.class);
     }
 
     @Override

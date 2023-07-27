@@ -9,13 +9,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 
+import java.util.UUID;
+
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public final class TupleCodec extends CodecBase<Tuple> {
     public final Codec<?>[] innerCodecs;
 
-    public TupleCodec(Codec<?>[] codecs) {
-        super(Tuple.class);
+    public TupleCodec(UUID id, Codec<?>[] codecs) {
+        super(id, Tuple.class);
         this.innerCodecs = codecs;
     }
 

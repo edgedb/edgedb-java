@@ -10,12 +10,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class JsonCodec extends ScalarCodecBase<Json> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-00000000010F");
     private static final byte JSON_FORMAT = (byte)0x01;
 
     public JsonCodec() {
-        super(Json.class);
+        super(ID, Json.class);
     }
 
     @Override

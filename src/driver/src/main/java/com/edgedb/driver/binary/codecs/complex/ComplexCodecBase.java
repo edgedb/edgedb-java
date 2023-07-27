@@ -18,14 +18,14 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
     protected final @NotNull RuntimeCodecFactory runtimeFactory;
 
     @SafeVarargs
-    public ComplexCodecBase(Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
-        this(cls, null, converters);
+    public ComplexCodecBase(UUID id, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
+        this(id, cls, null, converters);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @SafeVarargs
-    public ComplexCodecBase(Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?> @NotNull ... converters) {
-        super(cls);
+    public ComplexCodecBase(UUID id, Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?> @NotNull ... converters) {
+        super(id, cls);
 
         this.runtimeFactory = runtimeFactory == null
                 ? (cls1, parent, converter) -> new RuntimeCodecImpl(cls1, parent, converter)
@@ -80,7 +80,7 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
 
 
         public RuntimeCodecImpl(Class<U> cls, ComplexCodecBase<T> parent, ComplexCodecConverter<T, U> converter) {
-            super(cls);
+            super(parent.id, cls);
             this.parent = parent;
             this.converter = converter;
         }

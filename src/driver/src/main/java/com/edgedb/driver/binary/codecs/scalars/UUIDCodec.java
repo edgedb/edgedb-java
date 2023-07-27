@@ -10,8 +10,9 @@ import javax.naming.OperationNotSupportedException;
 import java.util.UUID;
 
 public final class UUIDCodec extends ScalarCodecBase<UUID> {
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
     public UUIDCodec() {
-        super(UUID.class);
+        super(ID, UUID.class);
     }
 
     @Override
