@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.protocol;
 
 import org.joou.UShort;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -63,5 +64,10 @@ public final class ProtocolVersion {
         var other = (ProtocolVersion)obj;
 
         return this.major == other.major && this.minor == other.minor;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(major, minor);
     }
 }

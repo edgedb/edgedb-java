@@ -39,7 +39,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private UUID stateDescriptorId;
     private @Nullable Long suggestedPoolConcurrency;
 
-    private ProtocolProvider protocolProvider;
+    private @NotNull ProtocolProvider protocolProvider;
     private short connectionAttempts;
     private final @NotNull Semaphore connectionSemaphore;
     private final @NotNull Semaphore querySemaphore;
@@ -52,11 +52,12 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.querySemaphore = new Semaphore(1);
         this.readyPromise = new CompletableFuture<>();
         this.stateDescriptorId = CodecBuilder.INVALID_CODEC_ID;
+        this.protocolProvider = ProtocolProvider.getProvider(this);
     }
 
     public abstract Duplexer getDuplexer();
 
-    public ProtocolProvider getProtocolProvider() {
+    public @NotNull ProtocolProvider getProtocolProvider() {
         return this.protocolProvider;
     }
 
@@ -445,12 +446,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                         .readNext()
                         .thenCompose(protocolProvider::processMessage)
                         .thenCompose(v -> {
+                            logger.debug("Protocol phase: {}", protocolProvider.getPhase());
+
                             if(protocolProvider.getPhase() != ProtocolPhase.COMMAND) {
                                 logger.debug("Rerunning handshake, phase: {}", protocolProvider.getPhase());
                                 return doClientHandshake();
                             }
 
-                            return CompletableFuture.completedFuture((Void)null);
+                            this.readyPromise.complete(null);
+                            return dispatchReady();
                         }),
                 error -> {
                     if(error instanceof EdgeDBErrorException && ((EdgeDBException)error).shouldReconnect) {

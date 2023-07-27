@@ -132,7 +132,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
     @Override
     public <T extends Enum<T>> @Nullable Codec<?> buildCodec(
             TypeDescriptorInfo<T> descriptor, Function<Integer, Codec<?>> getRelativeCodec,
-            Function<Integer, TypeDescriptor> getRelativeDescriptor
+            Function<Integer, TypeDescriptorInfo<?>> getRelativeDescriptor
     ) throws MissingCodecException {
         if(!(descriptor.type instanceof DescriptorType)) {
             throw new IllegalArgumentException("Expected v1 descriptor type, got " + descriptor.type.getClass().getName());
@@ -142,7 +142,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
             case ARRAY_TYPE_DESCRIPTOR:
                 var arrayType = descriptor.as(ArrayTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () ->
                         new CompilableCodec(
                                 getRelativeCodec.apply(arrayType.typePosition.intValue()),
                                 ArrayCodec::new,
@@ -154,7 +154,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 // should be resolved by the above case, getting here is an error
                 throw new MissingCodecException(String.format("Could not find the scalar type %s", descriptor.getId().toString()));
             case ENUMERATION_TYPE_DESCRIPTOR:
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), TextCodec::new);
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), TextCodec::new);
             case INPUT_SHAPE_DESCRIPTOR:
                 var inputShape = descriptor.as(InputShapeDescriptor.class);
                 var inputShapeCodecs = new Codec[inputShape.shapes.length];
@@ -165,7 +165,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                     inputShapeNames[i] = inputShape.shapes[i].name;
                 }
 
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () -> new SparseObjectCodec(inputShapeCodecs, inputShapeNames));
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> new SparseObjectCodec(inputShapeCodecs, inputShapeNames));
             case TUPLE_TYPE_DESCRIPTOR:
                 var tupleType = descriptor.as(TupleTypeDescriptor.class);
                 var innerCodecs = new Codec<?>[tupleType.elementTypeDescriptorPositions.length];
@@ -174,17 +174,17 @@ public class V1ProtocolProvider implements ProtocolProvider {
                     innerCodecs[i] = getRelativeCodec.apply(tupleType.elementTypeDescriptorPositions[i].intValue());
                 }
 
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () -> new TupleCodec(innerCodecs));
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> new TupleCodec(innerCodecs));
             case NAMED_TUPLE_DESCRIPTOR:
                 var tupleShape = descriptor.as(NamedTupleTypeDescriptor.class);
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, tupleShape.elements));
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, tupleShape.elements));
             case OBJECT_SHAPE_DESCRIPTOR:
                 var objectShape = descriptor.as(ObjectShapeDescriptor.class);
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, objectShape.shapes));
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, objectShape.shapes));
             case RANGE_TYPE_DESCRIPTOR:
                 var rangeType = descriptor.as(RangeTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () ->
                         new CompilableCodec(
                                 getRelativeCodec.apply(rangeType.typePosition.intValue()),
                                 RangeCodec::new,
@@ -196,7 +196,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
             case SET_DESCRIPTOR:
                 var setTypes = descriptor.as(SetTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(descriptor.getId(), () ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () ->
                         new CompilableCodec(
                                 getRelativeCodec.apply(setTypes.typePosition.intValue()),
                                 SetCodec::new,
@@ -239,7 +239,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
     public CompletionStage<ParseResult> parseQuery(QueryParameters queryParameters) {
         var cacheKey = queryParameters.getCacheKey();
 
-        var cachedCodecs = CodecBuilder.getCachedCodecs(cacheKey);
+        var cachedCodecs = CodecBuilder.getCachedCodecs(this, cacheKey);
 
         ByteBuf stateBuffer;
 
@@ -338,11 +338,13 @@ public class V1ProtocolProvider implements ProtocolProvider {
                     state.codecs = new CodecBuilder.QueryCodecs(
                             commandDescriptor.inputTypeDescriptorId,
                             CodecBuilder.buildCodec(
+                                    client,
                                     commandDescriptor.inputTypeDescriptorId,
                                     commandDescriptor.inputTypeDescriptorBuffer
                             ),
                             commandDescriptor.outputTypeDescriptorId,
                             CodecBuilder.buildCodec(
+                                    client,
                                     commandDescriptor.outputTypeDescriptorId,
                                     commandDescriptor.outputTypeDescriptorBuffer
                             )
@@ -356,6 +358,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                     );
 
                     CodecBuilder.updateCachedCodecs(
+                            this,
                             args.getCacheKey(),
                             commandDescriptor.inputTypeDescriptorId,
                             commandDescriptor.outputTypeDescriptorId
@@ -367,6 +370,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 case READY_FOR_COMMAND:
                     var ready = result.packet.as(ReadyForCommand.class);
                     client.setTransactionState(ready.transactionState);
+                    state.isComplete = state.codecs != null;
                     result.finishDuplexing();
             }
 
@@ -410,11 +414,11 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
         try {
             return client.getDuplexer().duplexAndSync(new Execute(
-                    parseResult.capabilities,
+                    queryParameters.capabilities,
                     getCompilationFlags(queryParameters),
                     client.getConfig().getImplicitLimit(),
                     queryParameters.format,
-                    parseResult.cardinality,
+                    queryParameters.cardinality,
                     queryParameters.query,
                     client.getStateDescriptorId(),
                     parseResult.stateData,
@@ -477,6 +481,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
     }
 
     private void handleCommandError(@NotNull QueryParameters queryParameters, @NotNull V1ProtocolProvider.ProtocolState args, Duplexer.@NotNull DuplexResult result, @NotNull ErrorResponse err) {
+        logger.debug("Processing command phase error {}", err.errorCode);
+
         if(err.errorCode == ErrorCode.STATE_MISMATCH_ERROR) {
             logger.debug("Has updated state?: {}", args.stateUpdated);
             // should have new state
@@ -494,11 +500,12 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
     private void updateStateCodec(ProtocolState state, Duplexer.@NotNull DuplexResult result) {
         var stateDescriptor = result.packet.as(StateDataDescription.class);
-        var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
+        var codec = CodecBuilder.getCodec(this, stateDescriptor.typeDescriptorId, Map.class);
 
         if(codec == null) {
             try {
                 codec = CodecBuilder.buildCodec(
+                        client,
                         stateDescriptor.typeDescriptorId,
                         stateDescriptor.typeDescriptorBuffer,
                         Map.class
@@ -510,9 +517,14 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
         client.setStateCodec(codec);
         client.setStateDescriptorId(stateDescriptor.typeDescriptorId);
+
         state.stateUpdated = true;
 
         try {
+            if(state.stateBuffer != null) {
+                state.stateBuffer.release();
+            }
+
             state.stateBuffer = client.serializeState();
         } catch (OperationNotSupportedException | EdgeDBException e) {
             result.finishExceptionally("Failed to serialize state", e, EdgeDBException::new);
@@ -651,13 +663,13 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 case STATE_DATA_DESCRIPTION:
                     var stateDescriptor = (StateDataDescription)packet;
 
-                    var codec = CodecBuilder.getCodec(stateDescriptor.typeDescriptorId, Map.class);
+                    var codec = CodecBuilder.getCodec(this, stateDescriptor.typeDescriptorId, Map.class);
 
                     if(codec == null) {
                         assert stateDescriptor.typeDescriptorBuffer != null;
 
                         var reader = new PacketReader(stateDescriptor.typeDescriptorBuffer);
-                        codec = CodecBuilder.buildCodec(stateDescriptor.typeDescriptorId, reader, Map.class);
+                        codec = CodecBuilder.buildCodec(client, stateDescriptor.typeDescriptorId, reader, Map.class);
                     }
 
                     client.setStateDescriptorId(stateDescriptor.typeDescriptorId);
@@ -681,6 +693,9 @@ public class V1ProtocolProvider implements ProtocolProvider {
                             logger.warn(formatted);
                             break;
                     }
+                    break;
+                case READY_FOR_COMMAND:
+                    this.phase = ProtocolPhase.COMMAND;
                     break;
             }
         }
@@ -716,11 +731,11 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 var descriptorLength = reader.readInt32() - 16;
                 var descriptorId = reader.readUUID();
 
-                var codec = CodecBuilder.getCodec(descriptorId, Map.class);
+                var codec = CodecBuilder.getCodec(this, descriptorId, Map.class);
 
                 if(codec == null) {
                     var descriptorReader = new PacketReader(reader.readBytes(descriptorLength));
-                    codec = CodecBuilder.buildCodec(descriptorId, descriptorReader, Map.class);
+                    codec = CodecBuilder.buildCodec(client, descriptorId, descriptorReader, Map.class);
                 }
 
                 reader.skip(BinaryProtocolUtils.INT_SIZE); // discard length
@@ -781,7 +796,6 @@ public class V1ProtocolProvider implements ProtocolProvider {
                                 case AUTHENTICATION_OK:
                                     logger.debug("Completing auth duplex");
                                     state.finishDuplexing();
-                                    this.phase = ProtocolPhase.COMMAND;
                                     break;
                                 default:
                                     throw new UnexpectedMessageException(

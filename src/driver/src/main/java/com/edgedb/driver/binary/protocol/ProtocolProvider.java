@@ -4,7 +4,6 @@ import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
-import com.edgedb.driver.binary.protocol.v1.descriptors.TypeDescriptor;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.exceptions.UnexpectedMessageException;
@@ -45,7 +44,7 @@ public interface ProtocolProvider {
     TypeDescriptorInfo<? extends Enum<?>> readDescriptor(PacketReader reader) throws UnexpectedMessageException;
     <T extends Enum<T>> @Nullable Codec<?> buildCodec(
             TypeDescriptorInfo<T> descriptor,
-            Function<Integer, Codec<?>> getRelativeCodec, Function<Integer, TypeDescriptor> getRelativeDescriptor
+            Function<Integer, Codec<?>> getRelativeCodec, Function<Integer, TypeDescriptorInfo<?>> getRelativeDescriptor
     ) throws MissingCodecException;
 
 
