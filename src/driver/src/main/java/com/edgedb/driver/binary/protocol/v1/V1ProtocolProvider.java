@@ -18,6 +18,7 @@ import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import com.edgedb.driver.util.Scram;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.edgedb.driver.util.ComposableUtil.composeWith;
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 import static org.joou.Unsigned.ushort;
 
@@ -176,11 +178,39 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
                 return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> new TupleCodec(innerCodecs));
             case NAMED_TUPLE_DESCRIPTOR:
+            {
                 var tupleShape = descriptor.as(NamedTupleTypeDescriptor.class);
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, tupleShape.elements));
+
+                var elements = new ObjectCodec.ObjectProperty[tupleShape.elements.length];
+
+                for(var i = 0; i != tupleShape.elements.length; i++) {
+                    var element = tupleShape.elements[i];
+                    elements[i] = new ObjectCodec.ObjectProperty(
+                            element.name,
+                            getRelativeCodec.apply((int)element.typePosition),
+                            null
+                    );
+                }
+
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> new ObjectCodec(elements));
+            }
             case OBJECT_SHAPE_DESCRIPTOR:
+            {
                 var objectShape = descriptor.as(ObjectShapeDescriptor.class);
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> ObjectCodec.create(getRelativeCodec, objectShape.shapes));
+
+                var elements = new ObjectCodec.ObjectProperty[objectShape.shapes.length];
+
+                for(var i = 0; i != objectShape.shapes.length; i++) {
+                    var element = objectShape.shapes[i];
+                    elements[i] = new ObjectCodec.ObjectProperty(
+                            element.name,
+                            getRelativeCodec.apply(element.typePosition.intValue()),
+                            element.cardinality
+                    );
+                }
+
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), () -> new ObjectCodec(elements));
+            }
             case RANGE_TYPE_DESCRIPTOR:
                 var rangeType = descriptor.as(RangeTypeDescriptor.class);
 
@@ -762,71 +792,87 @@ public class V1ProtocolProvider implements ProtocolProvider {
         }
 
         var connection = client.getConnectionArguments();
-        var initialMessage = scram.buildInitialMessagePacket(connection.getUsername(), method);
+        var initialMessage = scram.buildInitialMessage(connection.getUsername());
 
         AtomicReference<byte[]> signature = new AtomicReference<>(new byte[0]);
 
-        try{
-            return client.getDuplexer().duplex(initialMessage, (state) -> {
-                logger.debug("Authentication duplex: M:{}", state.packet.getMessageType());
-                try {
-                    switch (state.packet.getMessageType()) {
-                        case AUTHENTICATION:
-                            var auth = (AuthenticationStatus)state.packet;
 
-                            logger.debug("Processing auth part: {}", auth.authStatus);
 
-                            switch (auth.authStatus) {
-                                case AUTHENTICATION_SASL_CONTINUE:
-                                    var result = scram.buildFinalMessage(auth, connection.getPassword());
-                                    signature.set(result.signature);
-                                    return client.getDuplexer().send(result.buildPacket());
-                                case AUTHENTICATION_SASL_FINAL:
-                                    var key = Scram.parseServerFinalMessage(auth);
+        try {
+            return composeWith(
+                    Unpooled.wrappedBuffer(initialMessage.getBytes(StandardCharsets.UTF_8)),
+                    buffer -> client.getDuplexer().duplex(new AuthenticationSASLInitialResponse(
+                            buffer,
+                            method
+                    ), (state) -> {
+                        logger.debug("Authentication duplex: M:{}", state.packet.getMessageType());
+                        try {
+                            switch (state.packet.getMessageType()) {
+                                case AUTHENTICATION:
+                                    var auth = (AuthenticationStatus)state.packet;
 
-                                    if(!Arrays.equals(signature.get(), key)) {
-                                        logger.error(
-                                                "The SCRAM signature didn't match. ours: {}, servers: {}.",
-                                                signature.get(),
-                                                key
-                                        );
-                                        throw new InvalidSignatureException();
+                                    logger.debug("Processing auth part: {}", auth.authStatus);
+
+                                    switch (auth.authStatus) {
+                                        case AUTHENTICATION_SASL_CONTINUE:
+                                            assert auth.saslData != null;
+
+                                            var result = scram.buildFinalMessage(Scram.decodeString(auth.saslData), connection.getPassword());
+                                            signature.set(result.signature);
+
+                                            return composeWith(
+                                                    Scram.encodeString(result.message),
+                                                    resultBuffer -> client.getDuplexer().send(new AuthenticationSASLResponse(resultBuffer))
+                                            );
+                                        case AUTHENTICATION_SASL_FINAL:
+                                            assert auth.saslData != null;
+
+                                            var key = Scram.parseServerFinalMessage(auth.saslData);
+
+                                            if(!Arrays.equals(signature.get(), key)) {
+                                                logger.error(
+                                                        "The SCRAM signature didn't match. ours: {}, servers: {}.",
+                                                        signature.get(),
+                                                        key
+                                                );
+                                                throw new InvalidSignatureException();
+                                            }
+                                            break;
+                                        case AUTHENTICATION_OK:
+                                            logger.debug("Completing auth duplex");
+                                            state.finishDuplexing();
+                                            break;
+                                        default:
+                                            throw new UnexpectedMessageException(
+                                                    "Expected continue or final but got " + auth.authStatus
+                                            );
                                     }
                                     break;
-                                case AUTHENTICATION_OK:
-                                    logger.debug("Completing auth duplex");
-                                    state.finishDuplexing();
-                                    break;
+                                case ERROR_RESPONSE:
+                                    throw ((ErrorResponse)state.packet).toException();
                                 default:
-                                    throw new UnexpectedMessageException(
-                                            "Expected continue or final but got " + auth.authStatus
-                                    );
-                            }
-                            break;
-                        case ERROR_RESPONSE:
-                            throw ((ErrorResponse)state.packet).toException();
-                        default:
-                            logger.error(
-                                    "Unexpected message. expected: {} actual: {}",
-                                    ServerMessageType.AUTHENTICATION,
-                                    state.packet.getMessageType()
-                            );
-                            throw new CompletionException(
-                                    new UnexpectedMessageException(
+                                    logger.error(
+                                            "Unexpected message. expected: {} actual: {}",
                                             ServerMessageType.AUTHENTICATION,
                                             state.packet.getMessageType()
-                                    )
-                            );
-                    }
-                } // TODO: should reconnect & should retry exceptions
-                catch (Exception err) {
-                    this.phase = ProtocolPhase.ERRORED;
-                    state.finishExceptionally(err);
-                    return CompletableFuture.failedFuture(err);
-                }
+                                    );
+                                    throw new CompletionException(
+                                            new UnexpectedMessageException(
+                                                    ServerMessageType.AUTHENTICATION,
+                                                    state.packet.getMessageType()
+                                            )
+                                    );
+                            }
+                        } // TODO: should reconnect & should retry exceptions
+                        catch (Exception err) {
+                            this.phase = ProtocolPhase.ERRORED;
+                            state.finishExceptionally(err);
+                            return CompletableFuture.failedFuture(err);
+                        }
 
-                return CompletableFuture.completedFuture(null);
-            });
+                        return CompletableFuture.completedFuture(null);
+                    })
+            );
         }
         catch (Throwable x) {
             return CompletableFuture.failedFuture(x);

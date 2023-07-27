@@ -4,7 +4,6 @@ import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
-import com.edgedb.driver.binary.protocol.v1.sendables.Terminate;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
@@ -328,7 +327,7 @@ public class ChannelDuplexer extends Duplexer {
         }
 
         if(this.channel.isOpen()) {
-            return send(new Terminate())
+            return send(getProtocolProvider().terminate())
                     .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
 

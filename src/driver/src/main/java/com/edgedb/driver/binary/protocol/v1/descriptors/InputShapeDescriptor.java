@@ -1,5 +1,6 @@
 package com.edgedb.driver.binary.protocol.v1.descriptors;
 
+import com.edgedb.driver.binary.protocol.TypeDescriptor;
 import com.edgedb.driver.binary.protocol.v1.descriptors.common.ShapeElement;
 import com.edgedb.driver.binary.PacketReader;
 import org.jetbrains.annotations.NotNull;

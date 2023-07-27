@@ -5,8 +5,6 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
-import com.edgedb.driver.binary.protocol.v1.descriptors.common.ShapeElement;
-import com.edgedb.driver.binary.protocol.v1.descriptors.common.TupleElement;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
@@ -17,7 +15,6 @@ import javax.naming.OperationNotSupportedException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
 public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Object> {
@@ -94,38 +91,6 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         super(Object.class);
         this.elements = elements;
         this.typeCodecs = new ConcurrentHashMap<>();
-    }
-
-    public static @NotNull ObjectCodec create(@NotNull Function<Integer, Codec<?>> fetchCodec, ShapeElement @NotNull [] shape) {
-        var elements = new ObjectProperty[shape.length];
-
-        for (int i = 0; i < shape.length; i++) {
-            var shapeElement = shape[i];
-
-            elements[i] = new ObjectProperty(
-                    shapeElement.name,
-                    fetchCodec.apply(shapeElement.typePosition.intValue()),
-                    shapeElement.cardinality
-            );
-        }
-
-        return new ObjectCodec(elements);
-    }
-
-    public static @NotNull ObjectCodec create(@NotNull Function<Integer, Codec<?>> fetchCodec, TupleElement @NotNull [] shape) {
-        var elements = new ObjectProperty[shape.length];
-
-        for (int i = 0; i < shape.length; i++) {
-            var shapeElement = shape[i];
-
-            elements[i] = new ObjectProperty(
-                    shapeElement.name,
-                    fetchCodec.apply((int)shapeElement.typePosition),
-                    null
-            );
-        }
-
-        return new ObjectCodec(elements);
     }
 
     public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws EdgeDBException {

@@ -1,4 +1,4 @@
-package com.edgedb.driver.binary.protocol.v1.descriptors;
+package com.edgedb.driver.binary.protocol;
 
 import java.util.UUID;
 

@@ -1,7 +1,5 @@
 package com.edgedb.driver.binary.protocol;
 
-import com.edgedb.driver.binary.protocol.v1.descriptors.TypeDescriptor;
-
 import java.util.UUID;
 
 public class TypeDescriptorInfo<T extends Enum<T>> {

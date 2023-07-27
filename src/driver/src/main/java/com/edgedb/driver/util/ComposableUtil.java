@@ -1,5 +1,6 @@
 package com.edgedb.driver.util;
 
+import io.netty.util.ReferenceCounted;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +33,23 @@ public class ComposableUtil {
                     return v;
                 }
         );
+    }
+
+    public static <T, U extends CompletionStage<T>, V extends ReferenceCounted> CompletionStage<T> composeWith(
+            @NotNull V with,
+            @NotNull Function<V, U> composed
+    ) {
+        return composed.apply(with)
+                .thenApply((v) -> {
+                            try {
+                                with.release();
+                            } catch (Exception x) {
+                                throw new CompletionException(x);
+                            }
+
+                            return v;
+                        }
+                );
     }
 
     public static <T, U extends CompletionStage<T>, V extends AutoCloseable, W extends CompletionStage<V>>
