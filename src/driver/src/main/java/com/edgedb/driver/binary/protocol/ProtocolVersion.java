@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class ProtocolVersion {
-    public static final ProtocolVersion BINARY_PROTOCOL_DEFAULT_VERSION = of(1, 0);
+    public static final ProtocolVersion BINARY_PROTOCOL_DEFAULT_VERSION = of(2, 0);
 
     private static final ConcurrentMap<Integer, ProtocolVersion> VERSIONS = new ConcurrentHashMap<>() {{
         put(keyOf(1, 0), new ProtocolVersion(1, 0));

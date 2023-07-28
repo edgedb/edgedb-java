@@ -15,7 +15,7 @@ public final class ShapeElement {
 
     public ShapeElement(PacketReader reader) {
         this.flags = reader.readEnum(ShapeElementFlags.class, UInteger.class);
-        this.cardinality = reader.readEnum(Cardinality.class, Byte.class);
+        this.cardinality = reader.readEnum(Cardinality.class, Byte.TYPE);
         this.name = reader.readString();
         this.typePosition = reader.readUInt16();
         this.sourceTypePosition = reader.readUInt16();

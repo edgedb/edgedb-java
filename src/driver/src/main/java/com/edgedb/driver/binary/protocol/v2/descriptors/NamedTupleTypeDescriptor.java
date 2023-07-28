@@ -29,7 +29,7 @@ public final class NamedTupleTypeDescriptor implements TypeDescriptor, MetadataD
 
     @Override
     public UUID getId() {
-        return null;
+        return this.id;
     }
 
     @Override

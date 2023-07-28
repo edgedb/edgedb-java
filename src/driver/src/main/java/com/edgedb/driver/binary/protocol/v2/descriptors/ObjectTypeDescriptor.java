@@ -23,7 +23,7 @@ public final class ObjectTypeDescriptor implements TypeDescriptor, MetadataDescr
 
     @Override
     public UUID getId() {
-        return null;
+        return this.id;
     }
 
     @Override

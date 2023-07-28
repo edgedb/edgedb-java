@@ -1,17 +1,15 @@
 package com.edgedb.driver.binary.codecs;
 
+import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.common.RangeFlags;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Range;
-import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.exceptions.EdgeDBException;
-import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
-
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -76,13 +74,15 @@ public final class RangeCodec<T> extends CodecBase<Range<T>> {
         T lowerBound = null, upperBound = null;
 
         if(!flags.contains(RangeFlags.INFINITE_LOWER_BOUNDS)) {
-            reader.skip(BinaryProtocolUtils.INT_SIZE);
-            lowerBound = innerCodec.deserialize(reader, context);
+            try(var elementReader = reader.scopedSlice()) {
+                lowerBound = innerCodec.deserialize(elementReader, context);
+            }
         }
 
         if(!flags.contains(RangeFlags.INFINITE_UPPER_BOUNDS)) {
-            reader.skip(BinaryProtocolUtils.INT_SIZE);
-            upperBound = innerCodec.deserialize(reader, context);
+            try(var elementReader = reader.scopedSlice()) {
+                upperBound = innerCodec.deserialize(elementReader, context);
+            }
         }
 
         return Range.create(

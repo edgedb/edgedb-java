@@ -8,7 +8,6 @@ import com.edgedb.driver.binary.protocol.ProtocolVersion;
 import com.edgedb.driver.binary.protocol.TypeDescriptor;
 import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
-import com.edgedb.driver.binary.protocol.v1.descriptors.SetTypeDescriptor;
 import com.edgedb.driver.binary.protocol.v2.descriptors.*;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.Range;
@@ -41,7 +40,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
             put(DescriptorType.OBJECT, ObjectTypeDescriptor::new);
             put(DescriptorType.RANGE, RangeTypeDescriptor::new);
             put(DescriptorType.SCALAR, ScalarTypeDescriptor::new);
-            put(DescriptorType.SET, SetDescriptor::new);
+            put(DescriptorType.SET, SetTypeDescriptor::new);
             put(DescriptorType.TUPLE, TupleTypeDescriptor::new);
             put(DescriptorType.TYPE_ANNOTATION_TEXT, (ignored, reader) -> new TypeAnnotationTextDescriptor(reader));
         }};
@@ -58,6 +57,8 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
 
     @Override
     public TypeDescriptorInfo<DescriptorType> readDescriptor(PacketReader reader) throws UnexpectedMessageException {
+        var length = reader.readUInt32();
+
         var type = reader.readEnum(DescriptorType.class, Byte.TYPE);
 
         var id = type == DescriptorType.TYPE_ANNOTATION_TEXT ? null : reader.readUUID();
@@ -181,6 +182,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
                         metadata,
                         (id, meta) -> new ObjectCodec(
                                 id,
+                                null,
                                 meta,
                                 elements
                         )
@@ -191,16 +193,19 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
             case OBJECT_OUTPUT:
             {
                 var objectOutputDescriptor = descriptorInfo.as(ObjectOutputShapeDescriptor.class);
-                var id = objectOutputDescriptor.id;
+                ObjectTypeDescriptor objectDescriptor = null;
 
                 if(!objectOutputDescriptor.isEphemeralFreeShape) {
-                    var objectDescriptor = getRelativeDescriptor
+                    objectDescriptor= getRelativeDescriptor
                             .apply(objectOutputDescriptor.type.intValue())
                             .as(ObjectTypeDescriptor.class);
 
                     metadata = objectDescriptor.getMetadata(getRelativeCodec, getRelativeDescriptor);
-                    id = objectDescriptor.id;
                 }
+
+                final var typeId = objectDescriptor == null
+                        ? null
+                        : objectDescriptor.id;
 
                 var elements = new ObjectCodec.ObjectProperty[objectOutputDescriptor.elements.length];
 
@@ -216,17 +221,18 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
 
                 return CodecBuilder.getOrCreateCodec(
                         this,
-                        id,
+                        descriptorInfo.getId(), // use the shapes ID for cache control.
                         metadata,
                         (i, meta) -> new ObjectCodec(
                                 i,
+                                typeId,
                                 meta,
                                 elements
                         )
                 );
             }
             case RANGE:
-                var rangeDescriptor = descriptorInfo.as(com.edgedb.driver.binary.protocol.v1.descriptors.RangeTypeDescriptor.class);
+                var rangeDescriptor = descriptorInfo.as(RangeTypeDescriptor.class);
 
                 return CodecBuilder.getOrCreateCodec(
                         this,
@@ -236,7 +242,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
                                 new CompilableCodec(
                                         id,
                                         meta,
-                                        getRelativeCodec.apply(rangeDescriptor.typePosition.intValue()),
+                                        getRelativeCodec.apply(rangeDescriptor.type.intValue()),
                                         RangeCodec::new,
                                         t -> Range.empty(t).getClass()
                                 )
@@ -257,7 +263,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
                                 new CompilableCodec(
                                         id,
                                         meta,
-                                        getRelativeCodec.apply(setDescriptor.typePosition.intValue()),
+                                        getRelativeCodec.apply(setDescriptor.type.intValue()),
                                         SetCodec::new,
                                         t -> Array.newInstance(t, 0).getClass()
                                 )

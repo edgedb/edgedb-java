@@ -66,7 +66,7 @@ public final class CodecBuilder {
     }
     public static @Nullable Codec<?> getCodec(ProtocolProvider provider, UUID id) {
         var codec = codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new).cache.get(id);
-        return codec != null ? codec : getScalarCodec(provider, id);
+        return codec != null ? codec : getCachedOrScalarCodec(provider, id);
     }
 
     public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer) throws EdgeDBException {
@@ -96,6 +96,7 @@ public final class CodecBuilder {
     public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
         try {
             if(id.equals(NULL_CODEC_ID)) {
+                logger.debug("Returning null codec");
                 return getOrCreateCodec(client.getProtocolProvider(), id, NullCodec::new);
             }
 
@@ -113,6 +114,8 @@ public final class CodecBuilder {
                 descriptors.add(descriptor);
             }
 
+            logger.debug("Read {} descriptors, totaling {} bytes", descriptors.size(), reader.position());
+
             var codecs = new ArrayList<Codec<?>>();
 
             for(var i = 0; i != descriptors.size(); i++) {
@@ -121,16 +124,20 @@ public final class CodecBuilder {
                 Codec<?> codec = providerCache.cache.get(descriptor.getId());;
 
                 if(codec != null) {
+                    logger.debug("Using cached codec {} from ID: {}", codec, descriptor.getId());
                     codecs.add(i, codec);
                     continue;
                 }
 
-                codec = getScalarCodec(client.getProtocolProvider(), descriptor.getId());
+                codec = getCachedOrScalarCodec(client.getProtocolProvider(), descriptor.getId());
 
                 if(codec != null) {
+                    logger.debug("Using cached codec {} from ID: {}", codec, descriptor.getId());
                     codecs.add(i, codec);
                     continue;
                 }
+
+                logger.debug("Calling protocol provider for codec construction, descriptor type: {}", descriptor.type);
 
                 codec = client.getProtocolProvider().buildCodec(
                         descriptor,
@@ -138,9 +145,11 @@ public final class CodecBuilder {
                         descriptors::get
                 );
 
+                logger.debug("Protocol provider returned {}", codec == null ? "null" : codec);
+
                 codecs.add(i, codec);
 
-                logger.debug("Codec {} added: {}", i, codec);
+                logger.debug("Codec {} added: {}, ID: {}", i, codec, descriptor.getId());
             }
 
             Codec<?> finalCodec = null;
@@ -229,12 +238,25 @@ public final class CodecBuilder {
             @Nullable CodecMetadata metadata,
             @NotNull BiFunction<UUID, @Nullable CodecMetadata, Codec<T>> constructor
     ) {
+        if(logger.isDebugEnabled()) {
+            logger.debug(
+                    "cache requested id: {}. exists?: {}, metadata: {}",
+                    id,
+                    codecCaches
+                            .computeIfAbsent(provider.getVersion(), CodecCache::new)
+                            .codecPartsInstanceCache.containsKey(id),
+                    metadata == null
+                            ? "none"
+                            : metadata.toString()
+            );
+        }
+
         return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
                 .codecPartsInstanceCache.computeIfAbsent(id, i -> constructor.apply(i, metadata));
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> @Nullable Codec<T> getScalarCodec(ProtocolProvider provider, UUID id) {
+    private static <T> @Nullable Codec<T> getCachedOrScalarCodec(ProtocolProvider provider, UUID id) {
         return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
                 .codecPartsInstanceCache.computeIfAbsent(
                         id,

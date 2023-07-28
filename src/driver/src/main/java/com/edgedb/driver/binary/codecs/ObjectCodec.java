@@ -30,7 +30,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         private final @NotNull ObjectCodec parent;
 
         public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
-            super(parent.id, parent.metadata, parent.elements);
+            super(parent);
 
             this.parent = parent;
             this.target = target;
@@ -42,7 +42,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         public TypeInitializedObjectCodec(@NotNull TypeDeserializerInfo<?> info, @NotNull ObjectCodec parent) {
-            super(parent.id, parent.metadata, parent.elements);
+            super(parent);
 
             this.parent = parent;
             this.target = info.getType();
@@ -86,13 +86,22 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
     }
 
+    public final @Nullable UUID typeId;
     public final ObjectProperty[] elements;
     private final @NotNull ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
 
-    public ObjectCodec(UUID id, @Nullable CodecMetadata metadata, ObjectProperty... elements) {
-        super(id, metadata, Object.class);
+    public ObjectCodec(UUID shapeId, @Nullable UUID typeId, @Nullable CodecMetadata metadata, ObjectProperty... elements) {
+        super(shapeId, metadata, Object.class);
+        this.typeId = typeId;
         this.elements = elements;
         this.typeCodecs = new ConcurrentHashMap<>();
+    }
+
+    private ObjectCodec(ObjectCodec other) {
+        super(other.id, other.metadata, Object.class);
+        this.typeId = other.typeId;
+        this.elements = other.elements;
+        this.typeCodecs = other.typeCodecs;
     }
 
     public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws EdgeDBException {

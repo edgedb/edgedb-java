@@ -208,7 +208,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                         this,
                         descriptor.getId(),
                         null,
-                        (id, metadata) -> new ObjectCodec(id, metadata, elements)
+                        (id, metadata) -> new ObjectCodec(id, null, metadata, elements)
                 );
             }
             case OBJECT_SHAPE_DESCRIPTOR:
@@ -230,7 +230,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                         this,
                         descriptor.getId(),
                         null,
-                        (id, metadata) -> new ObjectCodec(id, metadata, elements)
+                        (id, metadata) -> new ObjectCodec(id, null, metadata, elements)
                 );
             }
             case RANGE_TYPE_DESCRIPTOR:
@@ -790,8 +790,11 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 var codec = CodecBuilder.getCodec(this, descriptorId, Map.class);
 
                 if(codec == null) {
-                    var descriptorReader = new PacketReader(reader.readBytes(descriptorLength));
-                    codec = CodecBuilder.buildCodec(client, descriptorId, descriptorReader, Map.class);
+                    try(var descriptorReader = reader.scopedSlice(descriptorLength)) {
+                        codec = CodecBuilder.buildCodec(client, descriptorId, descriptorReader, Map.class);
+                    }
+                } else {
+                    reader.skip(descriptorLength);
                 }
 
                 reader.skip(BinaryProtocolUtils.INT_SIZE); // discard length

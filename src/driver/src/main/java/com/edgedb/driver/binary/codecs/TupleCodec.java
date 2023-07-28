@@ -65,14 +65,16 @@ public final class TupleCodec extends CodecBase<Tuple> {
 
             reader.skip(INT_SIZE); // reserved
 
-            var data = reader.readByteArray();
+            try(var elementReader = reader.scopedSlice()) {
+                if(elementReader.isNoData) {
+                    elements[i] = Tuple.Element.of(null, codec.getConvertingClass());
+                    continue;
+                }
 
-            if(data == null) {
-                elements[i] = Tuple.Element.of(null, codec.getConvertingClass());
-                continue;
+                elements[i] = Tuple.Element.of(codec.deserialize(elementReader, context), codec.getConvertingClass());
             }
 
-            elements[i] = Tuple.Element.of(codec.deserialize(new PacketReader(data), context), codec.getConvertingClass());
+
         }
 
         return Tuple.of(elements);

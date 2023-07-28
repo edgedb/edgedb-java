@@ -6,11 +6,11 @@ import org.joou.UShort;
 
 import java.util.UUID;
 
-public final class SetDescriptor implements TypeDescriptor {
+public final class SetTypeDescriptor implements TypeDescriptor {
     public final UUID id;
     public final UShort type;
 
-    public SetDescriptor(UUID id, PacketReader reader) {
+    public SetTypeDescriptor(UUID id, PacketReader reader) {
         this.id = id;
         this.type = reader.readUInt16();
     }

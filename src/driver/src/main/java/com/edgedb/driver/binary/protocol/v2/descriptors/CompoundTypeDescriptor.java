@@ -23,7 +23,7 @@ public final class CompoundTypeDescriptor implements TypeDescriptor, MetadataDes
         this.id = id;
         this.name = reader.readString();
         this.isSchemaDefined = reader.readBoolean();
-        this.operation = reader.readEnum(TypeOperation.class, Byte.class);
+        this.operation = reader.readEnum(TypeOperation.class, Byte.TYPE);
         this.components = reader.readArrayOf(UShort.class, PacketReader::readUInt16, UShort.class);
     }
 

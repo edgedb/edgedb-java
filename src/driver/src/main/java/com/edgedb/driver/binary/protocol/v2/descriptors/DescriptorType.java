@@ -16,7 +16,7 @@ public enum DescriptorType implements BinaryEnum<Byte> {
     COMPOUND(11),
     TYPE_ANNOTATION_TEXT(127);
 
-    private byte value;
+    private final byte value;
 
     DescriptorType(int value) {
         this.value = (byte)(value & 0xFF);

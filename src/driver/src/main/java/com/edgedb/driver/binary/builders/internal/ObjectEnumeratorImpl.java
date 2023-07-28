@@ -51,17 +51,17 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
 
             var element = codec.elements[position];
 
-            var data = reader.readByteArray();
+            try(var elementReader = reader.scopedSlice()) {
+                if(elementReader.isNoData) {
+                    return new ObjectEnumerator.ObjectElement(element.name, null, element.codec.getConvertingClass());
+                }
 
-            if(data == null || data.readableBytes() == 0) {
-                return new ObjectEnumerator.ObjectElement(element.name, null, element.codec.getConvertingClass());
+                return new ObjectEnumerator.ObjectElement(
+                        element.name,
+                        element.codec.deserialize(elementReader, context),
+                        element.codec.getConvertingClass()
+                );
             }
-
-            return new ObjectEnumerator.ObjectElement(
-                    element.name,
-                    element.codec.deserialize(new PacketReader(data), context),
-                    element.codec.getConvertingClass()
-            );
         }
         finally {
             position++;

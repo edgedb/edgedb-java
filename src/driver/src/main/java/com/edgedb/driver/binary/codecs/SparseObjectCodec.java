@@ -77,14 +77,14 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
             var index = reader.readInt32();
             var elementName = this.propertyNames[index];
 
-            var data = reader.readByteArray();
+            try(var elementReader = reader.scopedSlice()) {
+                if(elementReader.isNoData) {
+                    map.put(elementName, null);
+                    continue;
+                }
 
-            if(data == null) {
-                map.put(elementName, null);
-                continue;
+                map.put(elementName, innerCodecs[i].deserialize(elementReader, context));
             }
-
-            map.put(elementName, innerCodecs[i].deserialize(new PacketReader(data), context));
         }
 
         return map;

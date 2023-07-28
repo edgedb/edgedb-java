@@ -74,7 +74,9 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
         var array = (T[])Array.newInstance(innerCodec.getConvertingClass(), numElements);
 
         for(int i = 0; i != numElements; i++) {
-            array[i] = reader.deserializeByteArray(innerCodec, context);
+            try(var elementReader = reader.scopedSlice()) {
+                array[i] = innerCodec.deserialize(elementReader, context);
+            }
         }
 
         return array;
