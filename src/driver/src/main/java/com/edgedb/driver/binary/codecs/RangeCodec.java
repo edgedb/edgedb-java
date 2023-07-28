@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.common.RangeFlags;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.exceptions.EdgeDBException;
@@ -18,8 +19,8 @@ public final class RangeCodec<T> extends CodecBase<Range<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public RangeCodec(UUID id, Class<?> cls, Codec<?> innerCodec) {
-        super(id, (Class<Range<T>>) cls);
+    public RangeCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec) {
+        super(id, metadata, (Class<Range<T>>) cls);
         this.innerCodec = (Codec<T>) innerCodec;
     }
 

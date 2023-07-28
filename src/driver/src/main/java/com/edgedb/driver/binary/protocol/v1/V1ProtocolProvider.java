@@ -144,9 +144,10 @@ public class V1ProtocolProvider implements ProtocolProvider {
             case ARRAY_TYPE_DESCRIPTOR:
                 var arrayType = descriptor.as(ArrayTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), id ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), null, (id, metadata) ->
                         new CompilableCodec(
                                 id,
+                                metadata,
                                 getRelativeCodec.apply(arrayType.typePosition.intValue()),
                                 ArrayCodec::new,
                                 t -> Array.newInstance(t,0).getClass()
@@ -157,7 +158,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 // should be resolved by the above case, getting here is an error
                 throw new MissingCodecException(String.format("Could not find the scalar type %s", descriptor.getId().toString()));
             case ENUMERATION_TYPE_DESCRIPTOR:
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), TextCodec::new);
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), null, TextCodec::new);
             case INPUT_SHAPE_DESCRIPTOR:
                 var inputShape = descriptor.as(InputShapeDescriptor.class);
                 var inputShapeCodecs = new Codec[inputShape.shapes.length];
@@ -171,7 +172,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 return CodecBuilder.getOrCreateCodec(
                         this,
                         descriptor.getId(),
-                        id -> new SparseObjectCodec(id, inputShapeCodecs, inputShapeNames)
+                        null,
+                        (id, metadata) -> new SparseObjectCodec(id, metadata, inputShapeCodecs, inputShapeNames)
                 );
             case TUPLE_TYPE_DESCRIPTOR:
                 var tupleType = descriptor.as(TupleTypeDescriptor.class);
@@ -184,7 +186,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 return CodecBuilder.getOrCreateCodec(
                         this,
                         descriptor.getId(),
-                        id -> new TupleCodec(id, innerCodecs)
+                        null,
+                        (id, metadata) -> new TupleCodec(id, metadata, innerCodecs)
                 );
             case NAMED_TUPLE_DESCRIPTOR:
             {
@@ -204,7 +207,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 return CodecBuilder.getOrCreateCodec(
                         this,
                         descriptor.getId(),
-                        id -> new ObjectCodec(id, elements)
+                        null,
+                        (id, metadata) -> new ObjectCodec(id, metadata, elements)
                 );
             }
             case OBJECT_SHAPE_DESCRIPTOR:
@@ -225,15 +229,17 @@ public class V1ProtocolProvider implements ProtocolProvider {
                 return CodecBuilder.getOrCreateCodec(
                         this,
                         descriptor.getId(),
-                        id -> new ObjectCodec(id, elements)
+                        null,
+                        (id, metadata) -> new ObjectCodec(id, metadata, elements)
                 );
             }
             case RANGE_TYPE_DESCRIPTOR:
                 var rangeType = descriptor.as(RangeTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), id ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), null, (id, metadata) ->
                         new CompilableCodec(
                                 id,
+                                metadata,
                                 getRelativeCodec.apply(rangeType.typePosition.intValue()),
                                 RangeCodec::new,
                                 t -> Range.empty(t).getClass()
@@ -244,9 +250,10 @@ public class V1ProtocolProvider implements ProtocolProvider {
             case SET_DESCRIPTOR:
                 var setTypes = descriptor.as(SetTypeDescriptor.class);
 
-                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), id ->
+                return CodecBuilder.getOrCreateCodec(this, descriptor.getId(), null, (id, metadata) ->
                         new CompilableCodec(
                                 id,
+                                metadata,
                                 getRelativeCodec.apply(setTypes.typePosition.intValue()),
                                 SetCodec::new,
                                 t -> Array.newInstance(t, 0).getClass()

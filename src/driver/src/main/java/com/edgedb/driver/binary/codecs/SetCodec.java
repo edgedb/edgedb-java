@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +21,8 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public SetCodec(UUID id, Class<?> cls, Codec<?> innerCodec) {
-        super(id, (Class<Collection<T>>) cls);
+    public SetCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec) {
+        super(id, metadata, (Class<Collection<T>>) cls);
         this.innerCodec = (Codec<T>) innerCodec;
     }
 

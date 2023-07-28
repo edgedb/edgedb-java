@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs.complex;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.*;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,14 +19,14 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
     protected final @NotNull RuntimeCodecFactory runtimeFactory;
 
     @SafeVarargs
-    public ComplexCodecBase(UUID id, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
-        this(id, cls, null, converters);
+    public ComplexCodecBase(UUID id, @Nullable CodecMetadata metadata, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
+        this(id, metadata, cls, null, converters);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @SafeVarargs
-    public ComplexCodecBase(UUID id, Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?> @NotNull ... converters) {
-        super(id, cls);
+    public ComplexCodecBase(UUID id, @Nullable CodecMetadata metadata, Class<T> cls, @Nullable RuntimeCodecFactory runtimeFactory, ComplexCodecConverter<T, ?> @NotNull ... converters) {
+        super(id, metadata, cls);
 
         this.runtimeFactory = runtimeFactory == null
                 ? (cls1, parent, converter) -> new RuntimeCodecImpl(cls1, parent, converter)
@@ -80,7 +81,7 @@ public abstract class ComplexCodecBase<T> extends CodecBase<T> implements Comple
 
 
         public RuntimeCodecImpl(Class<U> cls, ComplexCodecBase<T> parent, ComplexCodecConverter<T, U> converter) {
-            super(parent.id, cls);
+            super(parent.id, parent.metadata, cls);
             this.parent = parent;
             this.converter = converter;
         }

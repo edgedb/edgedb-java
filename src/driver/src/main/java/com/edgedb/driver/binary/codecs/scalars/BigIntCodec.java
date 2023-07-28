@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs.scalars;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.util.StringsUtil;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +23,8 @@ public final class BigIntCodec extends ScalarCodecBase<BigInteger> {
     public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000110");
     private static final BigInteger BASE = new BigInteger("10000");
 
-    public BigIntCodec() {
-        super(ID, BigInteger.class);
+    public BigIntCodec(@Nullable CodecMetadata metadata) {
+        super(ID, metadata, BigInteger.class);
     }
 
     @Override

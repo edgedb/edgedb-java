@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +20,8 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     private final @NotNull Map<String, Integer> propertyNamesMap;
     private final String @NotNull [] propertyNames;
 
-    public SparseObjectCodec(UUID id, Codec[] innerCodecs, String @NotNull [] propertyNames) {
-        super(id, (Class<Map<String,?>>) Map.of().getClass());
+    public SparseObjectCodec(UUID id, @Nullable CodecMetadata metadata, Codec[] innerCodecs, String @NotNull [] propertyNames) {
+        super(id, metadata, (Class<Map<String,?>>) Map.of().getClass());
         this.innerCodecs = innerCodecs;
 
         this.propertyNames = propertyNames;

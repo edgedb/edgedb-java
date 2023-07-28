@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.builders.CodecBuilder;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +16,11 @@ public final class NullCodec implements Codec<Void>, ArgumentCodec<Void> {
     @Override
     public UUID getId() {
         return CodecBuilder.NULL_CODEC_ID;
+    }
+
+    @Override
+    public @Nullable CodecMetadata getMetadata() {
+        return null;
     }
 
     @Override

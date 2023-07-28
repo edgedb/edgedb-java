@@ -9,6 +9,7 @@ import com.edgedb.driver.binary.codecs.complex.ComplexCodecBase;
 import com.edgedb.driver.binary.codecs.complex.ComplexCodecConverter;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodec;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodecBase;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,8 +18,8 @@ import java.util.UUID;
 
 public abstract class ComplexScalarCodecBase<T> extends ComplexCodecBase<T> implements ScalarCodec<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public ComplexScalarCodecBase(UUID id, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
-        super(id, cls, (c, p, cv) -> new RuntimeScalarCodecImpl(c, p, cv), converters);
+    public ComplexScalarCodecBase(UUID id, @Nullable CodecMetadata metadata, Class<T> cls, ComplexCodecConverter<T, ?>... converters) {
+        super(id, metadata, cls, (c, p, cv) -> new RuntimeScalarCodecImpl(c, p, cv), converters);
     }
 
 }
@@ -29,7 +30,7 @@ final class RuntimeScalarCodecImpl<T, U> extends ScalarCodecBase<U> implements R
 
 
     public RuntimeScalarCodecImpl(Class<U> cls, ComplexCodecBase<T> parent, ComplexCodecConverter<T, U> converter) {
-        super(parent.id, cls);
+        super(parent.id, parent.metadata, cls);
         this.parent = parent;
         this.converter = converter;
     }

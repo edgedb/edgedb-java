@@ -4,7 +4,6 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.NullCodec;
 import com.edgedb.driver.binary.codecs.scalars.*;
-import com.edgedb.driver.binary.codecs.scalars.BytesCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.DateTimeCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.RelativeDurationCodec;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
@@ -12,6 +11,7 @@ import com.edgedb.driver.binary.protocol.ProtocolVersion;
 import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.MissingCodecException;
@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -201,15 +202,35 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Codec<T> getOrCreateCodec(ProtocolProvider provider, UUID id, @NotNull Supplier<Codec<T>> constructor) {
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @NotNull Supplier<Codec<T>> constructor
+    ) {
         return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
                 .codecPartsInstanceCache.computeIfAbsent(id, ignored -> constructor.get());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Codec<T> getOrCreateCodec(ProtocolProvider provider, UUID id, @NotNull Function<UUID, Codec<T>> constructor) {
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @Nullable CodecMetadata metadata,
+            @NotNull Function<@Nullable CodecMetadata, Codec<T>> constructor
+    ) {
         return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
-                .codecPartsInstanceCache.computeIfAbsent(id, constructor);
+                .codecPartsInstanceCache.computeIfAbsent(id, ignored -> constructor.apply(metadata));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @Nullable CodecMetadata metadata,
+            @NotNull BiFunction<UUID, @Nullable CodecMetadata, Codec<T>> constructor
+    ) {
+        return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .codecPartsInstanceCache.computeIfAbsent(id, i -> constructor.apply(i, metadata));
     }
 
     @SuppressWarnings("unchecked")
@@ -218,12 +239,12 @@ public final class CodecBuilder {
                 .codecPartsInstanceCache.computeIfAbsent(
                         id,
                         (v) -> scalarCodecFactories.containsKey(v)
-                            ? scalarCodecFactories.get(v).get()
+                            ? scalarCodecFactories.get(v).apply(null)
                             : null
         );
     }
 
-    private static final Map<UUID, Supplier<Codec<?>>> scalarCodecFactories = new HashMap<>() {
+    private static final Map<UUID, Function<@Nullable CodecMetadata, Codec<?>>> scalarCodecFactories = new HashMap<>() {
         {
             put(UUID.fromString("00000000-0000-0000-0000-000000000100"), UUIDCodec::new);
             put(UUID.fromString("00000000-0000-0000-0000-000000000101"), TextCodec::new);

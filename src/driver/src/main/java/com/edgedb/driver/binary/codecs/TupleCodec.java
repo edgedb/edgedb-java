@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +17,8 @@ import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 public final class TupleCodec extends CodecBase<Tuple> {
     public final Codec<?>[] innerCodecs;
 
-    public TupleCodec(UUID id, Codec<?>[] codecs) {
-        super(id, Tuple.class);
+    public TupleCodec(UUID id, @Nullable CodecMetadata metadata, Codec<?>[] codecs) {
+        super(id, metadata, Tuple.class);
         this.innerCodecs = codecs;
     }
 

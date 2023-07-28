@@ -4,6 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.complex.ComplexCodecConverter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.RelativeDuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,9 +18,10 @@ public final class RelativeDurationCodec extends ComplexScalarCodecBase<Relative
     public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000111");
 
     @SuppressWarnings("unchecked")
-    public RelativeDurationCodec() {
+    public RelativeDurationCodec(@Nullable CodecMetadata metadata) {
         super(
                 ID,
+                metadata,
                 RelativeDuration.class,
                 new ComplexCodecConverter<>(
                         Period.class,

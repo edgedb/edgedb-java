@@ -6,6 +6,7 @@ import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         private final @NotNull ObjectCodec parent;
 
         public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
-            super(parent.id, parent.elements);
+            super(parent.id, parent.metadata, parent.elements);
 
             this.parent = parent;
             this.target = target;
@@ -41,7 +42,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         public TypeInitializedObjectCodec(@NotNull TypeDeserializerInfo<?> info, @NotNull ObjectCodec parent) {
-            super(parent.id, parent.elements);
+            super(parent.id, parent.metadata, parent.elements);
 
             this.parent = parent;
             this.target = info.getType();
@@ -88,8 +89,8 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     public final ObjectProperty[] elements;
     private final @NotNull ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
 
-    public ObjectCodec(UUID id, ObjectProperty... elements) {
-        super(id, Object.class);
+    public ObjectCodec(UUID id, @Nullable CodecMetadata metadata, ObjectProperty... elements) {
+        super(id, metadata, Object.class);
         this.elements = elements;
         this.typeCodecs = new ConcurrentHashMap<>();
     }

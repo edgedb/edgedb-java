@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +17,7 @@ import java.util.function.Function;
 public final class CompilableCodec implements Codec {
     @FunctionalInterface
     public interface CompilableFactory {
-        Codec<?> compile(UUID id, Class<?> cls, Codec<?> innerCodec);
+        Codec<?> compile(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec);
     }
 
     private final Codec<?> innerCodec;
@@ -24,16 +25,19 @@ public final class CompilableCodec implements Codec {
     private final @NotNull ConcurrentMap<Class<?>, Codec<?>> instanceCache;
     private final Function<Class<?>, Class<?>> compilableTypeFactory;
     private final UUID id;
+    private final @Nullable CodecMetadata metadata;
 
     private @Nullable Class<?> compilableType;
 
     public CompilableCodec(
             UUID id,
+            @Nullable CodecMetadata metadata,
             Codec<?> innerCodec,
             CompilableFactory factory,
             Function<Class<?>, Class<?>> compilableTypeFactory
     ) {
         this.id = id;
+        this.metadata = metadata;
         this.factory = factory;
         this.innerCodec = innerCodec;
         this.instanceCache = new ConcurrentHashMap<>();
@@ -53,7 +57,7 @@ public final class CompilableCodec implements Codec {
     }
 
     public Codec<?> compile(Class<?> cls, Codec<?> innerCodec) {
-        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.compile(this.id, c, innerCodec));
+        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.compile(this.id, this.metadata, c, innerCodec));
     }
 
     public Class<?> getInnerType() {
@@ -65,6 +69,11 @@ public final class CompilableCodec implements Codec {
     @Override
     public UUID getId() {
         return this.id;
+    }
+
+    @Override
+    public @Nullable CodecMetadata getMetadata() {
+        return this.metadata;
     }
 
     @Override
