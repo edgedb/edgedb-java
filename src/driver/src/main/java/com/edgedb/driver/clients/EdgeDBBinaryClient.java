@@ -404,14 +404,16 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     public boolean tryNegotiateProtocol(UShort major, UShort minor) {
-        logger.info("Server requested protocol {}.{}, current: {}", major, major, protocolProvider.getVersion());
+        logger.info("Server requested protocol {}.{}, current: {}", major, minor, protocolProvider.getVersion());
 
         var newProvider = ProtocolProvider.PROVIDERS.get(ProtocolVersion.of(major, minor));
         if(newProvider != null) {
             this.protocolProvider = newProvider.apply(this);
+            logger.debug("Protocol provider found, using {}", this.protocolProvider);
             ProtocolProvider.updateProviderFor(this, this.protocolProvider);
             return true;
         }
+        logger.debug("No provider found for {}.{}", major, minor);
         return false;
     }
 
