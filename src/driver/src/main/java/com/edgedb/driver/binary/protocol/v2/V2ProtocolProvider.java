@@ -79,7 +79,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
             Function<Integer, TypeDescriptorInfo<?>> getRelativeDescriptor
     ) throws MissingCodecException {
         if(!(descriptorInfo.type instanceof DescriptorType)) {
-            throw new IllegalArgumentException("Expected v1 descriptor type, got " + descriptorInfo.type.getClass().getName());
+            throw new IllegalArgumentException("Expected v2 descriptor type, got " + descriptorInfo.type.getClass().getName());
         }
 
         var metadata = descriptorInfo.descriptor instanceof MetadataDescriptor
