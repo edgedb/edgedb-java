@@ -4,4 +4,6 @@ include 'tools'
 include 'tools:testgen'
 include 'examples:java-examples'
 include 'examples:kotlin-examples'
+include 'src:codegen'
+include 'examples:codegen-example'
 

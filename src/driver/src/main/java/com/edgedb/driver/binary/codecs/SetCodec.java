@@ -18,7 +18,7 @@ import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 import static com.edgedb.driver.util.BinaryProtocolUtils.LONG_SIZE;
 
 public final class SetCodec<T> extends CodecBase<Collection<T>> {
-    private final Codec<T> innerCodec;
+    public final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
     public SetCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec) {

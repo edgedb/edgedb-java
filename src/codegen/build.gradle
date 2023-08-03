@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+    id 'org.gradlex.extra-java-module-info'
+}
+
+group 'com.edgedb'
+
+dependencies {
+    compileOnly 'commons-cli:commons-cli:1.5.0'
+    implementation project(path: ':src:driver')
+    implementation 'com.squareup:javapoet:1.13.0'
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+extraJavaModuleInfo {
+    module("commons-cli:commons-cli", "org.apache.commons.cli") {
+        exports("org.apache.commons.cli")
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

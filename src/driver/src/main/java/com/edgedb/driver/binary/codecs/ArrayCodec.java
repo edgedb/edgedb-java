@@ -21,7 +21,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
             0,0,0,1
     };
 
-    private final Codec<T> innerCodec;
+    public final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
     public ArrayCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> codec) {

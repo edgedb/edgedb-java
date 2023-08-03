@@ -14,7 +14,7 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 public final class RangeCodec<T> extends CodecBase<Range<T>> {
-    private final Codec<T> innerCodec;
+    public final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
     public RangeCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec) {

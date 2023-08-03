@@ -86,6 +86,24 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.stateCodec = codec;
     }
 
+    public CompletionStage<Void> ensureConnected() {
+        if(!getDuplexer().isConnected()) {
+            return reconnect().thenCompose(v -> ensureConnected());
+        }
+
+        return CompletableFuture.runAsync(() -> {
+                    try {
+                        logger.debug("acquiring query semaphore...");
+                        this.querySemaphore.acquire();
+                        logger.debug("query semaphore acquired");
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .thenCompose((v) -> getProtocolProvider().sendSyncMessage())
+                .whenComplete((v,e) -> this.querySemaphore.release());
+    }
+
     private static class ExecutionState {
         public int attempts;
     }

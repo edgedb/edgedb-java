@@ -14,52 +14,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
-public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
+public final class EdgeDBClient extends ClientProvider implements StatefulClient, EdgeDBQueryable {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
 
-    private static final class PooledClient {
-        public final BaseEdgeDBClient client;
-        public Instant lastUsed;
-
-        public PooledClient(BaseEdgeDBClient client) {
-            this.client = client;
-            lastUsed = Instant.now();
-        }
-
-        public void touch() {
-            lastUsed = Instant.now();
-        }
-
-        public Duration age() {
-            return Duration.of(ChronoUnit.MICROS.between(lastUsed, Instant.now()), ChronoUnit.MICROS);
-        }
-    }
-
-    private final AtomicInteger clientCount = new AtomicInteger();
-    private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
     private final ClientPoolHolder poolHolder;
     private final ClientFactory clientFactory;
     private final Session session;
-    private final int clientAvailability;
 
     /**
      * Constructs a new {@linkplain EdgeDBClient}.
@@ -68,13 +42,13 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public EdgeDBClient(EdgeDBConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
-        this.clients = new ConcurrentLinkedQueue<>();
+        super(config.getClientMaxAge(), config.getClientAvailability());
+
         this.config = config;
         this.connection = connection;
         this.poolHolder = new ClientPoolHolder(config.getPoolSize());
         this.clientFactory = createClientFactory();
         this.session = Session.DEFAULT;
-        this.clientAvailability = config.getClientAvailability();
     }
 
     /**
@@ -106,13 +80,13 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
     }
 
     private EdgeDBClient(@NotNull EdgeDBClient other, Session session) {
-        this.clients = new ConcurrentLinkedQueue<>();
+        super(other.config.getClientMaxAge(), other.config.getClientAvailability());
+
         this.config = other.config;
         this.connection = other.connection;
         this.poolHolder = other.poolHolder;
         this.clientFactory = other.clientFactory;
         this.session = session;
-        this.clientAvailability = other.clientAvailability;
     }
 
     private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
@@ -321,7 +295,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         );
     }
 
-    private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
+    @Override
+    protected synchronized CompletionStage<BaseEdgeDBClient> getClient() {
         logger.trace("polling cached clients...");
         var cachedClient = clients.poll();
 
@@ -337,43 +312,6 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         }
 
         return createClient();
-    }
-
-    private synchronized CompletionStage<TransactableClient> getTransactableClient() {
-        return getClient()
-                .thenApply(client -> {
-                    if(!(client instanceof TransactableClient)) {
-                        logger.warn(
-                                "A request for a client that supports transactions cannot be fulfilled, the client" +
-                                        " provided from the pool is of type {} which doesn't support transactions.",
-                                client.getClass().getSimpleName()
-                        );
-                        throw new CompletionException(
-                                new EdgeDBException("Cannot use transactions with " + client + " type")
-                        );
-                    }
-
-                    return (TransactableClient) client;
-                });
-    }
-
-    private void cleanupPool() {
-        clients.removeIf(c ->
-                c.age().compareTo(this.config.getClientMaxAge()) > 0
-                        || (!c.client.isConnected() && this.clientCount.decrementAndGet() >= this.clientAvailability)
-        );
-    }
-
-    private synchronized void acceptClient(BaseEdgeDBClient client) {
-        this.clients.add(new PooledClient(client));
-        var count = this.clientCount.incrementAndGet();
-
-        logger.debug("client {} returned to pool, client count: {}", client, count);
-
-        if(count > this.clientAvailability) {
-            logger.debug("Cleaning up pool... {}/{} availability reached", count, this.clientAvailability);
-            cleanupPool();
-        }
     }
 
     private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseEdgeDBClient client) {
