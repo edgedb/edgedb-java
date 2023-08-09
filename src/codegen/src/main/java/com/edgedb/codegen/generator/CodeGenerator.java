@@ -17,16 +17,19 @@ import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -53,7 +56,7 @@ public class CodeGenerator {
     }
 
     public CompletionStage<Void> generate(
-            String[] edgeqlFiles, GeneratorContext context, @Nullable TypeGenerator typeGenerator, boolean force
+            List<String> edgeqlFiles, GeneratorContext context, @Nullable TypeGenerator typeGenerator, boolean force
     ) {
         var targetInfos = new ArrayList<GeneratorTargetInfo>();
 
@@ -64,6 +67,11 @@ public class CodeGenerator {
                 logger.error("Failed to construct target info for {}", target, e);
                 return CompletableFuture.failedFuture(e);
             }
+        }
+
+        if(targetInfos.isEmpty()) {
+            logger.info("Found no files to generate from");
+            return CompletableFuture.completedFuture(null);
         }
 
         var iter = targetInfos.iterator();
@@ -79,8 +87,13 @@ public class CodeGenerator {
     private CompletionStage<Void> generate0(
             Iterator<GeneratorTargetInfo> iter, GeneratorContext context, TypeGenerator generator, boolean force
     ) {
-        return generate(iter.next(), context, generator, force, false)
+        final var target = iter.next();
+        return generate(target, context, generator, force, false)
                 .thenCompose(v -> {
+                    if(!v) {
+                        logger.warn("Got unsuccessful generation result for file {}, skipping...", target.path);
+                    }
+
                     if(iter.hasNext()) {
                         return generate0(iter, context, generator, force);
                     }
@@ -89,14 +102,14 @@ public class CodeGenerator {
                 });
     }
 
-    public CompletionStage<Void> generate(
+    public CompletionStage<Boolean> generate(
             GeneratorTargetInfo target, GeneratorContext context, @Nullable TypeGenerator typeGenerator,
             boolean force
     ) {
        return generate(target, context, typeGenerator, force, true);
     }
 
-    private CompletionStage<Void> generate(
+    private CompletionStage<Boolean> generate(
             GeneratorTargetInfo target, GeneratorContext context, @Nullable TypeGenerator typeGenerator,
             boolean force, boolean postprocess
     ) {
@@ -126,7 +139,7 @@ public class CodeGenerator {
                 );
     }
 
-    private CompletionStage<Void> validateOrGenerate(
+    private CompletionStage<Boolean> validateOrGenerate(
             GeneratorTargetInfo target, GeneratorContext context, TypeGenerator typeGenerator, boolean force
     ) {
         var outputPath = target.getGenerationPath(context);
@@ -139,27 +152,51 @@ public class CodeGenerator {
         logger.info("Parsing {}...", target.path);
 
         return parse(target)
+                .exceptionally(err -> {
+                    logger.error("Failed to parse {}", target.path, err);
+                    return null;
+                })
                 .thenApply(parseResult -> {
+                    if(parseResult == null) {
+                        logger.debug("Skipping post-parse");
+                        return null;
+                    }
+
                     try {
                         return Map.entry(typeGenerator.getType(parseResult.outCodec, target, context), parseResult);
                     } catch (IOException e) {
-                        throw new CompletionException(e);
+                        logger.error("Failed to generated types for {}", target.path, e);
+                        return null;
                     }
                 })
-                .thenApply(result ->
-                        {
-                            try {
-                                return generate(result.getKey(), result.getValue(), context, typeGenerator, target);
-                            } catch (IOException e) {
-                                throw new CompletionException(e);
-                            }
-                        }
-                )
-                .thenAccept(file -> {
+                .thenApply(result -> {
+                    if(result == null) {
+                        logger.debug("Skipping post type generation");
+                        return null;
+                    }
+
                     try {
-                        file.writeTo(context.outputDirectory.resolve(target.filename + ".g.java"));
+                        return generate(result.getKey(), result.getValue(), context, typeGenerator, target);
                     } catch (IOException e) {
-                        throw new CompletionException(e);
+                        logger.error("Failed to generated source file for {}", target.path, e);
+                        return null;
+                    }
+                })
+                .thenApply(file -> {
+                    if(file == null) {
+                        logger.debug("Skipping post generation");
+                        return false;
+                    }
+
+                    var targetOutputPath = context.outputDirectory.resolve(target.filename + ".java");
+
+                    try(var fileStream = Files.newBufferedWriter(targetOutputPath)) {
+                        file.writeTo(fileStream);
+                        fileStream.flush();
+                        return true;
+                    } catch (IOException e) {
+                        logger.error("Failed to write generated file to the directory {}", context.outputDirectory, e);
+                        return false;
                     }
                 });
     }
@@ -170,55 +207,130 @@ public class CodeGenerator {
     ) throws IOException {
         var method = "query";
 
+        TypeName methodReturnType;
         switch (parseResult.cardinality) {
             case NO_RESULT:
-                resultType = TypeName.VOID;
+                methodReturnType = TypeName.VOID;
                 method = "execute";
                 break;
             case AT_MOST_ONE:
-                resultType = resultType.annotated(AnnotationSpec.builder(Nullable.class).build());
+                methodReturnType = resultType.annotated(AnnotationSpec.builder(Nullable.class).build());
                 method = "querySingle";
                 break;
             case ONE:
                 method = "queryRequiredSingle";
+                methodReturnType = resultType;
                 break;
             default:
-                resultType = ParameterizedTypeName.get(ClassName.get(List.class), resultType);
+                methodReturnType = ParameterizedTypeName.get(ClassName.get(List.class), resultType);
                 break;
         }
 
         var parameters = buildArguments(parseResult.inCodec, typeGenerator, context);
 
-        var code = "return client.&L(QUERY, ";
+        var codeblockBuilder = CodeBlock.builder()
+                .indent()
+                .add("return client.$L(\n$T.class, \nQUERY, \n", method, resultType);
 
         if(!parameters.isEmpty()) {
-            code += "new HashMap<>(){{";
-            code += parameters.stream()
-                    .map(v -> "put(\"" + v.name + "\", " + v.name + ");").collect(Collectors.joining("; "));
-            code += "}}, ";
+            codeblockBuilder
+                    .add("new $T<>(){{\n", HashMap.class)
+                    .indent();
+
+            var args = parameters.entrySet()
+                    .stream()
+                    .map(v -> "put(\"" + v.getKey() + "\", " + v.getValue().name + ");")
+                    .collect(Collectors.toList());
+
+
+            for(var i = 0; i != args.size(); i++) {
+                var arg = args.get(i);
+
+                codeblockBuilder.add(arg + "\n");
+            }
+
+            codeblockBuilder.unindent().add("}}, \n");
         }
 
-        code += "EnumSet<Capabilities>.of("
-                + parseResult.capabilities.stream().map(v -> "Capabilities." + v).collect(Collectors.joining(", "))
-                + ")";
+        codeblockBuilder.add("$T.of(\n", EnumSet.class).indent();
+
+        var capabilities = parseResult.capabilities.stream().map(v -> "$T." + v).collect(Collectors.toList());
+
+        for (var i = 0; i != capabilities.size(); i++) {
+            var capability = capabilities.get(i);
+
+            if(i != capabilities.size() - 1) {
+                capability += ",";
+            }
+
+            codeblockBuilder.add(capability + "\n", Capabilities.class);
+        }
+
+        codeblockBuilder.unindent().add(")\n").unindent().add(")");
+
+        var methodJavaDoc = CodeBlock.builder()
+                .add(
+                        "Executes the query defined in the file {@code $L.edgeql} with the capabilities {@code $L}.\n" +
+                        "The query:\n" +
+                        "<pre>\n" +
+                        "{@literal $L}" +
+                        "</pre>",
+                        target.filename,
+                        parseResult.capabilities
+                                .stream()
+                                .map(v ->
+                                        v.name().toLowerCase(Locale.ROOT).replace("_", " ")
+                                )
+                                .collect(Collectors.joining(", ")),
+                        target.edgeql
+                );
+
+        if(resultType instanceof ClassName && ((ClassName)resultType).canonicalName().startsWith(context.packageName)) {
+            methodJavaDoc.add(
+                    "\nThe result of the query is represented as the generated class {@linkplain $T}",
+                    resultType
+            );
+        }
+
+        methodJavaDoc.add(
+                "\n@return A {@linkplain $1T} that represents the asynchronous operation of executing the " +
+                "query and \nparsing the result. The {@linkplain $1T} result is {@linkplain $2T}.",
+                CompletionStage.class, resultType
+        );
 
         var runMethod = MethodSpec.methodBuilder("run")
+                .addJavadoc(methodJavaDoc.build())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(ParameterSpec.builder(EdgeDBQueryable.class, "client").build())
-                .returns(resultType)
-                .addStatement(CodeBlock.of(code, method));
+                .returns(ParameterizedTypeName.get(ClassName.get(CompletionStage.class), methodReturnType))
+                .addStatement(codeblockBuilder.build());
 
-        for (var parameter : parameters) {
+        for (var parameter : parameters.values()) {
             runMethod.addParameter(parameter);
         }
 
+        var classJavadoc = CodeBlock.builder()
+                .add(
+                        "A class containing the generated code responsible for the edgeql file {@code $L.edgeql}.<br/>\n" +
+                        "Generated on: {@code $L}<br/>\n" +
+                        "Edgeql hash: {@code $L}",
+                        target.filename,
+                        OffsetDateTime.now().toString(),
+                        target.hash
+                );
+
+        if(resultType instanceof ClassName) {
+            classJavadoc.add("\n@see $T", resultType);
+        }
 
         var classSpec = TypeSpec.classBuilder(target.filename)
+                .addJavadoc(classJavadoc.build())
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addField(FieldSpec.builder(
                         TypeName.get(String.class),
                         "QUERY",
                         Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                        .initializer(CodeBlock.of("&S", target.edgeql))
+                        .initializer(CodeBlock.of("$S", target.edgeql))
                         .build()
                 )
                 .addMethod(runMethod.build())
@@ -227,11 +339,11 @@ public class CodeGenerator {
         return JavaFile.builder(context.packageName, classSpec).build();
     }
 
-    private Collection<ParameterSpec> buildArguments(
+    private Map<String, ParameterSpec> buildArguments(
             Codec<?> inCodec, TypeGenerator typeGenerator, GeneratorContext context
     ) throws IOException {
         if(inCodec instanceof NullCodec) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
         if(!(inCodec instanceof ObjectCodec)) {
@@ -240,7 +352,7 @@ public class CodeGenerator {
             );
         }
 
-        var parameterSpecs = new ArrayList<ParameterSpec>();
+        var parameterSpecs = new HashMap<String, ParameterSpec>();
 
         var argumentCodec = (ObjectCodec)inCodec;
 
@@ -250,13 +362,13 @@ public class CodeGenerator {
         ).collect(Collectors.toList());
 
         for (var property : orderedProps) {
-            var parameter = ParameterSpec.builder(typeGenerator.getType(property.codec, null, context), property.name);
+            var parameter = ParameterSpec.builder(typeGenerator.getType(property.codec, null, context), NamingStrategy.camelCase().convert(property.name));
 
             if(property.cardinality == Cardinality.AT_MOST_ONE) {
                 parameter.addAnnotation(Nullable.class);
             }
 
-            parameterSpecs.add(parameter.build());
+            parameterSpecs.put(property.name, parameter.build());
         }
 
         return parameterSpecs;

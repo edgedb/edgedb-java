@@ -1,12 +1,14 @@
 plugins {
     id 'java'
-    id 'org.gradlex.extra-java-module-info'
+    id 'org.gradlex.extra-java-module-info' version '1.4'
 }
 
-group 'com.edgedb'
-
 dependencies {
-    compileOnly 'commons-cli:commons-cli:1.5.0'
+    implementation 'commons-cli:commons-cli:1.5.0'
+    api "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    implementation 'ch.qos.logback:logback-classic:1.4.5'
+    implementation 'ch.qos.logback:logback-core:1.4.5'
+
     implementation project(path: ':src:driver')
     implementation 'com.squareup:javapoet:1.13.0'
     implementation "org.slf4j:slf4j-api:$slf4j_version"
@@ -18,8 +20,7 @@ extraJavaModuleInfo {
     module("commons-cli:commons-cli", "org.apache.commons.cli") {
         exports("org.apache.commons.cli")
     }
-}
 
-test {
-    useJUnitPlatform()
+    failOnMissingModuleInfo.set(false)
+
 }

@@ -232,7 +232,7 @@ public class PacketReader {
         var set = EnumSet.noneOf(cls);
 
         for (var enumConstant : cls.getEnumConstants()) {
-            if((value & enumConstant.getValue().longValue()) > 0) {
+            if((value & enumConstant.getValue().longValue()) == enumConstant.getValue().longValue()) {
                 set.add(enumConstant);
             }
         }

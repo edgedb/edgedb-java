@@ -5,4 +5,5 @@ module com.edgedb.codegen {
     requires org.slf4j;
     requires com.squareup.javapoet;
     requires java.compiler;
+    requires org.apache.commons.cli;
 }

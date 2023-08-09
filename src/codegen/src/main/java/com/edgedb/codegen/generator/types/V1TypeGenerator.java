@@ -4,12 +4,15 @@ import com.edgedb.codegen.generator.GeneratorContext;
 import com.edgedb.codegen.generator.GeneratorTargetInfo;
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
+import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodec;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -19,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class V1TypeGenerator implements TypeGenerator {
+    private static final Logger logger = LoggerFactory.getLogger(V1TypeGenerator.class);
+
     private int count;
 
     @Override
@@ -59,6 +64,7 @@ public class V1TypeGenerator implements TypeGenerator {
     private TypeName generateResultType(ObjectCodec object, @Nullable String name, @Nullable Path workingFile, GeneratorContext context) throws IOException {
         var typeName = name == null ? getSubtypeName(null) : name;
         var typeSpec = TypeSpec.classBuilder(typeName)
+                .addAnnotation(EdgeDBType.class)
                 .addModifiers(Modifier.FINAL, Modifier.PUBLIC);
 
         var fields = new ArrayList<FieldSpec>();
@@ -66,10 +72,10 @@ public class V1TypeGenerator implements TypeGenerator {
         for (var property : object.elements) {
             var fieldSpec = FieldSpec.builder(
                     getType(property.codec, property.name, workingFile, context),
-                    property.name,
+                    NamingStrategy.camelCase().convert(property.name),
                     Modifier.FINAL, Modifier.PRIVATE
             ).addAnnotation(AnnotationSpec.builder(EdgeDBName.class)
-                    .addMember("value", CodeBlock.of("&S", property.name)).build()
+                    .addMember("value", CodeBlock.of("$S", property.name)).build()
             ).build();
 
             typeSpec.addField(fieldSpec);
@@ -79,33 +85,37 @@ public class V1TypeGenerator implements TypeGenerator {
                     MethodSpec.methodBuilder("get" + NamingStrategy.pascalCase().convert(property.name))
                             .returns(fieldSpec.type)
                             .addModifiers(Modifier.PUBLIC)
-                            .addStatement(CodeBlock.of("return this.&N", fieldSpec))
+                            .addStatement(CodeBlock.of("return this.$N", fieldSpec))
                             .build()
             );
         }
 
         var ctor = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(EdgeDBDeserializer.class);
 
         for (var field : fields) {
             ctor.addParameter(ParameterSpec.builder(field.type, field.name)
                     .addAnnotation(AnnotationSpec.builder(EdgeDBName.class)
-                            .addMember("value", CodeBlock.of("&S", field.name)).build()
+                            .addMember("value", CodeBlock.of("$S", field.name)).build()
                     ).build()
             );
 
-            ctor.addStatement(CodeBlock.of("this.&N = &N", field, field));
+            ctor.addStatement(CodeBlock.of("this.$N = $N", field, field));
         }
 
         var type = typeSpec.addMethod(ctor.build()).build();
 
-        var jFile = JavaFile.builder(context.packageName, type).build();
+        var jFile = JavaFile.builder(context.packageName + ".results", type).build();
 
-        Files.createDirectory(context.outputDirectory.resolve("Results"));
+        logger.debug("Output directory creation status: {}", context.outputDirectory.resolve("results").toFile().mkdir());
 
-        jFile.writeTo(context.outputDirectory.resolve(Path.of("Results", typeName + "g.java")));
+        try(var writer = Files.newBufferedWriter(context.outputDirectory.resolve(Path.of("results", typeName + ".java")))) {
+            jFile.writeTo(writer);
+            writer.flush();
+        }
 
-        return ClassName.get(context.packageName, type.name);
+        return ClassName.get(context.packageName + ".results", type.name);
     }
 
     @Override

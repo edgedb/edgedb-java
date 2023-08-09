@@ -37,7 +37,7 @@ public class GeneratorTargetInfo {
 
         return new GeneratorTargetInfo(
                 edgeql,
-                path.getFileName().toString(),
+                path.getFileName().toString().replace(".edgeql", ""),
                 path,
                 hash
         );

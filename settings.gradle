@@ -1,9 +1,16 @@
+pluginManagement {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'edgedb-java'
 include 'src:driver'
+include 'src:codegen'
 include 'tools'
 include 'tools:testgen'
 include 'examples:java-examples'
 include 'examples:kotlin-examples'
-include 'src:codegen'
 include 'examples:codegen-example'
 

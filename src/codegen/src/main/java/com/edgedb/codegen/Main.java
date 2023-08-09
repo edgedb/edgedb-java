@@ -34,6 +34,8 @@ public class Main {
         commandInstance.execute(new DefaultParser().parse(commandInstance.getCommandOptions(), args))
                 .toCompletableFuture()
                 .get();
+
+        System.exit(0);
     }
 
     private static void displayUnknownCommand(){

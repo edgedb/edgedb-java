@@ -4,6 +4,12 @@ plugins {
     id 'signing'
 }
 
+repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+    gradlePluginPortal()
+}
+
+
 ext {
     project_version = '0.2.2-SNAPSHOT'
     github_org = 'edgedb'

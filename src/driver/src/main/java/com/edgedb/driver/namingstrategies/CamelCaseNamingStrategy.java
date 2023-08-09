@@ -3,6 +3,8 @@ package com.edgedb.driver.namingstrategies;
 import com.edgedb.driver.util.StringsUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 final class CamelCaseNamingStrategy implements NamingStrategy {
     public static final CamelCaseNamingStrategy INSTANCE = new CamelCaseNamingStrategy();
 
@@ -12,6 +14,8 @@ final class CamelCaseNamingStrategy implements NamingStrategy {
             return name;
         }
 
-        return (Character.toLowerCase(name.charAt(0)) + name.substring(1)).replaceAll("_", "");
+        var pascal = NamingStrategy.pascalCase().convert(name);
+
+        return pascal.substring(0,1).toLowerCase(Locale.ROOT) + pascal.substring(1);
     }
 }

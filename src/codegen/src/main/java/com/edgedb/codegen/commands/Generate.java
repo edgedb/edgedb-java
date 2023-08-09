@@ -4,6 +4,7 @@ import com.edgedb.codegen.Command;
 import com.edgedb.codegen.arguments.ConnectionOptionsProvider;
 import com.edgedb.codegen.generator.CodeGenerator;
 import com.edgedb.codegen.generator.GeneratorContext;
+import com.edgedb.codegen.utils.PathUtils;
 import com.edgedb.codegen.utils.ProjectUtils;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.apache.commons.cli.CommandLine;
@@ -43,22 +44,24 @@ public class Generate implements Command, ConnectionOptionsProvider {
         var connection = getConnection(commandLine);
 
         var projectRoot = ProjectUtils.getProjectRoot();
-        var outputDirectory = commandLine.getOptionValue("output", System.getProperty("user.dir"));
+        var outputDirectory = PathUtils.fromRelativeInput(commandLine.getOptionValue("output", System.getProperty("user.dir")));
 
-        Files.createDirectory(Path.of(outputDirectory));
+        if(!Files.exists(outputDirectory)) {
+            Files.createDirectory(outputDirectory);
+        }
 
         var edgeqlFiles = ProjectUtils.getTargetEdgeQLFiles(projectRoot);
 
-        var matching = Arrays.stream(edgeqlFiles)
+        var matching = edgeqlFiles.stream()
                 .map(a ->
-                        Map.entry(a, Arrays.stream(edgeqlFiles)
+                        Map.entry(a, edgeqlFiles.stream()
                                 .filter(b ->
                                         Path.of(a).getFileName().equals(Path.of(b).getFileName()
                                         )
                                 )
                                 .collect(Collectors.toList()))
                 )
-                .filter(a -> a.getValue().size() > 0)
+                .filter(a -> a.getValue().size() > 1)
                 .collect(Collectors.toList());
 
         for (var match : matching) {
@@ -68,7 +71,7 @@ public class Generate implements Command, ConnectionOptionsProvider {
             );
         }
 
-        if(matching.size() > 0) {
+        if(!matching.isEmpty()) {
             return CompletableFuture.failedFuture(new EdgeDBException("Duplicate file names found"));
         }
 

@@ -6,8 +6,8 @@ public class GeneratorContext {
     public final Path outputDirectory;
     public final String packageName;
 
-    public GeneratorContext(String outputDirectory, String packageName) {
-        this.outputDirectory = Path.of(outputDirectory);
+    public GeneratorContext(Path outputDirectory, String packageName) {
+        this.outputDirectory = outputDirectory;
         this.packageName = packageName;
     }
 }

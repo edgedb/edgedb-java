@@ -66,7 +66,7 @@ public abstract class ClientProvider {
     public <T extends BaseEdgeDBClient> CompletionStage<T> getClient(Class<T> cls) {
         return getClient()
                 .thenCompose(client -> {
-                    if(!client.getClass().equals(cls)) {
+                    if(!cls.isAssignableFrom(client.getClass())) {
                         return CompletableFuture.failedFuture(
                                 new EdgeDBException("Client type mismatch: expected " + cls.getName() + ", but got " + client.getClass().getName())
                         );
