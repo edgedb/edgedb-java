@@ -406,7 +406,7 @@ public class TypeDeserializerInfo<T> {
             } catch (EdgeDBException error) {
                 var valueType = value == null ? "NULL" : value.getClass().getName();
                 throw new NoTypeConverterException(
-                        String.format("The field %s has a type which cant represent the data returned, data type: %s", field.getName(), valueType)
+                        String.format("The field '%s' with type '%s' cannot be implicitly assigned to the received data type '%s'", field.getName(), field.getType().getName(), valueType)
                 );
             }
 
