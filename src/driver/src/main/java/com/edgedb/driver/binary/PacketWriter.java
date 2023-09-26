@@ -2,6 +2,7 @@ package com.edgedb.driver.binary;
 
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
+import com.edgedb.driver.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.jetbrains.annotations.NotNull;
@@ -209,7 +210,7 @@ public class PacketWriter implements AutoCloseable {
     public <T extends SerializableData, U extends Number> void writeArray(T @NotNull [] serializableArray, @NotNull Class<U> lengthPrimitive) throws OperationNotSupportedException {
         ensureCanWrite(BinaryProtocolUtils.sizeOf(serializableArray, lengthPrimitive));
 
-        var len = BinaryProtocolUtils.castNumber(serializableArray.length, lengthPrimitive);
+        var len = TypeUtils.castToPrimitiveNumber(serializableArray.length, lengthPrimitive);
 
         primitiveNumberWriters.get(lengthPrimitive).write(this, len);
 
@@ -225,7 +226,7 @@ public class PacketWriter implements AutoCloseable {
             flags |= v.getValue().longValue();
         }
 
-        primitiveNumberWriters.get(primitive).write(this, BinaryProtocolUtils.castNumber(flags, primitive));
+        primitiveNumberWriters.get(primitive).write(this, TypeUtils.castToPrimitiveNumber(flags, primitive));
     }
 
     @FunctionalInterface

@@ -4,15 +4,9 @@ import com.edgedb.driver.binary.SerializableData;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joou.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.joou.Unsigned.*;
 
 public class BinaryProtocolUtils {
     public static final int DOUBLE_SIZE = 8;
@@ -25,25 +19,6 @@ public class BinaryProtocolUtils {
     public static final int BOOL_SIZE = 1;
     public static final int UUID_SIZE = 16;
 
-    private static final @NotNull Map<Class<?>, Function<Number, ?>> numberCastMap;
-
-    static {
-        numberCastMap = new HashMap<>() {
-            {
-                put(Long.TYPE, Number::longValue);
-                put(Integer.TYPE, Number::intValue);
-                put(Short.TYPE, Number::shortValue);
-                put(Byte.TYPE, Number::byteValue);
-                put(Double.TYPE, Number::doubleValue);
-                put(Float.TYPE, Number::floatValue);
-                put(UByte.class, number -> ubyte(number.longValue()));
-                put(UShort.class, number -> ushort(number.intValue()));
-                put(UInteger.class, number -> uint(number.longValue()));
-                put(ULong.class, number -> ulong(number.longValue()));
-            }
-        };
-    }
-
     public static int sizeOf(@Nullable String s) {
         int size = 4;
 
@@ -53,7 +28,6 @@ public class BinaryProtocolUtils {
 
         return size;
     }
-
 
     public static int sizeOf(@Nullable ByteBuf buffer) {
         int size = 4;
@@ -86,11 +60,6 @@ public class BinaryProtocolUtils {
         }
 
         throw new ArithmeticException("Unable to determine the size of " + primitive.getName());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends Number, U extends Number> U castNumber(T value, Class<U> target) {
-        return (U) numberCastMap.get(target).apply(value);
     }
 
     public static <T extends SerializableData, U extends Number> int sizeOf(T @NotNull [] arr, @NotNull Class<U> primitive) {

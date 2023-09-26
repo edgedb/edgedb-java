@@ -31,7 +31,7 @@ import java.util.function.Function;
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
-public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
+public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
 
     private static final class PooledClient {
@@ -113,6 +113,10 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         this.clientFactory = other.clientFactory;
         this.session = session;
         this.clientAvailability = other.clientAvailability;
+    }
+
+    public int getClientCount() {
+        return this.clientCount.get();
     }
 
     private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
@@ -319,6 +323,15 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable {
         return executePooledQuery(Json.class, query, args, capabilities,
                 (c, cls, q, a, ca) -> c.queryJsonElements(q, a, ca)
         );
+    }
+
+    @Override
+    public void close() throws Exception {
+        int count = clientCount.get();
+        while(!clients.isEmpty() && count > 0) {
+            clients.poll().client.disconnect().toCompletableFuture().get();
+            count = clientCount.decrementAndGet();
+        }
     }
 
     private synchronized CompletionStage<BaseEdgeDBClient> getClient() {

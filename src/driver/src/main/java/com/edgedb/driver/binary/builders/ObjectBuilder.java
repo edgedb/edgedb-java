@@ -6,6 +6,8 @@ import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.NoTypeConverterException;
+import com.edgedb.driver.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public final class ObjectBuilder {
-
     @FunctionalInterface
     public interface CollectionConverter<T extends Iterable<?>> {
         T convert(Object[] value);
@@ -65,9 +66,26 @@ public final class ObjectBuilder {
                 return convertCollection(cls, value);
             }
 
-            return (T)value;
-        }
-        catch (Exception x) {
+            if(valueType.isPrimitive() && TypeUtils.PRIMITIVE_REFERENCE_MAP.get(cls) == valueType) {
+                return (T) value; // JVM handles the underlying conversions of primitives
+            }
+
+            if(
+                    cls.isPrimitive() &&
+                    TypeUtils.PRIMITIVE_REFERENCE_MAP.get(valueType) == cls
+            ) {
+                return (T) value; // JVM handles the underlying conversions of primitives
+            }
+
+            try {
+                return cls.cast(value);
+            } catch (Exception err) {
+                throw new NoTypeConverterException(
+                        String.format("Cannot use the type %s to represent the value %s", cls.getName(), valueType.getName()),
+                        err
+                );
+            }
+        } catch (Exception x) {
             throw new EdgeDBException("Failed to convert type to specified result", x);
         }
     }
