@@ -160,7 +160,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
             TransactionSettings settings,
             @NotNull Function<Transaction, CompletionStage<T>> func
     ) {
-        return getTransactableClient().thenCompose(client -> client.transaction(settings, func));
+        return composeWith(getTransactableClient(), client -> client.transaction(settings, func));
     }
 
     /**
