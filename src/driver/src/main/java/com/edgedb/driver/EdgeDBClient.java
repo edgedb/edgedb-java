@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.edgedb.driver.util.ComposableUtil.composeWith;
+
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
@@ -169,7 +171,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @param <T> The result of the query.
      */
     public <T> CompletionStage<T> transaction(@NotNull Function<Transaction, CompletionStage<T>> func) {
-        return getTransactableClient().thenCompose(client -> client.transaction(func));
+        return composeWith(getTransactableClient(), client -> client.transaction(func));
     }
 
     /**
