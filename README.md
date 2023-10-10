@@ -20,7 +20,7 @@ The Java binding is distrubuted via maven central:
 
 #### Gradle
 ```groovy
-implementation 'com.edgedb:driver:0.2.1'
+implementation 'com.edgedb:driver:0.2.2'
 ```
 
 #### Maven
@@ -28,7 +28,7 @@ implementation 'com.edgedb:driver:0.2.1'
 <dependency>
   <groupId>com.edgedb</groupId>
   <artifactId>driver</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ implementation 'com.edgedb:driver:0.2.1'
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.edgedb" % "driver" % "0.2.1"
+  "com.edgedb" % "driver" % "0.2.2"
 )
 ```
 
