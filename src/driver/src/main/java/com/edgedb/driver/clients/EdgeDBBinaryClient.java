@@ -58,7 +58,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private boolean isIdle;
     private final @NotNull Semaphore connectionSemaphore;
     private final @NotNull Semaphore querySemaphore;
-    private final @NotNull CompletableFuture<Void> readyPromise;
+    private @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
     public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
@@ -904,6 +904,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         }
 
         getDuplexer().reset();
+        this.readyPromise = new CompletableFuture<>();
 
         return retryableConnect()
                 .thenApply(v -> {
