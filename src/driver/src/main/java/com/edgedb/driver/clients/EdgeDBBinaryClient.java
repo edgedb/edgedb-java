@@ -299,12 +299,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             @NotNull ExecutionArguments args
     ) {
         logger.debug("Execute request: is connected? {}", getDuplexer().isConnected());
-        if(!getDuplexer().isConnected()) {
-            // TODO: check for recursion
-            return reconnect()
-                    .thenCompose(v -> executeQuery(args));
-        }
-
+        
         final var hasReleased = new AtomicBoolean();
 
         return CompletableFuture.runAsync(() -> {
