@@ -56,17 +56,22 @@ public class ChannelDuplexer extends Duplexer {
             channelActivePromise = new CompletableFuture<>();
         }
 
+        public void reset() {
+            logger.debug("Resetting channel handler");
+            this.channelActivePromise = new CompletableFuture<Void>();
+        }
+
         @Override
         public void channelActive(@NotNull ChannelHandlerContext ctx) {
+            logger.debug("Channel active");
             isConnected = true;
             channelActivePromise.complete(null);
         }
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, @NotNull Object evt) {
-            if(evt.equals("RESET")) {
-                channelActivePromise = new CompletableFuture<>();
-            } else if (evt.equals("TIMEOUT")) {
+            logger.debug("event fired {}", evt);
+            if (evt.equals("TIMEOUT")) {
                 var exc = new TimeoutException("A message read process passed the configured message timeout");
                 for(var promise : readPromises) {
                     promise.completeExceptionally(exc);
@@ -83,12 +88,12 @@ public class ChannelDuplexer extends Duplexer {
         @Override
         public void channelInactive(@NotNull ChannelHandlerContext ctx) {
             isConnected = false;
+            logger.debug("Channel inactive");
         }
 
         @Override
         public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
             var protocolMessage = (Receivable)msg;
-            logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
 
             if(
                     protocolMessage instanceof ErrorResponse && (
@@ -96,6 +101,7 @@ public class ChannelDuplexer extends Duplexer {
                             ((ErrorResponse)protocolMessage).errorCode == ErrorCode.IDLE_TRANSACTION_TIMEOUT_ERROR
                     )
             ) {
+                logger.debug("Got idle disconnect message, marking as closed");
                 isConnected = false;
                 return;
             }
@@ -103,6 +109,7 @@ public class ChannelDuplexer extends Duplexer {
             int completeCount = 0;
 
             try {
+                logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
                 if(!messageEnqueueLock.tryLock(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())) {
                     ctx.fireUserEventTriggered("TIMEOUT");
                     return;
@@ -248,7 +255,10 @@ public class ChannelDuplexer extends Duplexer {
 
                 attempts.incrementAndGet();
 
-                return client.connect().thenCompose(n -> send0(attempts, packet, packets));
+                return client.reconnect().thenCompose(n -> {
+                    logger.debug("Reconnect complete, retrying send");
+                    return send0(attempts, packet, packets);
+                });
             }
 
             return send1(packet, packets);
@@ -333,7 +343,7 @@ public class ChannelDuplexer extends Duplexer {
     @Override
     public void reset() {
         if(this.channel != null) {
-            channel.pipeline().fireUserEventTriggered("RESET");
+            this.channelHandler.reset();
         }
     }
 
@@ -348,11 +358,14 @@ public class ChannelDuplexer extends Duplexer {
             return CompletableFuture.completedFuture(null);
         }
 
-        if(this.channel.isOpen()) {
+        if(this.isConnected) {
+            logger.debug("Sending terminate for disconnect");
             return send(new Terminate())
-                    .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.close()));
+                    .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
 
-        return ChannelCompletableFuture.completeFrom(this.channel.close());
+        logger.debug("Closing channel without terminating");
+
+        return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
     }
 }
