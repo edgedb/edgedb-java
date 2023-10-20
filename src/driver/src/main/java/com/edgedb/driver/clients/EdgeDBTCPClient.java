@@ -98,23 +98,23 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     protected CompletionStage<Void> openConnection() {
         final var connection = getConnectionArguments();
 
-
         try {
+            logger.debug("Opening connection from bootstrap");
             return exceptionallyCompose(
                     ChannelCompletableFuture.completeFrom(
                         bootstrap.connect(
                             connection.getHostname(),
                             connection.getPort()
                         )
-                    ),
-                        e -> {
-                            if(e instanceof CompletionException && e.getCause() instanceof ConnectException) {
-                                return CompletableFuture.failedFuture(new ConnectionFailedTemporarilyException(e));
-                            }
+                    ),  e -> {
+                        logger.debug("Connection failed", e);
 
-                            return CompletableFuture.failedFuture(e);
+                        if(e instanceof CompletionException && e.getCause() instanceof ConnectException) {
+                            return CompletableFuture.failedFuture(new ConnectionFailedTemporarilyException(e));
                         }
-                    )
+
+                        return CompletableFuture.failedFuture(e);
+                    })
                     .orTimeout(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit());
         }
         catch (Exception err) {
