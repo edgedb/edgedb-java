@@ -20,7 +20,7 @@ The Java binding is distrubuted via maven central:
 
 #### Gradle
 ```groovy
-implementation 'com.edgedb:driver:0.2.1'
+implementation 'com.edgedb:driver:0.2.3'
 ```
 
 #### Maven
@@ -28,7 +28,7 @@ implementation 'com.edgedb:driver:0.2.1'
 <dependency>
   <groupId>com.edgedb</groupId>
   <artifactId>driver</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.3</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ implementation 'com.edgedb:driver:0.2.1'
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.edgedb" % "driver" % "0.2.1"
+  "com.edgedb" % "driver" % "0.2.3"
 )
 ```
 
@@ -55,7 +55,7 @@ void main() {
 }
 ```
 
-The `EdgeDBClient` uses `CompletionState` for asynchronous operations, allowing you
+The `EdgeDBClient` uses `CompletionStage` for asynchronous operations, allowing you
 to integrate it with your favorite asynchronous frameworks
 
 ```java
