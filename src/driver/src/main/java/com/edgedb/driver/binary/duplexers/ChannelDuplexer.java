@@ -2,10 +2,10 @@ package com.edgedb.driver.binary.duplexers;
 
 import com.edgedb.driver.ErrorCode;
 import com.edgedb.driver.async.ChannelCompletableFuture;
-import com.edgedb.driver.binary.packets.receivable.ErrorResponse;
-import com.edgedb.driver.binary.packets.receivable.Receivable;
-import com.edgedb.driver.binary.packets.sendables.Sendable;
-import com.edgedb.driver.binary.packets.sendables.Terminate;
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
+import com.edgedb.driver.binary.protocol.Receivable;
+import com.edgedb.driver.binary.protocol.Sendable;
+import com.edgedb.driver.binary.protocol.common.ProtocolError;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
@@ -96,9 +96,9 @@ public class ChannelDuplexer extends Duplexer {
             var protocolMessage = (Receivable)msg;
 
             if(
-                    protocolMessage instanceof ErrorResponse && (
-                            ((ErrorResponse)protocolMessage).errorCode == ErrorCode.IDLE_SESSION_TIMEOUT_ERROR ||
-                            ((ErrorResponse)protocolMessage).errorCode == ErrorCode.IDLE_TRANSACTION_TIMEOUT_ERROR
+                    protocolMessage instanceof ProtocolError && (
+                            ((ProtocolError)protocolMessage).getErrorCode() == ErrorCode.IDLE_SESSION_TIMEOUT_ERROR ||
+                            ((ProtocolError)protocolMessage).getErrorCode() == ErrorCode.IDLE_TRANSACTION_TIMEOUT_ERROR
                     )
             ) {
                 logger.debug("Got idle disconnect message, marking as closed");
@@ -365,7 +365,7 @@ public class ChannelDuplexer extends Duplexer {
 
         if(this.isConnected) {
             logger.debug("Sending terminate for disconnect");
-            return send(new Terminate())
+            return send(getProtocolProvider().terminate())
                     .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
 
