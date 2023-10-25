@@ -23,10 +23,12 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.edgedb.driver.util.ComposableUtil.composeWith;
+
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
-public final class EdgeDBClient extends ClientProvider implements StatefulClient, EdgeDBQueryable {
+public final class EdgeDBClient extends ClientProvider implements StatefulClient, EdgeDBQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
 
     private final EdgeDBConnection connection;
@@ -89,6 +91,10 @@ public final class EdgeDBClient extends ClientProvider implements StatefulClient
         this.session = session;
     }
 
+    public int getClientCount() {
+        return this.clientCount.get();
+    }
+
     private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
         if(config.getClientType() == ClientType.TCP) {
             return EdgeDBTCPClient::new;
@@ -128,7 +134,7 @@ public final class EdgeDBClient extends ClientProvider implements StatefulClient
             TransactionSettings settings,
             @NotNull Function<Transaction, CompletionStage<T>> func
     ) {
-        return getTransactableClient().thenCompose(client -> client.transaction(settings, func));
+        return composeWith(getTransactableClient(), client -> client.transaction(settings, func));
     }
 
     /**
@@ -139,7 +145,7 @@ public final class EdgeDBClient extends ClientProvider implements StatefulClient
      * @param <T> The result of the query.
      */
     public <T> CompletionStage<T> transaction(@NotNull Function<Transaction, CompletionStage<T>> func) {
-        return getTransactableClient().thenCompose(client -> client.transaction(func));
+        return composeWith(getTransactableClient(), client -> client.transaction(func));
     }
 
     /**
@@ -296,6 +302,14 @@ public final class EdgeDBClient extends ClientProvider implements StatefulClient
     }
 
     @Override
+    public void close() throws Exception {
+        int count = clientCount.get();
+        while(!clients.isEmpty() && count > 0) {
+            clients.poll().client.disconnect().toCompletableFuture().get();
+            count = clientCount.decrementAndGet();
+        }
+    }
+
     protected synchronized CompletionStage<BaseEdgeDBClient> getClient() {
         logger.trace("polling cached clients...");
         var cachedClient = clients.poll();

@@ -7,6 +7,7 @@ import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.NoTypeConverterException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.edgedb.driver.util.FastInverseIndexer;
 import com.edgedb.driver.util.StringsUtil;
@@ -398,7 +399,16 @@ public class TypeDeserializerInfo<T> {
         }
 
         public void convertAndSet(boolean useMethodSetter, Object instance, Object value) throws EdgeDBException, ReflectiveOperationException {
-            var converted = convertToType(value);
+            Object converted;
+
+            try {
+                converted = convertToType(value);
+            } catch (EdgeDBException error) {
+                var valueType = value == null ? "NULL" : value.getClass().getName();
+                throw new NoTypeConverterException(
+                        String.format("The field '%s' with type '%s' cannot be implicitly assigned to the received data type '%s'", field.getName(), field.getType().getName(), valueType)
+                );
+            }
 
             if(useMethodSetter && setMethod != null) {
                 setMethod.invoke(instance, converted);

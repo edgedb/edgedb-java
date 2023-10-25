@@ -1,9 +1,11 @@
 package com.edgedb.driver.binary.duplexers;
 
+import com.edgedb.driver.ErrorCode;
 import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
+import com.edgedb.driver.binary.protocol.common.ProtocolError;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
@@ -54,17 +56,22 @@ public class ChannelDuplexer extends Duplexer {
             channelActivePromise = new CompletableFuture<>();
         }
 
+        public void reset() {
+            logger.debug("Resetting channel handler");
+            this.channelActivePromise = new CompletableFuture<Void>();
+        }
+
         @Override
         public void channelActive(@NotNull ChannelHandlerContext ctx) {
+            logger.debug("Channel active");
             isConnected = true;
             channelActivePromise.complete(null);
         }
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, @NotNull Object evt) {
-            if(evt.equals("RESET")) {
-                channelActivePromise = new CompletableFuture<>();
-            } else if (evt.equals("TIMEOUT")) {
+            logger.debug("event fired {}", evt);
+            if (evt.equals("TIMEOUT")) {
                 var exc = new TimeoutException("A message read process passed the configured message timeout");
                 for(var promise : readPromises) {
                     promise.completeExceptionally(exc);
@@ -81,16 +88,28 @@ public class ChannelDuplexer extends Duplexer {
         @Override
         public void channelInactive(@NotNull ChannelHandlerContext ctx) {
             isConnected = false;
+            logger.debug("Channel inactive");
         }
 
         @Override
         public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
             var protocolMessage = (Receivable)msg;
-            logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
+
+            if(
+                    protocolMessage instanceof ProtocolError && (
+                            ((ProtocolError)protocolMessage).getErrorCode() == ErrorCode.IDLE_SESSION_TIMEOUT_ERROR ||
+                            ((ProtocolError)protocolMessage).getErrorCode() == ErrorCode.IDLE_TRANSACTION_TIMEOUT_ERROR
+                    )
+            ) {
+                logger.debug("Got idle disconnect message, marking as closed");
+                isConnected = false;
+                return;
+            }
 
             int completeCount = 0;
 
             try {
+                logger.debug("Read fired, entering message lock, message type {}", protocolMessage.getMessageType());
                 if(!messageEnqueueLock.tryLock(client.getConfig().getMessageTimeoutValue(), client.getConfig().getMessageTimeoutUnit())) {
                     ctx.fireUserEventTriggered("TIMEOUT");
                     return;
@@ -204,32 +223,51 @@ public class ChannelDuplexer extends Duplexer {
     private CompletionStage<Void> send1(Sendable packet, @Nullable Sendable @Nullable ... packets) {
         logger.debug("Starting to send packets to {}, is connected? {}", channel, isConnected);
 
-        // return attachment to ready promise to "queue" to send if this client hasn't connected.
-        return this.channelHandler.whenReady().thenCompose((v) -> {
-            if(channel == null || !isConnected) {
-                return CompletableFuture.failedFuture(
-                        new ConnectionFailedTemporarilyException("Cannot send message to a closed connection")
-                );
+        if(channel == null || !isConnected) {
+            return CompletableFuture.failedFuture(
+                    new ConnectionFailedTemporarilyException("Cannot send message to a closed connection")
+            );
+        }
+
+        logger.debug("Beginning packet encoding and writing...");
+        var result = ChannelCompletableFuture.completeFrom(channel.write(packet));
+
+        if(packets != null) {
+            for (var p : packets) {
+                result.thenCompose(channel.write(p));
             }
+        }
 
-            logger.debug("Beginning packet encoding and writing...");
-            var result = ChannelCompletableFuture.completeFrom(channel.write(packet));
-
-            if(packets != null) {
-                for (var p : packets) {
-                    result.thenCompose(channel.write(p));
-                }
-            }
-
-            logger.debug("Flushing data...");
-            channel.flush();
-            logger.debug("Flush complete, returning write proxy task");
-            return result;
-        });
+        logger.debug("Flushing data...");
+        channel.flush();
+        logger.debug("Flush complete, returning write proxy task");
+        return result;
     }
 
     private CompletionStage<Void> send0(AtomicInteger attempts, Sendable packet, @Nullable Sendable... packets) {
-        return exceptionallyCompose(send1(packet, packets), e -> {
+        return exceptionallyCompose(this.channelHandler.whenReady().thenCompose(v -> {
+            if(!isConnected) {
+                logger.debug(
+                        "Connection isn't open with a ready signal, reconnecting: {}/{}",
+                        attempts.get(), client.getConfig().getMaxConnectionRetries()
+                );
+
+                if(attempts.get() >= client.getConfig().getMaxConnectionRetries()) {
+                    return CompletableFuture.failedFuture(
+                            new ConnectionFailedException("Failed to connect after " + attempts.get() + "attempts")
+                    );
+                }
+
+                attempts.incrementAndGet();
+
+                return client.reconnect().thenCompose(n -> {
+                    logger.debug("Reconnect complete, retrying send");
+                    return send0(attempts, packet, packets);
+                });
+            }
+
+            return send1(packet, packets);
+        }), e -> {
             logger.debug("Caught failed send attempt");
 
             if(e instanceof EdgeDBException && ((EdgeDBException)e).shouldRetry && !((EdgeDBException)e).shouldReconnect) {
@@ -310,9 +348,8 @@ public class ChannelDuplexer extends Duplexer {
     @Override
     public void reset() {
         if(this.channel != null) {
-            channel.pipeline().fireUserEventTriggered("RESET");
+            this.channelHandler.reset();
         }
-
     }
 
     @Override
@@ -326,10 +363,13 @@ public class ChannelDuplexer extends Duplexer {
             return CompletableFuture.completedFuture(null);
         }
 
-        if(this.channel.isOpen()) {
+        if(this.isConnected) {
+            logger.debug("Sending terminate for disconnect");
             return send(getProtocolProvider().terminate())
                     .thenCompose(v -> ChannelCompletableFuture.completeFrom(this.channel.disconnect()));
         }
+
+        logger.debug("Closing channel without terminating");
 
         return ChannelCompletableFuture.completeFrom(this.channel.disconnect());
     }

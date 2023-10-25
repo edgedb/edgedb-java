@@ -58,7 +58,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             try {
                 return deserializer.factory.deserialize(enumerator);
             } catch (Exception x) {
-                throw new EdgeDBException("Failed to deserialize object to " + getConvertingClass().getName(), x);
+                throw new EdgeDBException("Failed to deserialize " + target.getName(), x);
             }
         }
 

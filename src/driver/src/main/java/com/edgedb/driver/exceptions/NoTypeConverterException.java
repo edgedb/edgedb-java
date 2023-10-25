@@ -22,4 +22,13 @@ public class NoTypeConverterException extends EdgeDBException {
     public NoTypeConverterException(String message) {
         super(message);
     }
+
+    /**
+     * Constructs a new {@linkplain NoTypeConverterException}
+     * @param message The detailed message describing why the exception was thrown.
+     * @param inner The inner cause of this exception.
+     */
+    public NoTypeConverterException(String message, Exception inner) {
+        super(message, inner);
+    }
 }

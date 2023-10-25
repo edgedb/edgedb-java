@@ -7,6 +7,8 @@ import com.edgedb.driver.async.AsyncEvent;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(BaseEdgeDBClient.class);
     private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
@@ -89,7 +92,10 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     public abstract CompletionStage<Void> disconnect();
 
     public CompletionStage<Void> reconnect() {
-        return disconnect().thenCompose((v) -> connect());
+        return disconnect().thenCompose((v) -> {
+            logger.debug("Executing connection attempt from reconnect");
+            return connect();
+        });
     }
 
     @Override

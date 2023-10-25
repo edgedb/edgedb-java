@@ -11,7 +11,7 @@ repositories {
 
 
 ext {
-    project_version = '0.2.2-SNAPSHOT'
+    project_version = '0.2.4-SNAPSHOT'
     github_org = 'edgedb'
     project_name = 'edgedb-java'
     artifact_group = 'com.edgedb'

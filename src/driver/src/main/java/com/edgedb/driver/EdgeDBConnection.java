@@ -496,6 +496,10 @@ public class EdgeDBConnection implements Cloneable {
      * format.
      */
     public static EdgeDBConnection fromInstanceName(String instanceName, @Nullable String cloudProfile) throws IOException, ConfigurationException {
+        return fromInstanceName(instanceName, cloudProfile, null);
+    }
+
+    private static EdgeDBConnection fromInstanceName(String instanceName, @Nullable String cloudProfile, @Nullable EdgeDBConnection connection) throws IOException, ConfigurationException {
         if(Pattern.matches("^\\w(-?\\w)*$", instanceName)) {
             var configPath = Paths.get(ConfigUtils.getCredentialsDir(), instanceName + ".json");
 
@@ -504,7 +508,9 @@ public class EdgeDBConnection implements Cloneable {
 
             return fromJSON(Files.readString(configPath, StandardCharsets.UTF_8));
         } else if (Pattern.matches("^([A-Za-z0-9](-?[A-Za-z0-9])*)/([A-Za-z0-9](-?[A-Za-z0-9])*)$", instanceName)) {
-            var connection = new EdgeDBConnection();
+            if(connection == null) {
+                connection = new EdgeDBConnection();
+            }
             connection.parseCloudInstanceName(instanceName, cloudProfile);
             return connection;
         } else {
@@ -575,7 +581,7 @@ public class EdgeDBConnection implements Cloneable {
             throw new ConfigurationException("Invalid secret key: doesn't contain payload");
         }
 
-        TypeReference<HashMap<String, String>> typeRef = new TypeReference<>() {};
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {};
 
         var json = Base64.getDecoder().decode(spl[1]);
         var jsonData = mapper.readValue(json, typeRef);
@@ -750,7 +756,7 @@ public class EdgeDBConnection implements Cloneable {
         }
 
         if(instanceName != null) {
-            connection = connection.mergeInto(fromInstanceName(instanceName));
+            connection = connection.mergeInto(fromInstanceName(instanceName, null, connection));
         }
 
         if(dsn != null) {

@@ -43,7 +43,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private short connectionAttempts;
     private final @NotNull Semaphore connectionSemaphore;
     private final @NotNull Semaphore querySemaphore;
-    private final @NotNull CompletableFuture<Void> readyPromise;
+    private @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
     public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
@@ -112,9 +112,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             @NotNull QueryParameters args
     ) {
         logger.debug("Execute request: is connected? {}", getDuplexer().isConnected());
+
         if(!getDuplexer().isConnected()) {
             // TODO: check for recursion
-            return reconnect()
+            return connect()
                     .thenCompose(v -> executeQuery(args));
         }
 
@@ -448,7 +449,11 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         return CompletableFuture
                 .runAsync(() -> {
                     try {
-                        this.connectionSemaphore.acquire();
+                        logger.debug("Acquiring connection lock...");
+                        if(!this.connectionSemaphore.tryAcquire(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit())) {
+                            logger.debug("Failed to acquire connection lock after timeout");
+                            throw new CompletionException(new ConnectionFailedException("Connection failed to be established because of a already existing attempt"));
+                        }
                     } catch (InterruptedException e) {
                         throw new CompletionException(e);
                     }
@@ -510,11 +515,15 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     }
 
     private CompletionStage<Void> connectInternal() {
+        logger.debug("Beginning to run connection logic");
         if(getDuplexer().isConnected()) {
+            logger.debug("Already connected, ignoring connection attempt");
             return CompletableFuture.completedFuture(null);
         }
 
+        logger.debug("Resetting ready state");
         getDuplexer().reset();
+        this.readyPromise = new CompletableFuture<>();
 
         return retryableConnect()
                 .thenApply(v -> protocolProvider.handshake())
@@ -524,6 +533,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private CompletionStage<Void> retryableConnect() {
         try {
             return exceptionallyCompose(this.openConnection(), err -> {
+                logger.debug("Connection attempt failed", err);
                 if(err instanceof EdgeDBException && ((EdgeDBException)err).shouldReconnect) {
                     if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
                         return CompletableFuture.failedFuture(new ConnectionFailedException(err));
@@ -547,6 +557,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
             });
         }
         catch (Exception x) {
+            logger.debug("Connection failed", x);
             return CompletableFuture.failedFuture(x);
         }
     }
