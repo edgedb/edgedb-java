@@ -6,4 +6,5 @@ module com.edgedb.codegen {
     requires com.squareup.javapoet;
     requires java.compiler;
     requires org.apache.commons.cli;
+    requires ch.qos.logback.classic;
 }

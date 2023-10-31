@@ -3,6 +3,7 @@ package com.edgedb.codegen;
 import com.edgedb.codegen.commands.Generate;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
@@ -29,6 +30,11 @@ public class Main {
             System.exit(0);
         }
 
+        if(args.length >= 2 && args[1].equalsIgnoreCase("help")) {
+            new HelpFormatter().printHelp(args[0], command.get().getCommandOptions());
+            System.exit(0);
+        }
+
         var commandInstance = command.get();
 
         commandInstance.execute(new DefaultParser().parse(commandInstance.getCommandOptions(), args))
@@ -43,6 +49,9 @@ public class Main {
     }
 
     private static void displayHelp() {
-
+        var formatter = new HelpFormatter();
+        for (var cmd : COMMANDS.entrySet()) {
+            formatter.printHelp(cmd.getKey(), cmd.getValue().get().getCommandOptions());
+        }
     }
 }

@@ -11,8 +11,6 @@ import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -22,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class V1TypeGenerator implements TypeGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(V1TypeGenerator.class);
-
     private int count;
 
     @Override
@@ -107,8 +103,6 @@ public class V1TypeGenerator implements TypeGenerator {
         var type = typeSpec.addMethod(ctor.build()).build();
 
         var jFile = JavaFile.builder(context.packageName + ".results", type).build();
-
-        logger.debug("Output directory creation status: {}", context.outputDirectory.resolve("results").toFile().mkdir());
 
         try(var writer = Files.newBufferedWriter(context.outputDirectory.resolve(Path.of("results", typeName + ".java")))) {
             jFile.writeTo(writer);

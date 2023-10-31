@@ -10,7 +10,7 @@
             </Pattern>
         </layout>
     </appender>
-    <root level="ALL">
+    <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
 </configuration>

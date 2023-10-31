@@ -16,15 +16,14 @@ import com.edgedb.driver.binary.protocol.QueryParameters;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.exceptions.EdgeDBErrorException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,12 +46,17 @@ public class CodeGenerator {
         put(Cardinality.MANY, 4);
     }};
 
-    private static final Logger logger = LoggerFactory.getLogger(CodeGenerator.class);
     private static final Pattern HEADER_PATTERN = Pattern.compile("^// edgeql:([0-9a-fA-F]{64})$");
     private final EdgeDBClient client;
+    private final Logger logger;
 
-    public CodeGenerator(EdgeDBConnection connection) throws EdgeDBException {
+    public CodeGenerator(EdgeDBConnection connection, Logger logger) throws EdgeDBException {
         this.client = new EdgeDBClient(connection);
+        this.logger = logger;
+    }
+
+    public Logger getLogger() {
+        return this.logger;
     }
 
     public CompletionStage<Void> generate(
@@ -153,7 +157,13 @@ public class CodeGenerator {
 
         return parse(target)
                 .exceptionally(err -> {
-                    logger.error("Failed to parse {}", target.path, err);
+                    if(err.getCause() instanceof EdgeDBErrorException) {
+                        var formatted = ((EdgeDBErrorException) err.getCause()).toString();
+                        logger.error("Failed to parse {}\n{}",target.path, formatted);
+                    } else {
+                        logger.error("Failed to parse {}", target.path, err);
+                    }
+
                     return null;
                 })
                 .thenApply(parseResult -> {

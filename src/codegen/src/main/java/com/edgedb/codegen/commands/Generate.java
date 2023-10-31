@@ -2,17 +2,18 @@ package com.edgedb.codegen.commands;
 
 import com.edgedb.codegen.Command;
 import com.edgedb.codegen.arguments.ConnectionOptionsProvider;
+import com.edgedb.codegen.arguments.LoggerOptionsProvider;
 import com.edgedb.codegen.generator.CodeGenerator;
 import com.edgedb.codegen.generator.GeneratorContext;
 import com.edgedb.codegen.utils.PathUtils;
 import com.edgedb.codegen.utils.ProjectUtils;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -20,10 +21,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class Generate implements Command, ConnectionOptionsProvider {
-    private static final Logger logger = LoggerFactory.getLogger(Generate.class);
-
+public class Generate implements Command, ConnectionOptionsProvider, LoggerOptionsProvider {
     @Override
     public Options getCommandOptions() {
         var options = new Options();
@@ -42,6 +42,7 @@ public class Generate implements Command, ConnectionOptionsProvider {
     @Override
     public CompletionStage<Void> execute(CommandLine commandLine) throws EdgeDBException, IOException {
         var connection = getConnection(commandLine);
+        var logger = getLogger(Generate.class, commandLine);
 
         var projectRoot = ProjectUtils.getProjectRoot();
         var outputDirectory = PathUtils.fromRelativeInput(commandLine.getOptionValue("output", System.getProperty("user.dir")));
@@ -75,12 +76,21 @@ public class Generate implements Command, ConnectionOptionsProvider {
             return CompletableFuture.failedFuture(new EdgeDBException("Duplicate file names found"));
         }
 
-        var generator = new CodeGenerator(connection);
+        var generator = new CodeGenerator(connection, getLogger(CodeGenerator.class, commandLine));
         var context = new GeneratorContext(
                 outputDirectory,
-                commandLine.getOptionValue("package-name", "com.edgedb.generated")
+                commandLine.getOptionValue("package-name", "com.edgedb.generated"),
+                generator
         );
 
         return generator.generate(edgeqlFiles, context, null, commandLine.hasOption("force"));
+    }
+
+    @Override
+    public Option[] getOptions() {
+        return Stream.concat(
+                Arrays.stream(ConnectionOptionsProvider.super.getOptions()),
+                Arrays.stream(LoggerOptionsProvider.super.getOptions())
+        ).toArray(x -> (Option[]) Array.newInstance(Option.class, x));
     }
 }

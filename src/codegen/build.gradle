@@ -22,5 +22,4 @@ extraJavaModuleInfo {
     }
 
     failOnMissingModuleInfo.set(false)
-
 }

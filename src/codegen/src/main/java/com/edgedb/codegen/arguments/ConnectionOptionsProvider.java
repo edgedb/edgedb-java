@@ -23,7 +23,7 @@ public interface ConnectionOptionsProvider extends OptionsProvider {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .build();
 
-     Option[] CONNECTION_OPTIONS = new Option[] {
+    Option[] CONNECTION_OPTIONS = new Option[] {
             Option.builder()
                     .longOpt("dsn")
                     .desc("DSN for EdgeDB to connect to (overrides all other options except password)")
