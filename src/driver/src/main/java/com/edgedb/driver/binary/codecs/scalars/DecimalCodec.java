@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs.scalars;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.PacketReader;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.util.StringsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,12 +11,14 @@ import org.joou.UShort;
 
 import javax.naming.OperationNotSupportedException;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.joou.Unsigned.ushort;
 
 public final class DecimalCodec extends ScalarCodecBase<BigDecimal> {
-    public DecimalCodec() {
-        super(BigDecimal.class);
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000108");
+    public DecimalCodec(@Nullable CodecMetadata metadata) {
+        super(ID, metadata, BigDecimal.class);
     }
 
     @Override

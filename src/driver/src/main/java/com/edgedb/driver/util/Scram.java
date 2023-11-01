@@ -1,8 +1,5 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.binary.packets.receivable.AuthenticationStatus;
-import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLInitialResponse;
-import com.edgedb.driver.binary.packets.sendables.AuthenticationSASLResponse;
 import com.edgedb.driver.exceptions.ScramException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -47,14 +44,14 @@ public class Scram {
         return bytes;
     }
 
-    private static @NotNull ByteBuf encodeString(@NotNull String s) {
+    public static @NotNull ByteBuf encodeString(@NotNull String s) {
         var buffer = ByteBufAllocator.DEFAULT.buffer(BinaryProtocolUtils.sizeOf(s) - 4); // no str length
         var encoded = s.getBytes(StandardCharsets.UTF_8);
         buffer.writeBytes(encoded);
         return buffer;
     }
 
-    private static @NotNull String decodeString(@NotNull ByteBuf buffer) {
+    public static @NotNull String decodeString(@NotNull ByteBuf buffer) {
         byte[] strBytes = new byte[buffer.readableBytes()];
 
         buffer.readBytes(strBytes);
@@ -71,11 +68,6 @@ public class Scram {
         return "n,," + this.rawFirstMessage;
     }
 
-    public @NotNull AuthenticationSASLInitialResponse buildInitialMessagePacket(@NotNull String username, String method) {
-        var initial = buildInitialMessage(username);
-        return new AuthenticationSASLInitialResponse(encodeString(initial), method);
-    }
-
     public static class SASLFinalMessage {
         public final String message;
         public final byte[] signature;
@@ -84,15 +76,6 @@ public class Scram {
             this.message = message;
             this.signature = signature;
         }
-
-        public @NotNull AuthenticationSASLResponse buildPacket() {
-            return new AuthenticationSASLResponse(encodeString(this.message));
-        }
-    }
-
-    public @NotNull SASLFinalMessage buildFinalMessage(@NotNull AuthenticationStatus status, @NotNull String password) throws ScramException {
-        assert status.saslData != null;
-        return buildFinalMessage(decodeString(status.saslData), password);
     }
 
     public @NotNull SASLFinalMessage buildFinalMessage(@NotNull String initialResponse, @NotNull String password) throws ScramException {
@@ -131,9 +114,8 @@ public class Scram {
         );
     }
 
-    public static byte[] parseServerFinalMessage(@NotNull AuthenticationStatus status) {
-        assert status.saslData != null;
-        var message = decodeString(status.saslData);
+    public static byte[] parseServerFinalMessage(@NotNull ByteBuf status) {
+        var message = decodeString(status);
 
         var parsed = parseServerMessage(message);
 

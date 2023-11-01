@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +12,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 import static com.edgedb.driver.util.BinaryProtocolUtils.LONG_SIZE;
@@ -19,8 +21,8 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public SetCodec(Class<?> cls, Codec<?> innerCodec) {
-        super((Class<Collection<T>>) cls);
+    public SetCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> innerCodec) {
+        super(id, metadata, (Class<Collection<T>>) cls);
         this.innerCodec = (Codec<T>) innerCodec;
     }
 
@@ -69,27 +71,27 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     }
 
     private @Nullable T deserializeEnvelopeElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
-        reader.skip(INT_SIZE);
+        try(var elementReader = reader.scopedSlice()) {
+            var envelopeElements = elementReader.readInt32();
 
-        var envelopeElements = reader.readInt32();
+            if(envelopeElements != 1) {
+                throw new EdgeDBException(String.format("Envelope should contain only one element, but this envelope contains %d", envelopeElements));
+            }
 
-        if(envelopeElements != 1) {
-            throw new EdgeDBException(String.format("Envelope should contain only one element, but this envelope contains %d", envelopeElements));
+            elementReader.skip(INT_SIZE);
+
+            return innerCodec.deserialize(elementReader, context);
         }
-
-        reader.skip(INT_SIZE);
-
-        return innerCodec.deserialize(reader, context);
     }
 
     private @Nullable T deserializeSetElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
-        var data = reader.readByteArray();
+        try(var elementReader = reader.scopedSlice()) {
+            if(elementReader.isNoData) {
+                return null;
+            }
 
-        if(data == null) {
-            return null;
+            return innerCodec.deserialize(elementReader, context);
         }
-
-        return innerCodec.deserialize(new PacketReader(data), context);
     }
 
     @FunctionalInterface

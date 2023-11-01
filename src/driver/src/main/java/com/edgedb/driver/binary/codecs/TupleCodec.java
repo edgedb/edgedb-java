@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
@@ -9,13 +10,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 
+import java.util.UUID;
+
 import static com.edgedb.driver.util.BinaryProtocolUtils.INT_SIZE;
 
 public final class TupleCodec extends CodecBase<Tuple> {
     public final Codec<?>[] innerCodecs;
 
-    public TupleCodec(Codec<?>[] codecs) {
-        super(Tuple.class);
+    public TupleCodec(UUID id, @Nullable CodecMetadata metadata, Codec<?>[] codecs) {
+        super(id, metadata, Tuple.class);
         this.innerCodecs = codecs;
     }
 
@@ -62,14 +65,16 @@ public final class TupleCodec extends CodecBase<Tuple> {
 
             reader.skip(INT_SIZE); // reserved
 
-            var data = reader.readByteArray();
+            try(var elementReader = reader.scopedSlice()) {
+                if(elementReader.isNoData) {
+                    elements[i] = Tuple.Element.of(null, codec.getConvertingClass());
+                    continue;
+                }
 
-            if(data == null) {
-                elements[i] = Tuple.Element.of(null, codec.getConvertingClass());
-                continue;
+                elements[i] = Tuple.Element.of(codec.deserialize(elementReader, context), codec.getConvertingClass());
             }
 
-            elements[i] = Tuple.Element.of(codec.deserialize(new PacketReader(data), context), codec.getConvertingClass());
+
         }
 
         return Tuple.of(elements);

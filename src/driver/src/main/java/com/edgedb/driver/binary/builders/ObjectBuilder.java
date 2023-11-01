@@ -4,11 +4,11 @@ import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
-import com.edgedb.driver.binary.packets.receivable.Data;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import com.edgedb.driver.util.TypeUtils;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public final class ObjectBuilder {
         }};
     }
 
-    public static <T> @Nullable T buildResult(@NotNull EdgeDBBinaryClient client, Codec<?> codec, @NotNull Data data, @NotNull Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @Nullable T buildResult(@NotNull EdgeDBBinaryClient client, Codec<?> codec, @NotNull ByteBuf data, @NotNull Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
         var visitor = new TypeVisitor(client);
         visitor.setTargetType(cls);
         codec = visitor.visit(codec);
@@ -40,7 +40,7 @@ public final class ObjectBuilder {
             return TypeBuilder.buildObject(client, cls, (ObjectCodec)codec, data);
         }
 
-        var value = Codec.deserializeFromBuffer(codec, Objects.requireNonNull(data.payloadBuffer), client.getCodecContext());
+        var value = Codec.deserializeFromBuffer(codec, Objects.requireNonNull(data), client.getCodecContext());
         return convertTo(cls, value);
     }
 

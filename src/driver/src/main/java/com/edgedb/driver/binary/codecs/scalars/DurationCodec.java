@@ -3,6 +3,7 @@ package com.edgedb.driver.binary.codecs.scalars;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,10 +11,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 public final class DurationCodec extends ScalarCodecBase<Duration> {
-    public DurationCodec() {
-        super(Duration.class);
+    public static final UUID ID = UUID.fromString("00000000-0000-0000-0000-00000000010E");
+    public DurationCodec(@Nullable CodecMetadata metadata) {
+        super(ID, metadata, Duration.class);
     }
 
     @Override

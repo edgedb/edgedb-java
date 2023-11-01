@@ -1,11 +1,11 @@
 package com.edgedb.driver.binary.builders.types;
 
+import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.annotations.*;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
-import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;

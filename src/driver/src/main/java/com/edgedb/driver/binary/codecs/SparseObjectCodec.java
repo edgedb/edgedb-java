@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.naming.OperationNotSupportedException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,8 +20,8 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     private final @NotNull Map<String, Integer> propertyNamesMap;
     private final String @NotNull [] propertyNames;
 
-    public SparseObjectCodec(Codec[] innerCodecs, String @NotNull [] propertyNames) {
-        super((Class<Map<String,?>>) Map.of().getClass());
+    public SparseObjectCodec(UUID id, @Nullable CodecMetadata metadata, Codec[] innerCodecs, String @NotNull [] propertyNames) {
+        super(id, metadata, (Class<Map<String,?>>) Map.of().getClass());
         this.innerCodecs = innerCodecs;
 
         this.propertyNames = propertyNames;
@@ -75,14 +77,14 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
             var index = reader.readInt32();
             var elementName = this.propertyNames[index];
 
-            var data = reader.readByteArray();
+            try(var elementReader = reader.scopedSlice()) {
+                if(elementReader.isNoData) {
+                    map.put(elementName, null);
+                    continue;
+                }
 
-            if(data == null) {
-                map.put(elementName, null);
-                continue;
+                map.put(elementName, innerCodecs[i].deserialize(elementReader, context));
             }
-
-            map.put(elementName, innerCodecs[i].deserialize(new PacketReader(data), context));
         }
 
         return map;

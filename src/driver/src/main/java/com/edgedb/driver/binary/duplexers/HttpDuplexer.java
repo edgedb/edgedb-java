@@ -1,8 +1,9 @@
 package com.edgedb.driver.binary.duplexers;
 
 import com.edgedb.driver.binary.PacketSerializer;
-import com.edgedb.driver.binary.packets.receivable.Receivable;
-import com.edgedb.driver.binary.packets.sendables.Sendable;
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
+import com.edgedb.driver.binary.protocol.Receivable;
+import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.clients.EdgeDBHttpClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBException;
@@ -14,7 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -30,13 +33,20 @@ public class HttpDuplexer extends Duplexer {
     private final Executor lockExecutor;
     private final Queue<@NotNull Receivable> packetQueue;
     private final Queue<CompletableFuture<Receivable>> readPromises;
+    private final HttpResponse.BodyHandler<List<Receivable>> bodyHandler;
 
     public HttpDuplexer(EdgeDBHttpClient client) {
+        bodyHandler = PacketSerializer.createHandler(client);
         this.client = client;
         this.lock = new Semaphore(1);
         this.lockExecutor = Executors.newSingleThreadExecutor();
         this.packetQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
+    }
+
+    @Override
+    public ProtocolProvider getProtocolProvider() {
+        return client.getProtocolProvider();
     }
 
     @Override
@@ -122,7 +132,7 @@ public class HttpDuplexer extends Duplexer {
                 )
                 .thenCompose((request) -> {
                     logger.debug("Sending execution request...");
-                    return client.httpClient.sendAsync(request, PacketSerializer.PACKET_BODY_HANDLER);
+                    return client.httpClient.sendAsync(request, bodyHandler);
                 })
                 .thenCompose(EdgeDBHttpClient::ensureSuccess)
                 .thenAccept(response -> {

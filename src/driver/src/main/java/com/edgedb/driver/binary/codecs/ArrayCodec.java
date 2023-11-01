@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.codecs;
 
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
+import java.util.UUID;
 
 public class ArrayCodec<T> extends CodecBase<T[]> {
     private static final byte[] EMPTY_ARRAY = new byte[] {
@@ -22,8 +24,8 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
     private final Codec<T> innerCodec;
 
     @SuppressWarnings("unchecked")
-    public ArrayCodec(Class<?> cls, Codec<?> codec) {
-        super((Class<T[]>) cls);
+    public ArrayCodec(UUID id, @Nullable CodecMetadata metadata, Class<?> cls, Codec<?> codec) {
+        super(id, metadata, (Class<T[]>) cls);
         this.innerCodec = (Codec<T>) codec;
     }
 
@@ -72,7 +74,9 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
         var array = (T[])Array.newInstance(innerCodec.getConvertingClass(), numElements);
 
         for(int i = 0; i != numElements; i++) {
-            array[i] = reader.deserializeByteArray(innerCodec, context);
+            try(var elementReader = reader.scopedSlice()) {
+                array[i] = innerCodec.deserialize(elementReader, context);
+            }
         }
 
         return array;

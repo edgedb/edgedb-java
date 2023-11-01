@@ -5,9 +5,8 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
-import com.edgedb.driver.binary.descriptors.common.ShapeElement;
-import com.edgedb.driver.binary.descriptors.common.TupleElement;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import org.jetbrains.annotations.NotNull;
@@ -15,12 +14,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
 public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Object> {
+    public static ObjectProperty propertyOf(String name, Cardinality cardinality, Codec<?> codec) {
+        return new ObjectProperty(name, codec, cardinality);
+    }
 
     public static final class TypeInitializedObjectCodec extends ObjectCodec {
         private final @Nullable TypeDeserializerInfo<?> deserializer;
@@ -28,7 +30,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         private final @NotNull ObjectCodec parent;
 
         public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
-            super(parent.elements);
+            super(parent);
 
             this.parent = parent;
             this.target = target;
@@ -40,7 +42,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         public TypeInitializedObjectCodec(@NotNull TypeDeserializerInfo<?> info, @NotNull ObjectCodec parent) {
-            super(parent.elements);
+            super(parent);
 
             this.parent = parent;
             this.target = info.getType();
@@ -73,57 +75,33 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
     }
 
-    public static final class Element {
+    public static final class ObjectProperty {
         public final String name;
         public final @Nullable Cardinality cardinality;
         public Codec<?> codec;
-        public Element(String name, Codec<?> codec, @Nullable Cardinality cardinality) {
+        public ObjectProperty(String name, Codec<?> codec, @Nullable Cardinality cardinality) {
             this.name = name;
             this.codec = codec;
             this.cardinality = cardinality;
         }
     }
 
-    public final Element[] elements;
+    public final @Nullable UUID typeId;
+    public final ObjectProperty[] elements;
     private final @NotNull ConcurrentMap<Class<?>, TypeInitializedObjectCodec> typeCodecs;
-    private final Object lock = new Object();
 
-    public ObjectCodec(Element... elements) {
-        super(Object.class);
+    public ObjectCodec(UUID shapeId, @Nullable UUID typeId, @Nullable CodecMetadata metadata, ObjectProperty... elements) {
+        super(shapeId, metadata, Object.class);
+        this.typeId = typeId;
         this.elements = elements;
         this.typeCodecs = new ConcurrentHashMap<>();
     }
 
-    public static @NotNull ObjectCodec create(@NotNull Function<Integer, Codec<?>> fetchCodec, ShapeElement @NotNull [] shape) {
-        var elements = new Element[shape.length];
-
-        for (int i = 0; i < shape.length; i++) {
-            var shapeElement = shape[i];
-
-            elements[i] = new Element(
-                    shapeElement.name,
-                    fetchCodec.apply(shapeElement.typePosition.intValue()),
-                    shapeElement.cardinality
-            );
-        }
-
-        return new ObjectCodec(elements);
-    }
-
-    public static @NotNull ObjectCodec create(@NotNull Function<Short, Codec<?>> fetchCodec, TupleElement @NotNull [] shape) {
-        var elements = new Element[shape.length];
-
-        for (int i = 0; i < shape.length; i++) {
-            var shapeElement = shape[i];
-
-            elements[i] = new Element(
-                    shapeElement.name,
-                    fetchCodec.apply(shapeElement.typePosition),
-                    null
-            );
-        }
-
-        return new ObjectCodec(elements);
+    private ObjectCodec(ObjectCodec other) {
+        super(other.id, other.metadata, Object.class);
+        this.typeId = other.typeId;
+        this.elements = other.elements;
+        this.typeCodecs = other.typeCodecs;
     }
 
     public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws EdgeDBException {

@@ -1,8 +1,9 @@
 package com.edgedb.driver.binary;
 
-import com.edgedb.driver.binary.packets.ServerMessageType;
-import com.edgedb.driver.binary.packets.receivable.*;
-import com.edgedb.driver.binary.packets.sendables.Sendable;
+import com.edgedb.driver.binary.protocol.ServerMessageType;
+import com.edgedb.driver.binary.protocol.Receivable;
+import com.edgedb.driver.binary.protocol.Sendable;
+import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.HexUtils;
@@ -24,32 +25,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PacketSerializer {
     private static final Logger logger = LoggerFactory.getLogger(PacketSerializer.class);
-    private static final @NotNull Map<ServerMessageType, Function<PacketReader, Receivable>> deserializerMap;
     private static final Map<Class<?>, Map<Number, Enum<?>>> binaryEnumMap = new HashMap<>();
-
-    static {
-        deserializerMap = new HashMap<>();
-
-        deserializerMap.put(ServerMessageType.AUTHENTICATION, AuthenticationStatus::new);
-        deserializerMap.put(ServerMessageType.COMMAND_COMPLETE, CommandComplete::new);
-        deserializerMap.put(ServerMessageType.COMMAND_DATA_DESCRIPTION, CommandDataDescription::new);
-        deserializerMap.put(ServerMessageType.DATA, Data::new);
-        deserializerMap.put(ServerMessageType.DUMP_BLOCK, DumpBlock::new);
-        deserializerMap.put(ServerMessageType.DUMP_HEADER, DumpHeader::new);
-        deserializerMap.put(ServerMessageType.ERROR_RESPONSE, ErrorResponse::new);
-        deserializerMap.put(ServerMessageType.LOG_MESSAGE, LogMessage::new);
-        deserializerMap.put(ServerMessageType.PARAMETER_STATUS, ParameterStatus::new);
-        deserializerMap.put(ServerMessageType.READY_FOR_COMMAND, ReadyForCommand::new);
-        deserializerMap.put(ServerMessageType.RESTORE_READY, RestoreReady::new);
-        deserializerMap.put(ServerMessageType.SERVER_HANDSHAKE, ServerHandshake::new);
-        deserializerMap.put(ServerMessageType.SERVER_KEY_DATA, ServerKeyData::new);
-        deserializerMap.put(ServerMessageType.STATE_DATA_DESCRIPTION, StateDataDescription::new);
-    }
 
     public static <T extends Enum<?> & BinaryEnum<U>, U extends Number> void registerBinaryEnum(Class<T> cls, T @NotNull [] values) {
         binaryEnumMap.put(cls, Arrays.stream(values).collect(Collectors.toMap(BinaryEnum::getValue, v -> v)));
@@ -64,7 +44,7 @@ public class PacketSerializer {
         return (T)binaryEnumMap.get(enumCls).get(raw);
     }
 
-    public static @NotNull MessageToMessageDecoder<ByteBuf> createDecoder() {
+    public static @NotNull MessageToMessageDecoder<ByteBuf> createDecoder(EdgeDBBinaryClient client) {
         return new MessageToMessageDecoder<>() {
             private final Map<Channel, PacketContract> contracts = new HashMap<>();
 
@@ -96,7 +76,7 @@ public class PacketSerializer {
 
                     // can we read this packet?
                     if (msg.readableBytes() >= length) {
-                        var packet = PacketSerializer.deserialize(type, length, msg.readSlice((int) length));
+                        var packet = PacketSerializer.deserialize(client, type, length, msg.readSlice((int) length));
 
                         if(packet == null) {
                             logger.error("Got null result for packet type {}", type);
@@ -175,7 +155,7 @@ public class PacketSerializer {
 
                     if (data.readableBytes() >= length) {
                         // read
-                        packet = PacketSerializer.deserialize(messageType, length, data, false);
+                        packet = PacketSerializer.deserialize(client, messageType, length, data, false);
 
                         return true;
                     }
@@ -218,42 +198,36 @@ public class PacketSerializer {
     }
 
     public static @Nullable Receivable deserialize(
-            ServerMessageType messageType, long length, @NotNull ByteBuf buffer
+            EdgeDBBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer
     ) {
         var reader = new PacketReader(buffer);
-        return deserializeSingle(messageType, length, reader, true);
+        return deserializeSingle(client, messageType, length, reader, true);
     }
 
     public static @Nullable Receivable deserialize(
-            ServerMessageType messageType, long length, @NotNull ByteBuf buffer, boolean verifyEmpty
+            EdgeDBBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer, boolean verifyEmpty
     ) {
         var reader = new PacketReader(buffer);
-        return deserializeSingle(messageType, length, reader, verifyEmpty);
+        return deserializeSingle(client, messageType, length, reader, verifyEmpty);
     }
 
-    public static @Nullable Receivable deserializeSingle(PacketReader reader) {
+    public static @Nullable Receivable deserializeSingle(EdgeDBBinaryClient client, PacketReader reader) {
         var messageType = reader.readEnum(ServerMessageType.class, Byte.TYPE);
         var length = reader.readUInt32().longValue();
 
-        return deserializeSingle(messageType, length, reader, false);
+        return deserializeSingle(client, messageType, length, reader, false);
     }
 
     public static @Nullable Receivable deserializeSingle(
-            ServerMessageType type, long length, @NotNull PacketReader reader,
+            EdgeDBBinaryClient client, ServerMessageType type, long length, @NotNull PacketReader reader,
             boolean verifyEmpty
     ) {
-        if(!deserializerMap.containsKey(type)) {
-            logger.error("Unknown packet type {}", type);
-            reader.skip(length);
-            return null;
-        }
-
         try {
-            return deserializerMap.get(type).apply(reader);
+            return client.getProtocolProvider().readPacket(type, (int)length, reader);
         }
         catch (Exception x) {
             logger.error("Failed to deserialize packet", x);
-            throw x;
+            return null;
         }
         finally {
             // ensure we read the entire packet
@@ -263,9 +237,15 @@ public class PacketSerializer {
         }
     }
 
-    public static HttpResponse.BodyHandler<List<Receivable>> PACKET_BODY_HANDLER = new PacketBodyHandler();
-
+    public static HttpResponse.BodyHandler<List<Receivable>> createHandler(EdgeDBBinaryClient client) {
+        return new PacketBodyHandler(client);
+    }
     private static class PacketBodyHandler implements HttpResponse.BodyHandler<List<Receivable>> {
+        private final EdgeDBBinaryClient client;
+        public PacketBodyHandler(EdgeDBBinaryClient client) {
+            this.client = client;
+        }
+
         @Override
         public HttpResponse.BodySubscriber<List<Receivable>> apply(HttpResponse.ResponseInfo responseInfo) {
             // ensure success
@@ -276,7 +256,7 @@ public class PacketSerializer {
                     : new PacketBodySubscriber(responseInfo.statusCode());
         }
 
-        private static class PacketBodySubscriber implements HttpResponse.BodySubscriber<List<Receivable>> {
+        private class PacketBodySubscriber implements HttpResponse.BodySubscriber<List<Receivable>> {
             private final @Nullable List<@NotNull ByteBuf> buffers;
             private final CompletableFuture<List<Receivable>> promise;
 
@@ -334,7 +314,7 @@ public class PacketSerializer {
                 var data = new ArrayList<Receivable>();
 
                 while(completeBuffer.readableBytes() > 0) {
-                    var packet = deserializeSingle(reader);
+                    var packet = deserializeSingle(client, reader);
 
                     if(packet == null && completeBuffer.readableBytes() > 0) {
                         promise.completeExceptionally(

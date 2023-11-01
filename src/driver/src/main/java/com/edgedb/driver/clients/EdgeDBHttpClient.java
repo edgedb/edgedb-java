@@ -209,12 +209,12 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
     }
 
     @Override
-    protected Duplexer getDuplexer() {
+    public Duplexer getDuplexer() {
         return this.duplexer;
     }
 
     @Override
-    protected void setTransactionState(TransactionState state) {
+    public void setTransactionState(TransactionState state) {
         // invalid for this client
     }
 

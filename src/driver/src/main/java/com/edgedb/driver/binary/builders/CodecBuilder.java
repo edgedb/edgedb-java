@@ -1,18 +1,20 @@
 package com.edgedb.driver.binary.builders;
 
 import com.edgedb.driver.binary.PacketReader;
-import com.edgedb.driver.binary.codecs.*;
+import com.edgedb.driver.binary.codecs.Codec;
+import com.edgedb.driver.binary.codecs.NullCodec;
 import com.edgedb.driver.binary.codecs.scalars.*;
-import com.edgedb.driver.binary.codecs.scalars.complex.BytesCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.DateTimeCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.RelativeDurationCodec;
-import com.edgedb.driver.binary.descriptors.*;
-import com.edgedb.driver.binary.packets.shared.Cardinality;
-import com.edgedb.driver.binary.packets.shared.IOFormat;
-import com.edgedb.driver.datatypes.Range;
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
+import com.edgedb.driver.binary.protocol.ProtocolVersion;
+import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.binary.protocol.common.IOFormat;
+import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
+import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.MissingCodecException;
-import com.edgedb.driver.util.CollectionUtils;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,174 +22,145 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.OperationNotSupportedException;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class CodecBuilder {
+    private static final class CodecCache {
+        public final ConcurrentMap<UUID, Codec<?>> cache;
+        public final ConcurrentMap<UUID, Codec<?>> codecPartsInstanceCache;
+        public final ConcurrentMap<Long, QueryCodecCacheEntry> queryCodecsCache;
+
+        public final ProtocolVersion version;
+
+
+        private CodecCache(ProtocolVersion version) {
+            this.version = version;
+            this.cache = new ConcurrentHashMap<>(16);
+            this.codecPartsInstanceCache = new ConcurrentHashMap<>(16);
+            this.queryCodecsCache = new ConcurrentHashMap<>(8);
+        }
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(CodecBuilder.class);
 
     public static final UUID NULL_CODEC_ID = new UUID(0L, 0L);
     public static final UUID INVALID_CODEC_ID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
-    private static final @NotNull ConcurrentMap<UUID, Codec<?>> codecPartsInstanceCache;
-    private static final @NotNull ConcurrentMap<UUID, Codec<?>> codecCache;
-    private static final @NotNull ConcurrentMap<Long, QueryCodecCacheEntry> queryCodecCache;
+
+    private static final ConcurrentMap<ProtocolVersion, CodecCache> codecCaches;
 
     static {
-        codecPartsInstanceCache = new ConcurrentHashMap<>(16);
-        codecCache = new ConcurrentHashMap<>(32);
-        queryCodecCache = new ConcurrentHashMap<>(16);
+        codecCaches = new ConcurrentHashMap<>(2);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable Codec<T> getCodec(UUID id, Class<T> ignoredCls) {
-        return (Codec<T>) getCodec(id);
+    public static <T> @Nullable Codec<T> getCodec(ProtocolProvider provider, UUID id, Class<T> ignoredCls) {
+        return (Codec<T>) getCodec(provider, id);
     }
-    public static @Nullable Codec<?> getCodec(UUID id) {
-        var codec = codecCache.get(id);
-        return codec != null ? codec : getScalarCodec(id);
+    public static @Nullable Codec<?> getCodec(ProtocolProvider provider, UUID id) {
+        var codec = codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new).cache.get(id);
+        return codec != null ? codec : getCachedOrScalarCodec(provider, id);
     }
 
-    public static @NotNull Codec<?> buildCodec(@NotNull UUID id, @Nullable ByteBuf buffer) throws EdgeDBException {
+    public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer) throws EdgeDBException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
-            return getOrCreateCodec(NULL_CODEC_ID, NullCodec::new);
+            return getOrCreateCodec(client.getProtocolProvider(), NULL_CODEC_ID, NullCodec::new);
         }
 
         var reader = new PacketReader(buffer);
-        return buildCodec(id, reader);
+        return buildCodec(client, id, reader);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull Codec<T> buildCodec(@NotNull UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @NotNull Codec<T> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
-            return (Codec<T>)getOrCreateCodec(NULL_CODEC_ID, NullCodec::new);
+            return (Codec<T>)getOrCreateCodec(client.getProtocolProvider(), NULL_CODEC_ID, NullCodec::new);
         }
 
         var reader = new PacketReader(buffer);
-        return buildCodec(id, reader, cls);
+        return buildCodec(client, id, reader, cls);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull Codec<T> buildCodec(@NotNull UUID id, @NotNull PacketReader reader, Class<T> ignoredCodecResult) throws EdgeDBException {
-        return (Codec<T>) buildCodec(id, reader);
+    public static <T> @NotNull Codec<T> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader, Class<T> ignoredCodecResult) throws EdgeDBException {
+        return (Codec<T>) buildCodec(client, id, reader);
     }
-    @SuppressWarnings("unchecked")
-    public static @NotNull Codec<?> buildCodec(@NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
+
+    public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
         try {
             if(id.equals(NULL_CODEC_ID)) {
-                return getOrCreateCodec(id, NullCodec::new);
+                logger.debug("Returning null codec");
+                return getOrCreateCodec(client.getProtocolProvider(), id, NullCodec::new);
             }
 
-            List<Codec<?>> codecs = new ArrayList<>();
+            var providerCache = codecCaches.computeIfAbsent(client.getProtocolProvider().getVersion(), CodecCache::new);
+
+            var descriptors = new ArrayList<TypeDescriptorInfo<? extends Enum<?>>>();
 
             while(!reader.isEmpty()) {
                 var start = reader.position();
-                var descriptor = TypeDescriptorBuilder.getDescriptor(reader);
+                var descriptor = client.getProtocolProvider().readDescriptor(reader);
                 var end = reader.position();
 
                 logger.trace("{}/{}: read {}, size {}", end, reader.size(), descriptor.type, end-start);
 
-                Codec<?> codec;
+                descriptors.add(descriptor);
+            }
 
-                if(codecCache.containsKey(descriptor.getId())) {
-                    codec = codecCache.get(descriptor.getId());
-                } else {
-                    codec = getScalarCodec(descriptor.getId());
-                }
+            logger.debug("Read {} descriptors, totaling {} bytes", descriptors.size(), reader.position());
+
+            var codecs = new ArrayList<Codec<?>>();
+
+            for(var i = 0; i != descriptors.size(); i++) {
+                var descriptor = descriptors.get(i);
+
+                Codec<?> codec = providerCache.cache.get(descriptor.getId());;
 
                 if(codec != null) {
-                    codecs.add(codec);
+                    logger.debug("Using cached codec {} from ID: {}", codec, descriptor.getId());
+                    codecs.add(i, codec);
                     continue;
                 }
 
-                switch (descriptor.type) {
-                    case ARRAY_TYPE_DESCRIPTOR:
-                        var arrayType = descriptor.as(ArrayTypeDescriptor.class);
+                codec = getCachedOrScalarCodec(client.getProtocolProvider(), descriptor.getId());
 
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(arrayType.typePosition.intValue()),
-                                        ArrayCodec::new,
-                                        t -> Array.newInstance(t,0).getClass()
-                                )
-                        );
-                        break;
-                    case SCALAR_TYPE_DESCRIPTOR:
-                    case BASE_SCALAR_TYPE_DESCRIPTOR:
-                        // should be resolved by the above case, getting here is an error
-                        throw new MissingCodecException(String.format("Could not find the scalar type %s", descriptor.getId().toString()));
-                    case ENUMERATION_TYPE_DESCRIPTOR:
-                        codec = getOrCreateCodec(descriptor.getId(), TextCodec::new);
-                        break;
-                    case INPUT_SHAPE_DESCRIPTOR:
-                        var inputShape = descriptor.as(InputShapeDescriptor.class);
-                        var inputShapeCodecs = new Codec[inputShape.shapes.length];
-                        var inputShapeNames = new String[inputShape.shapes.length];
-
-                        for (int i = 0; i != inputShape.shapes.length; i++) {
-                            inputShapeCodecs[i] = codecs.get(inputShape.shapes[i].typePosition.intValue());
-                            inputShapeNames[i] = inputShape.shapes[i].name;
-                        }
-
-                        codec = getOrCreateCodec(descriptor.getId(), () -> new SparseObjectCodec(inputShapeCodecs, inputShapeNames));
-                        break;
-
-
-                    case TUPLE_TYPE_DESCRIPTOR:
-                        var tupleType = descriptor.as(TupleTypeDescriptor.class);
-                        var innerCodecs = new Codec<?>[tupleType.elementTypeDescriptorPositions.length];
-
-                        for(int i = 0; i != innerCodecs.length; i++) {
-                            innerCodecs[i] = codecs.get(tupleType.elementTypeDescriptorPositions[i].intValue());
-                        }
-
-                        codec = getOrCreateCodec(descriptor.getId(), () -> new TupleCodec(innerCodecs));
-                        break;
-                    case NAMED_TUPLE_DESCRIPTOR:
-                        var tupleShape = descriptor.as(NamedTupleTypeDescriptor.class);
-                        codec = getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(codecs::get, tupleShape.elements));
-                        break;
-                    case OBJECT_SHAPE_DESCRIPTOR:
-                        var objectShape = descriptor.as(ObjectShapeDescriptor.class);
-                        codec = getOrCreateCodec(descriptor.getId(), () -> ObjectCodec.create(codecs::get, objectShape.shapes));
-                        break;
-                    case RANGE_TYPE_DESCRIPTOR:
-                        var rangeType = descriptor.as(RangeTypeDescriptor.class);
-
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(rangeType.typePosition.intValue()),
-                                        RangeCodec::new,
-                                        t -> Range.empty(t).getClass()
-                                )
-                        );
-                        break;
-                    case SCALAR_TYPE_NAME_ANNOTATION:
-                        // ignored
-                        break;
-                    case SET_DESCRIPTOR:
-                        var setTypes = descriptor.as(SetTypeDescriptor.class);
-
-                        codec = getOrCreateCodec(descriptor.getId(), () ->
-                                new CompilableCodec(
-                                        codecs.get(setTypes.typePosition.intValue()),
-                                        SetCodec::new,
-                                        t -> Array.newInstance(t, 0).getClass()
-                                )
-                        );
-                        break;
-                    default:
-                        throw new MissingCodecException(String.format("Could not find a type descriptor with the type %s", descriptor.getId().toString()));
+                if(codec != null) {
+                    logger.debug("Using cached codec {} from ID: {}", codec, descriptor.getId());
+                    codecs.add(i, codec);
+                    continue;
                 }
 
-                codecs.add(codec);
+                logger.debug("Calling protocol provider for codec construction, descriptor type: {}", descriptor.type);
+
+                codec = client.getProtocolProvider().buildCodec(
+                        descriptor,
+                        codecs::get,
+                        descriptors::get
+                );
+
+                logger.debug("Protocol provider returned {}", codec == null ? "null" : codec);
+
+                codecs.add(i, codec);
+
+                logger.debug("Codec {} added: {}, ID: {}", i, codec, descriptor.getId());
             }
 
-            var finalCodec = CollectionUtils.last(codecs);
+            Codec<?> finalCodec = null;
 
-            codecCache.putIfAbsent(id, finalCodec);
+            for(var i = 1; i != codecs.size() + 1 && finalCodec == null; i++) {
+                finalCodec = codecs.get(codecs.size() - i);
+            }
+
+            if(finalCodec == null) {
+                throw new MissingCodecException("Failed to find end tail of codec tree");
+            }
 
             return finalCodec;
         }
@@ -195,33 +168,35 @@ public final class CodecBuilder {
             logger.error("Failed to build codec", x);
             throw x;
         }
-
     }
 
     public static @NotNull Long getCacheKey(@NotNull String query, @NotNull Cardinality cardinality, @NotNull IOFormat format) {
         return calculateKnuthHash(query) + cardinality.getValue() + format.getValue();
     }
 
-    public static @Nullable QueryCodecs getCachedCodecs(long cacheKey) {
-        var ids = queryCodecCache.get(cacheKey);
+    public static @Nullable QueryCodecs getCachedCodecs(ProtocolProvider provider, long cacheKey) {
+        var providerCache = codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new);
+
+        var ids = providerCache.queryCodecsCache.get(cacheKey);
 
         if(ids == null) {
             return null;
         }
 
-        var inCodec = codecCache.get(ids.inputCodecId);
-        var outCodec = codecCache.get(ids.outputCodecId);
+        var inCodec = providerCache.cache.get(ids.inputCodecId);
+        var outCodec = providerCache.cache.get(ids.outputCodecId);
 
         if(inCodec == null || outCodec == null) {
-            queryCodecCache.remove(cacheKey);
+            providerCache.queryCodecsCache.remove(cacheKey);
             return null;
         }
 
         return new QueryCodecs(ids.inputCodecId, inCodec, ids.outputCodecId, outCodec);
     }
 
-    public static void updateCachedCodecs(long cacheKey, UUID inCodecId, UUID outCodecId) {
-        queryCodecCache.computeIfAbsent(cacheKey, (c) -> new QueryCodecCacheEntry(inCodecId, outCodecId));
+    public static void updateCachedCodecs(ProtocolProvider provider, long cacheKey, UUID inCodecId, UUID outCodecId) {
+        codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .queryCodecsCache.computeIfAbsent(cacheKey, (c) -> new QueryCodecCacheEntry(inCodecId, outCodecId));
     }
 
     private static @NotNull Long calculateKnuthHash(@NotNull String str) {
@@ -236,20 +211,62 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Codec<T> getOrCreateCodec(UUID id, @NotNull Supplier<Codec<T>> constructor) {
-        return (Codec<T>) codecPartsInstanceCache.computeIfAbsent(id, v -> constructor.get());
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @NotNull Supplier<Codec<T>> constructor
+    ) {
+        return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .codecPartsInstanceCache.computeIfAbsent(id, ignored -> constructor.get());
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> @Nullable Codec<T> getScalarCodec(UUID id) {
-        return (Codec<T>) codecPartsInstanceCache.computeIfAbsent(id,
-                (v) -> scalarCodecFactories.containsKey(v)
-                        ? scalarCodecFactories.get(v).get()
-                        : null
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @Nullable CodecMetadata metadata,
+            @NotNull Function<@Nullable CodecMetadata, Codec<T>> constructor
+    ) {
+        return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .codecPartsInstanceCache.computeIfAbsent(id, ignored -> constructor.apply(metadata));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Codec<T> getOrCreateCodec(
+            ProtocolProvider provider,
+            UUID id,
+            @Nullable CodecMetadata metadata,
+            @NotNull BiFunction<UUID, @Nullable CodecMetadata, Codec<T>> constructor
+    ) {
+        if(logger.isDebugEnabled()) {
+            logger.debug(
+                    "cache requested id: {}. exists?: {}, metadata: {}",
+                    id,
+                    codecCaches
+                            .computeIfAbsent(provider.getVersion(), CodecCache::new)
+                            .codecPartsInstanceCache.containsKey(id),
+                    metadata == null
+                            ? "none"
+                            : metadata.toString()
+            );
+        }
+
+        return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .codecPartsInstanceCache.computeIfAbsent(id, i -> constructor.apply(i, metadata));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> @Nullable Codec<T> getCachedOrScalarCodec(ProtocolProvider provider, UUID id) {
+        return (Codec<T>) codecCaches.computeIfAbsent(provider.getVersion(), CodecCache::new)
+                .codecPartsInstanceCache.computeIfAbsent(
+                        id,
+                        (v) -> scalarCodecFactories.containsKey(v)
+                            ? scalarCodecFactories.get(v).apply(null)
+                            : null
         );
     }
 
-    private static final Map<UUID, Supplier<Codec<?>>> scalarCodecFactories = new HashMap<>() {
+    private static final Map<UUID, Function<@Nullable CodecMetadata, Codec<?>>> scalarCodecFactories = new HashMap<>() {
         {
             put(UUID.fromString("00000000-0000-0000-0000-000000000100"), UUIDCodec::new);
             put(UUID.fromString("00000000-0000-0000-0000-000000000101"), TextCodec::new);

@@ -1,11 +1,9 @@
 package com.edgedb.driver.binary;
 
-import com.edgedb.driver.binary.codecs.Codec;
-import com.edgedb.driver.binary.codecs.CodecContext;
-import com.edgedb.driver.binary.packets.shared.Annotation;
-import com.edgedb.driver.binary.packets.shared.KeyValue;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.binary.protocol.common.Annotation;
+import com.edgedb.driver.binary.protocol.common.KeyValue;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joou.UByte;
@@ -13,7 +11,6 @@ import org.joou.UInteger;
 import org.joou.ULong;
 import org.joou.UShort;
 
-import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
@@ -25,7 +22,21 @@ import java.util.function.Function;
 import static org.joou.Unsigned.*;
 
 public class PacketReader {
-    private final @NotNull ByteBuf buffer;
+    public static final class ScopedReader extends PacketReader implements AutoCloseable {
+        public final boolean isNoData;
+
+        public ScopedReader(@Nullable ByteBuf buffer) {
+            super(buffer == null ? Unpooled.EMPTY_BUFFER : buffer);
+            isNoData = buffer == null;
+        }
+
+        @Override
+        public void close() {
+            buffer.release();
+        }
+    }
+
+    protected final @NotNull ByteBuf buffer;
     private static final @NotNull Map<Class<?>, Function<PacketReader, ? extends Number>> numberReaderMap;
 
     private final int initPos;
@@ -78,20 +89,6 @@ public class PacketReader {
 
     public boolean isEmpty() {
         return this.buffer.readableBytes() == 0;
-    }
-
-    public <T> @Nullable T deserializeByteArray(@NotNull Codec<T> codec, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
-        var buff = readByteArray();
-
-        if(buff == null) {
-            return null;
-        }
-
-        try {
-            return codec.deserialize(new PacketReader(buff), context);
-        } finally {
-            buff.release();
-        }
     }
 
     public byte[] consumeByteArray() {
@@ -169,6 +166,23 @@ public class PacketReader {
         }
 
         return arr;
+    }
+
+    /**
+     * Reads the {@code length} number of bytes and creates a new {@linkplain ScopedReader} wrapping the bytes.
+     * @param length The number of bytes to read.
+     * @return A scoped reader whose close method releases the read bytes.
+     */
+    public ScopedReader scopedSlice(int length) {
+        return new ScopedReader(readBytes(length));
+    }
+
+    /**
+     * Calls {@code readByteArray()} and creates a new {@linkplain ScopedReader} wrapping the bytes.
+     * @return A scoped reader whose close method releases the read bytes.
+     */
+    public ScopedReader scopedSlice() {
+        return new ScopedReader(readByteArray());
     }
 
     public @Nullable ByteBuf readByteArray() {
