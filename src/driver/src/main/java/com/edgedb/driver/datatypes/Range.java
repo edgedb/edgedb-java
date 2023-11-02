@@ -163,6 +163,17 @@ public final class Range<T> {
     }
 
     /**
+     * Gets a {@linkplain Class} that represents a range of a provided type.
+     * @param cls The inner type of the range.
+     * @return A class that represents a range of a provide type.
+     * @param <U> The inner type of the range.
+     */
+    @SuppressWarnings("unchecked")
+    public static <U> Class<Range<U>> ofType(Class<U> cls) {
+        return (Class<Range<U>>) EMPTY_RANGE.getClass();
+    }
+
+    /**
      * Gets the element types class of this range.
      * @return The {@linkplain Class<T>} of the element type.
      */

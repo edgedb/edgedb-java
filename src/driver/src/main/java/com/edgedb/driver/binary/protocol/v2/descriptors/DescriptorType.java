@@ -14,6 +14,7 @@ public enum DescriptorType implements BinaryEnum<Byte> {
     RANGE(9),
     OBJECT(10),
     COMPOUND(11),
+    MULTI_RANGE(12),
     TYPE_ANNOTATION_TEXT(127);
 
     private final byte value;
