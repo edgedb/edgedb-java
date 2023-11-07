@@ -135,7 +135,11 @@ public class CodeGenerator {
                                 .apply(generator)
                                 .thenApply(v -> {
                                     if(postprocess) {
-                                        generator.postProcess(context);
+                                        try {
+                                            generator.postProcess(context);
+                                        } catch (IOException e) {
+                                            throw new CompletionException(e);
+                                        }
                                     }
 
                                     return v;
@@ -397,6 +401,10 @@ public class CodeGenerator {
                                     new EdgeDBException("Unsupported protocol version " + version)
                             );
                     }
+                })
+                .thenApply(v -> {
+                    logger.info("Choosing {} generator for result types", v);
+                    return v;
                 });
     }
 

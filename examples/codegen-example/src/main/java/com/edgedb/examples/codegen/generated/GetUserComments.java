@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserCommentsResult;
+import com.edgedb.examples.codegen.generated.results.GetUserCommentsComment;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.List;
@@ -10,30 +10,30 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserComments.edgeql}.<br/>
- * Generated on: {@code 2023-08-09T20:38:01.364397+02:00}<br/>
- * Edgeql hash: {@code 4878e4272d2567d9ef69b3de18183e2a73e5c15c1d93fbe022efaaf01807f60e}
- * @see GetUserCommentsResult
+ * Generated on: {@code 2023-11-07T11:00:36.674183900-04:00}<br/>
+ * Edgeql hash: {@code c1b622c6b73f72a6791ab7090931148ac0cd9fc077f59cff12a11270de6e1e00}
+ * @see GetUserCommentsComment
  */
 public final class GetUserComments {
-  public static final String QUERY = "WITH\n"
-      + "    module codegen\n"
-      + "SELECT Comment {\n"
-      + "    author: {\n"
-      + "        name, \n"
-      + "        joined_at\n"
-      + "    },\n"
-      + "    post: {\n"
-      + "        title,\n"
-      + "        content,\n"
-      + "        author: {\n"
-      + "            name,\n"
-      + "            joined_at\n"
-      + "        },\n"
-      + "        created_at\n"
-      + "    },\n"
-      + "    content,\n"
-      + "    created_at\n"
-      + "}\n"
+  public static final String QUERY = "WITH\r\n"
+      + "    module codegen\r\n"
+      + "SELECT Comment {\r\n"
+      + "    author: {\r\n"
+      + "        name, \r\n"
+      + "        joined_at\r\n"
+      + "    },\r\n"
+      + "    post: {\r\n"
+      + "        title,\r\n"
+      + "        content,\r\n"
+      + "        author: {\r\n"
+      + "            name,\r\n"
+      + "            joined_at\r\n"
+      + "        },\r\n"
+      + "        created_at\r\n"
+      + "    },\r\n"
+      + "    content,\r\n"
+      + "    created_at\r\n"
+      + "}\r\n"
       + "FILTER .author.id = global current_user_id";
 
   /**
@@ -60,13 +60,13 @@ public final class GetUserComments {
    *     created_at
    * }
    * FILTER .author.id = global current_user_id}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserCommentsResult}
+   * The result of the query is represented as the generated class {@linkplain GetUserCommentsComment}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserCommentsResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserCommentsComment}.
    */
-  public static CompletionStage<List<GetUserCommentsResult>> run(EdgeDBQueryable client) {
+  public static CompletionStage<List<GetUserCommentsComment>> run(EdgeDBQueryable client) {
       return client.query(
-          GetUserCommentsResult.class, 
+          GetUserCommentsComment.class, 
           QUERY, 
           EnumSet.of(
             Capabilities.READ_ONLY

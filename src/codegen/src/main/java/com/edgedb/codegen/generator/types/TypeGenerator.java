@@ -11,7 +11,7 @@ import java.io.IOException;
 public interface TypeGenerator {
     TypeName getType(Codec<?> codec, @Nullable GeneratorTargetInfo target, GeneratorContext context) throws IOException;
 
-    void postProcess(GeneratorContext context);
+    void postProcess(GeneratorContext context) throws IOException;
 
 
 }

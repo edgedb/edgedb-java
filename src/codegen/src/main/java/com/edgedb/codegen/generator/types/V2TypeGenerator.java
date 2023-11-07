@@ -16,13 +16,111 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
 public class V2TypeGenerator implements TypeGenerator {
+    private static abstract class ObjectGenerationInfo {
+        public final String typeName;
+        public final Map<ObjectCodec.ObjectProperty, TypeName> properties;
+        public @Nullable Path filePath;
+
+        public @Nullable ObjectGenerationInfo parent;
+
+        public ObjectGenerationInfo(
+                String typeName, Map<ObjectCodec.ObjectProperty, TypeName> properties,
+                Function<ObjectGenerationInfo, Path> filePathProvider
+        ) {
+            this(typeName, properties, filePathProvider,null);
+        }
+        public ObjectGenerationInfo(
+                String typeName, Map<ObjectCodec.ObjectProperty, TypeName> properties,
+                Function<ObjectGenerationInfo, Path> filePathProvider, @Nullable ObjectGenerationInfo parent
+        ) {
+            this.typeName = typeName;
+            this.properties = properties;
+            this.parent = parent;
+            this.filePath = filePathProvider.apply(this);
+        }
+
+        public abstract String getTargetFilePath();
+
+        public abstract TypeName getTypeName();
+
+        public String getCleanTypeName() {
+            return TextUtils.nameWithoutModule(typeName);
+        }
+    }
+
+    private static final class ClassGenerationInfo extends ObjectGenerationInfo {
+        public final Path edgeQLSourceFile;
+        public final ObjectCodec codec;
+
+        public final TypeSpec.Builder typeSpec;
+        public final Collection<FieldSpec> fields;
+
+        private final TypeName jTypeName;
+
+        public ClassGenerationInfo(
+                String typeName, ObjectCodec codec, Map<ObjectCodec.ObjectProperty, TypeName> properties,
+                Function<ObjectGenerationInfo, Path> filePathProvider, Path edgeqlSourceFile, TypeName jTypeName,
+                @Nullable ObjectGenerationInfo parent
+        ) {
+            super(typeName, properties, filePathProvider, parent);
+            this.jTypeName = jTypeName;
+            this.edgeQLSourceFile = edgeqlSourceFile;
+            this.codec = codec;
+
+            this.fields = properties.entrySet().stream()
+                    .map(v ->
+                            FieldSpec.builder(
+                                            v.getValue(),
+                                            NamingStrategy.camelCase().convert(v.getKey().name),
+                                            Modifier.FINAL, Modifier.PUBLIC
+                                    )
+                                    .addAnnotation(AnnotationSpec.builder(EdgeDBName.class)
+                                            .addMember("value", CodeBlock.of("$S", v.getKey().name)).build()
+                                    ).build()
+                    ).collect(Collectors.toList());
+
+            this.typeSpec = GenerationUtils.generateDataClassBuilder(this.fields, typeName, false);
+        }
+
+        @Override
+        public String getTargetFilePath() {
+            return Path.of("results", getCleanTypeName() + ".java").toString();
+        }
+
+        @Override
+        public TypeName getTypeName() {
+            return this.jTypeName;
+        }
+    }
+
+    private static final class InterfaceGenerationInfo extends ObjectGenerationInfo {
+        private final TypeName jTypeName;
+        public InterfaceGenerationInfo(
+                String typeName, Map<ObjectCodec.ObjectProperty, TypeName> properties,
+                Function<ObjectGenerationInfo, Path> filePathProvider, TypeName jTypeName,
+                @Nullable ObjectGenerationInfo parent
+        ) {
+            super(typeName, properties, filePathProvider, parent);
+            this.jTypeName = jTypeName;
+        }
+
+        @Override
+        public String getTargetFilePath() {
+            return Path.of("interfaces", getCleanTypeName() + ".java").toString();
+        }
+
+        @Override
+        public TypeName getTypeName() {
+            return this.jTypeName;
+        }
+    }
+
     private final ParserMap parsers = new ParserMap() {{
         define(SparseObjectCodec.class, V2TypeGenerator.this::parseSparseObjectCodec);
         define(ObjectCodec.class, V2TypeGenerator.this::parseObjectCodec);
@@ -33,6 +131,37 @@ public class V2TypeGenerator implements TypeGenerator {
         define(ScalarCodec.class, V2TypeGenerator.this::parseScalarCodec);
         define(NullCodec.class, V2TypeGenerator.this::parseNullCodec);
     }};
+
+    private final Map<UUID, List<ClassGenerationInfo>> resultShapes;
+    private final List<ObjectGenerationInfo> generatedTypes;
+
+    public V2TypeGenerator() {
+        resultShapes = new HashMap<>();
+        generatedTypes = new ArrayList<>();
+    }
+
+    public Collection<GeneratedFileInfo> getGeneratedFiles() {
+        return this.generatedTypes.stream().map(v -> {
+            assert v.filePath != null;
+
+            if(v instanceof ClassGenerationInfo) {
+                var cgi = (ClassGenerationInfo)v;
+
+                return new GeneratedFileInfo(cgi.filePath, List.of(cgi.edgeQLSourceFile));
+            } else if (v instanceof InterfaceGenerationInfo) {
+                var igi = (InterfaceGenerationInfo)v;
+                return new GeneratedFileInfo(igi.filePath, Collections.emptyList());
+            } else {
+                throw new IllegalArgumentException("Unknown generation type " + v);
+            }
+        }).collect(Collectors.toList());
+    }
+
+    public void removeGeneratedReference(Collection<GeneratedFileInfo> references) {
+        for (var item : references) {
+            generatedTypes.removeIf(v -> v.filePath == item.getGeneratedPath());
+        }
+    }
 
     @Override
     public TypeName getType(Codec<?> codec, @Nullable GeneratorTargetInfo target, GeneratorContext context) {
@@ -76,26 +205,22 @@ public class V2TypeGenerator implements TypeGenerator {
     private TypeName parseObjectCodec(ObjectCodec codec, @Nullable GeneratorTargetInfo target, GeneratorContext context) throws IOException {
         var fields = Arrays.stream(codec.elements)
                 .map(x -> Map.entry(x, getType(x.codec, target, context)))
-                .map(x -> FieldSpec.builder(
-                        x.getValue(),
-                        NamingStrategy.camelCase().convert(x.getKey().name),
-                        Modifier.FINAL, Modifier.PRIVATE
-                    ).addAnnotation(AnnotationSpec.builder(EdgeDBName.class)
-                        .addMember("value", CodeBlock.of("$S", x.getKey().name)).build()
-                    ).build()
-                )
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        var typeSpec = GenerationUtils.generateDataClass(fields, getTypeName(codec, target, context));
+        var typeName = getTypeName(codec, null, target, context);
+        var info = new ClassGenerationInfo(
+                typeName,
+                codec, fields, t -> context.outputDirectory.resolve(t.getTargetFilePath()),
+                target != null ? target.path : null,
+                ClassName.get(context.packageName + ".results", typeName), null
+        );
 
-        var jFile = JavaFile.builder(context.packageName + ".results", typeSpec).build();
+        generatedTypes.add(info);
 
-        try(var writer = Files.newBufferedWriter(context.outputDirectory.resolve(Path.of("results", typeSpec.name + ".java")))) {
-            jFile.writeTo(writer);
-            writer.flush();
-        }
+        resultShapes.putIfAbsent(codec.typeId, new ArrayList<>());
+        resultShapes.get(codec.typeId).add(info);
 
-        return ClassName.get(context.packageName + ".results", typeSpec.name);
+        return info.getTypeName();
     }
 
     private String getTypeName(ObjectCodec codec, @Nullable GeneratorTargetInfo target, GeneratorContext context) {
@@ -115,7 +240,190 @@ public class V2TypeGenerator implements TypeGenerator {
     }
 
     @Override
-    public void postProcess(GeneratorContext context) {
+    public void postProcess(GeneratorContext context) throws IOException {
+        var groups = resultShapes.entrySet().stream()
+                .flatMap(v -> v.getValue().stream())
+                .collect(Collectors.groupingBy(v -> v.codec.metadata == null ? v.codec.typeId.toString() : v.codec.metadata.schemaName));
 
+        var interfaces = new HashMap<Map.Entry<String, InterfaceGenerationInfo>, List<ClassGenerationInfo>>();
+
+        for(var group : groups.entrySet()) {
+            var interfaceName = TextUtils.nameWithoutModule(group.getKey());
+            interfaces.put(Map.entry(group.getKey(), getAndApplyInterfaceInfo(interfaceName, group.getValue(), context)), group.getValue());
+        }
+
+        for(var iface : interfaces.entrySet()) {
+            var interfaceGenerationResult = generateInterface(
+                    iface.getKey().getValue(),
+                    iface.getKey().getKey(),
+                    iface.getValue(),
+                    context,
+                    iface.getValue().stream().map(ObjectGenerationInfo::getTypeName).collect(Collectors.toList()),
+                    v -> iface.getValue().stream()
+                            .filter(t -> t.properties.entrySet().stream().anyMatch(u -> u.getKey().name.equals(v)))
+                            .filter(GenerationUtils.distinctByKey(ObjectGenerationInfo::getCleanTypeName))
+                            .map(ObjectGenerationInfo::getTypeName)
+                            .collect(Collectors.toList())
+            );
+
+            for(var type : iface.getValue()) {
+                type.typeSpec.addSuperinterface(interfaceGenerationResult.name);
+
+                for (var interfaceElement : interfaceGenerationResult.members) {
+                    var field = type.fields.stream().filter(v -> v.name.equals(interfaceElement.property.name)).findFirst();
+
+                    var methodSpec = MethodSpec.methodBuilder(interfaceElement.getMethod.name)
+                            .addModifiers(Modifier.PUBLIC)
+                            .addAnnotation(Override.class)
+                            .returns(interfaceElement.getMethod.returnType);
+
+                    if(field.isPresent()) {
+                        if(interfaceElement.isOptional) {
+                            methodSpec.addJavadoc("Returns the {@code $L} field of this class", field.get().name);
+                            methodSpec.addCode("return this.$N;", field.get());
+                        } else {
+                            methodSpec.addCode("return $T.of(this.$N);",Optional.class, field.get());
+                            methodSpec.addJavadoc(
+                                    "Returns an optional wrapping the {@code $L} field, which is always present on " +
+                                            "this type.",
+                                    field.get().name
+                            );
+                        }
+                    } else {
+                        methodSpec.addCode("return $T.empty();", Optional.class);
+                        methodSpec.addJavadoc("Returns an optional whose value isn't present on the current class");
+                    }
+
+                    type.typeSpec.addMethod(methodSpec.build());
+                }
+
+                var jFile = JavaFile.builder(context.packageName + ".results", type.typeSpec.build()).build();
+
+                try(var writer = Files.newBufferedWriter(context.outputDirectory.resolve(Path.of("results", type.typeName + ".java")))) {
+                    jFile.writeTo(writer);
+                    writer.flush();
+                }
+            }
+        }
+    }
+
+    private static class InterfaceGenerationResult {
+        private static class InterfaceMember {
+            public final TypeName typeName;
+            public final MethodSpec getMethod;
+            public final ObjectCodec.ObjectProperty property;
+            public final boolean isOptional;
+
+            private InterfaceMember(TypeName typeName, MethodSpec getMethod, ObjectCodec.ObjectProperty property, boolean isOptional) {
+                this.typeName = typeName;
+                this.getMethod = getMethod;
+                this.property = property;
+                this.isOptional = isOptional;
+            }
+        }
+        public final TypeName name;
+        public final Collection<InterfaceMember> members;
+
+        private InterfaceGenerationResult(TypeName name, Collection<InterfaceMember> members) {
+            this.name = name;
+            this.members = members;
+        }
+    }
+
+    private InterfaceGenerationInfo getAndApplyInterfaceInfo(
+            String name, Collection<ClassGenerationInfo> subTypes, GeneratorContext context
+    ) {
+        var props = subTypes.stream().flatMap(v ->
+                        v.properties.entrySet().stream().map(t ->
+                                Map.entry(t.getValue(), Arrays.stream(v.codec.elements).filter(u -> u.name.equals(t.getKey().name)).findFirst().get())
+                        ))
+                .filter(GenerationUtils.distinctByKey(v -> v.getValue().name))
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> subTypes.stream()
+                                .allMatch(t -> Arrays.stream(t.codec.elements)
+                                        .anyMatch(u ->
+                                                u.name.equals(v.getValue().name) &&
+                                                        u.cardinality == v.getValue().cardinality
+                                        )
+                                )
+                ));
+
+
+        var interfaceInfo = new InterfaceGenerationInfo(
+                name,
+                props.entrySet().stream().collect(Collectors.toMap(v -> v.getKey().getValue(), v -> {
+                    if(!v.getValue()) {
+                        return ParameterizedTypeName.get(ClassName.get(Optional.class), v.getKey().getKey());
+                    }
+
+                    return v.getKey().getKey();
+                })),
+                v -> context.outputDirectory.resolve(v.getTargetFilePath()),
+                ClassName.get(context.packageName + ".interfaces", name),
+                null
+        );
+
+        subTypes.forEach(v -> v.parent = interfaceInfo);
+
+        return interfaceInfo;
+    }
+
+    private InterfaceGenerationResult generateInterface(
+            InterfaceGenerationInfo interfaceInfo, String schemaName,
+            Collection<ClassGenerationInfo> subTypes, GeneratorContext context,
+            Collection<TypeName> descendants, Function<String, Collection<TypeName>> getAvailability
+    ) throws IOException {
+        generatedTypes.add(interfaceInfo);
+
+        var ifaceBuilder = TypeSpec.interfaceBuilder(interfaceInfo.typeName)
+                .addModifiers(Modifier.PUBLIC)
+                .addJavadoc(CodeBlock.builder()
+                        .add("Represents the schema type {@code $L} with properties that are shared\n", schemaName)
+                        .add(" across the following types:\n" +  descendants.stream()
+                                .map(v -> "{@linkplain $T}")
+                                .collect(Collectors.joining("\n")), descendants.toArray())
+                        .build()
+                        );
+
+        var methodSpecMap = new HashMap<ObjectCodec.ObjectProperty, MethodSpec>();
+
+        for (var prop : interfaceInfo.properties.entrySet()) {
+            var availableDescendants = getAvailability.apply(prop.getKey().name);
+            var availability = availableDescendants.isEmpty()
+                    ? "all descendants of this interface."
+                    : availableDescendants.stream()
+                            .map(v -> "{@linkplain $T}")
+                            .collect(Collectors.joining(", "));
+
+            var method = MethodSpec.methodBuilder("get" + NamingStrategy.pascalCase().convert(prop.getKey().name))
+                    .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
+                    .returns(prop.getValue())
+                    .addJavadoc(CodeBlock.builder()
+                            .add("Gets the {@code $L}", prop.getKey().name)
+                            .add(" property, available on " + availability, availableDescendants.isEmpty() ? new Object[0] : availableDescendants.toArray() )
+                            .build())
+                    .build();
+
+            ifaceBuilder.addMethod(method);
+            methodSpecMap.put(prop.getKey(), method);
+        }
+
+        var jFile = JavaFile.builder(context.packageName + ".interfaces", ifaceBuilder.build()).build();
+
+        try(var writer = Files.newBufferedWriter(context.outputDirectory.resolve(Path.of("interfaces", interfaceInfo.typeName + ".java")))) {
+            jFile.writeTo(writer);
+            writer.flush();
+        }
+
+        return new InterfaceGenerationResult(
+                interfaceInfo.getTypeName(),
+                interfaceInfo.properties.entrySet().stream().map(v -> new InterfaceGenerationResult.InterfaceMember(
+                        v.getValue(),
+                        methodSpecMap.get(v.getKey()),
+                        v.getKey(),
+                        v.getValue() instanceof ParameterizedTypeName && ((ParameterizedTypeName)v.getValue()).rawType.equals(ClassName.get(Optional.class))
+                )).collect(Collectors.toList())
+        );
     }
 }

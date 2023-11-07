@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserResult;
+import com.edgedb.examples.codegen.generated.results.GetUserUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,18 +11,18 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-08-09T20:38:01.497316+02:00}<br/>
- * Edgeql hash: {@code ef0047b01dd10d3a24fdf55887a9e4354745056e9c3df66992363a743f7ad68c}
- * @see GetUserResult
+ * Generated on: {@code 2023-11-07T11:00:36.644185500-04:00}<br/>
+ * Edgeql hash: {@code 9e084d7e0f3ffab82a66561d6221d0739b76453f485ec7ada58dca46f5251df8}
+ * @see GetUserUser
  */
 public final class GetUser {
-  public static final String QUERY = "WITH\n"
-      + "    module codegen\n"
-      + "SELECT User {\n"
-      + "    id,\n"
-      + "    name,\n"
-      + "    joined_at,\n"
-      + "}\n"
+  public static final String QUERY = "WITH\r\n"
+      + "    module codegen\r\n"
+      + "SELECT User {\r\n"
+      + "    id,\r\n"
+      + "    name,\r\n"
+      + "    joined_at,\r\n"
+      + "}\r\n"
       + "FILTER .name = <str>$name";
 
   /**
@@ -37,13 +37,13 @@ public final class GetUser {
    *     joined_at,
    * }
    * FILTER .name = <str>$name}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserResult}
+   * The result of the query is represented as the generated class {@linkplain GetUserUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserUser}.
    */
-  public static CompletionStage<@Nullable GetUserResult> run(EdgeDBQueryable client, String name) {
+  public static CompletionStage<@Nullable GetUserUser> run(EdgeDBQueryable client, String name) {
       return client.querySingle(
-          GetUserResult.class, 
+          GetUserUser.class, 
           QUERY, 
           new HashMap<>(){{
             put("name", name);

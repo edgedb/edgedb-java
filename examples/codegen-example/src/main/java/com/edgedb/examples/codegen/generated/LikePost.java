@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.LikePostResult;
+import com.edgedb.examples.codegen.generated.results.LikePostUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,18 +12,18 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-08-09T20:38:01.666086+02:00}<br/>
- * Edgeql hash: {@code 0fd2cc5596e07c2a7a8fedc11d6ed224da031d5d85f153b14f3d092639e9e481}
- * @see LikePostResult
+ * Generated on: {@code 2023-11-07T11:00:36.755184500-04:00}<br/>
+ * Edgeql hash: {@code 261d0a7da0e580a902d6b623428f9ea78c7dea0f91c7ac2ee0afe3885663c58a}
+ * @see LikePostUser
  */
 public final class LikePost {
-  public static final String QUERY = "WITH \n"
-      + "    module codegen,\n"
-      + "    current_user := <User>global current_user_id,\n"
-      + "    post_id := <uuid>$post_id\n"
-      + "UPDATE current_user\n"
-      + "SET {\n"
-      + "    liked_posts += <Post>post_id\n"
+  public static final String QUERY = "WITH \r\n"
+      + "    module codegen,\r\n"
+      + "    current_user := <User>global current_user_id,\r\n"
+      + "    post_id := <uuid>$post_id\r\n"
+      + "UPDATE current_user\r\n"
+      + "SET {\r\n"
+      + "    liked_posts += <Post>post_id\r\n"
       + "}";
 
   /**
@@ -38,13 +38,13 @@ public final class LikePost {
    * SET {
    *     liked_posts += <Post>post_id
    * }}</pre>
-   * The result of the query is represented as the generated class {@linkplain LikePostResult}
+   * The result of the query is represented as the generated class {@linkplain LikePostUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostUser}.
    */
-  public static CompletionStage<@Nullable LikePostResult> run(EdgeDBQueryable client, UUID postId) {
+  public static CompletionStage<@Nullable LikePostUser> run(EdgeDBQueryable client, UUID postId) {
       return client.querySingle(
-          LikePostResult.class, 
+          LikePostUser.class, 
           QUERY, 
           new HashMap<>(){{
             put("post_id", postId);

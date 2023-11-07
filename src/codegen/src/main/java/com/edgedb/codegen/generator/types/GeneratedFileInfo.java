@@ -5,9 +5,9 @@ import java.util.Collection;
 
 public final class GeneratedFileInfo {
     private final Path generatedPath;
-    private final Collection<String> edgeqlReferences;
+    private final Collection<Path> edgeqlReferences;
 
-    public GeneratedFileInfo(Path generatedPath, Collection<String> edgeqlReferences) {
+    public GeneratedFileInfo(Path generatedPath, Collection<Path> edgeqlReferences) {
         this.generatedPath = generatedPath;
         this.edgeqlReferences = edgeqlReferences;
     }
@@ -16,7 +16,7 @@ public final class GeneratedFileInfo {
         return generatedPath;
     }
 
-    public Collection<String> getEdgeQLReferences() {
+    public Collection<Path> getEdgeQLReferences() {
         return edgeqlReferences;
     }
 }

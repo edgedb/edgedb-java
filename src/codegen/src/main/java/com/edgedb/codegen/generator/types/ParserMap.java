@@ -18,15 +18,16 @@ public class ParserMap {
 
     private final Map<Class<? extends Codec<?>>, CodecParser<?>> PARSER_MAP = new HashMap<>();
 
-    public <T extends Codec<?>> void define(Class<T> cls, CodecParser<T> parser) {
-        PARSER_MAP.put(cls, parser);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T extends Codec<?>> void define(Class<? extends Codec> cls, CodecParser<T> parser) {
+        PARSER_MAP.put((Class<T>)cls, parser);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Codec<?>> @Nullable TypeName parse(T codec, @Nullable GeneratorTargetInfo target, GeneratorContext context) {
         var cls = codec.getClass();
 
-        CodecParser<T> parser;
+        CodecParser<T> parser = null;
 
         if(PARSER_MAP.containsKey(cls)) {
             parser = (CodecParser<T>) PARSER_MAP.get(codec.getClass());
@@ -38,8 +39,10 @@ public class ParserMap {
                 }
             }
 
-            context.generator.getLogger().warn("No parser found for type {}", cls);
-            return null;
+            if(parser == null) {
+                context.generator.getLogger().warn("No parser found for type {}", cls);
+                return null;
+            }
         }
 
 
