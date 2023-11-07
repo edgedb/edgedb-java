@@ -1,7 +1,5 @@
 package com.edgedb.examples.codegen.generated.interfaces;
 
-import com.edgedb.examples.codegen.generated.results.GetUserCommentsPost;
-import com.edgedb.examples.codegen.generated.results.GetUserCommentsUser;
 import java.lang.String;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -15,14 +13,14 @@ import java.util.UUID;
  */
 public interface Comment {
   /**
-   * Gets the {@code id} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.CreateCommentComment}
+   * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
-  Optional<UUID> getId();
+  Optional<User> getAuthor();
 
   /**
-   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   * Gets the {@code post} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
-  Optional<String> getContent();
+  Optional<Post> getPost();
 
   /**
    * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
@@ -30,12 +28,12 @@ public interface Comment {
   Optional<OffsetDateTime> getCreatedAt();
 
   /**
-   * Gets the {@code post} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
-  Optional<GetUserCommentsPost> getPost();
+  Optional<String> getContent();
 
   /**
-   * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   * Gets the {@code id} property, available on all descendants of this interface.
    */
-  Optional<GetUserCommentsUser> getAuthor();
+  UUID getId();
 }

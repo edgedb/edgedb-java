@@ -8,18 +8,17 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T11:00:36.755184500-04:00}<br/>
- * Edgeql hash: {@code 261d0a7da0e580a902d6b623428f9ea78c7dea0f91c7ac2ee0afe3885663c58a}
+ * Generated on: {@code 2023-11-07T14:10:28.027576700-04:00}<br/>
+ * Edgeql hash: {@code 28ea11f3c3059ac7c43e1458c567d3328b1e39e20a3e170a9f3dbaeaa2ce10b6}
  * @see LikePostUser
  */
 public final class LikePost {
   public static final String QUERY = "WITH \r\n"
       + "    module codegen,\r\n"
-      + "    current_user := <User>global current_user_id,\r\n"
+      + "    current_user := <User><uuid>$author_id,\r\n"
       + "    post_id := <uuid>$post_id\r\n"
       + "UPDATE current_user\r\n"
       + "SET {\r\n"
@@ -32,7 +31,7 @@ public final class LikePost {
    * <pre>
    * {@literal WITH 
    *     module codegen,
-   *     current_user := <User>global current_user_id,
+   *     current_user := <User><uuid>$author_id,
    *     post_id := <uuid>$post_id
    * UPDATE current_user
    * SET {
@@ -42,12 +41,14 @@ public final class LikePost {
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostUser}.
    */
-  public static CompletionStage<@Nullable LikePostUser> run(EdgeDBQueryable client, UUID postId) {
-      return client.querySingle(
+  public static CompletionStage<LikePostUser> run(EdgeDBQueryable client, UUID postId,
+      UUID authorId) {
+      return client.queryRequiredSingle(
           LikePostUser.class, 
           QUERY, 
           new HashMap<>(){{
             put("post_id", postId);
+            put("author_id", authorId);
           }}, 
           EnumSet.of(
             Capabilities.READ_ONLY,

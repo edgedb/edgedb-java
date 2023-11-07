@@ -3,10 +3,7 @@ package com.edgedb.codegen.generator;
 import com.edgedb.codegen.generator.types.TypeGenerator;
 import com.edgedb.codegen.generator.types.V1TypeGenerator;
 import com.edgedb.codegen.generator.types.V2TypeGenerator;
-import com.edgedb.driver.Capabilities;
-import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.EdgeDBQueryable;
+import com.edgedb.driver.*;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.NullCodec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
@@ -51,7 +48,10 @@ public class CodeGenerator {
     private final Logger logger;
 
     public CodeGenerator(EdgeDBConnection connection, Logger logger) throws EdgeDBException {
-        this.client = new EdgeDBClient(connection);
+        this.client = new EdgeDBClient(connection, EdgeDBClientConfig.builder()
+                .withExplicitObjectIds(false)
+                .build()
+        );
         this.logger = logger;
     }
 

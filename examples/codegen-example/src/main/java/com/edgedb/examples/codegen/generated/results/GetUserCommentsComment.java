@@ -4,6 +4,8 @@ import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.examples.codegen.generated.interfaces.Comment;
+import com.edgedb.examples.codegen.generated.interfaces.Post;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -12,66 +14,70 @@ import java.util.UUID;
 
 @EdgeDBType
 public final class GetUserCommentsComment implements Comment {
-  @EdgeDBName("content")
-  public final String content;
-
-  @EdgeDBName("created_at")
-  public final OffsetDateTime createdAt;
+  @EdgeDBName("author")
+  public final GetUserCommentsUser author;
 
   @EdgeDBName("post")
   public final GetUserCommentsPost post;
 
-  @EdgeDBName("author")
-  public final GetUserCommentsUser author;
+  @EdgeDBName("created_at")
+  public final OffsetDateTime createdAt;
+
+  @EdgeDBName("content")
+  public final String content;
+
+  @EdgeDBName("id")
+  public final UUID id;
 
   @EdgeDBDeserializer
-  public GetUserCommentsComment(@EdgeDBName("content") String content,
-      @EdgeDBName("createdAt") OffsetDateTime createdAt,
+  public GetUserCommentsComment(@EdgeDBName("author") GetUserCommentsUser author,
       @EdgeDBName("post") GetUserCommentsPost post,
-      @EdgeDBName("author") GetUserCommentsUser author) {
-    this.content = content;
-    this.createdAt = createdAt;
-    this.post = post;
+      @EdgeDBName("createdAt") OffsetDateTime createdAt, @EdgeDBName("content") String content,
+      @EdgeDBName("id") UUID id) {
     this.author = author;
+    this.post = post;
+    this.createdAt = createdAt;
+    this.content = content;
+    this.id = id;
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns an optional wrapping the {@code author} field, which is always present on this type.
    */
   @Override
-  public Optional<UUID> getId() {
-    return Optional.empty();
+  public Optional<User> getAuthor() {
+    return Optional.of(this.author);
   }
 
   /**
-   * Returns the {@code content} field of this class
+   * Returns an optional wrapping the {@code post} field, which is always present on this type.
    */
   @Override
-  public Optional<String> getContent() {
-    return this.content;
+  public Optional<Post> getPost() {
+    return Optional.of(this.post);
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
    */
   @Override
   public Optional<OffsetDateTime> getCreatedAt() {
-    return Optional.empty();
+    return Optional.of(this.createdAt);
   }
 
   /**
-   * Returns the {@code post} field of this class
+   * Returns an optional wrapping the {@code content} field, which is always present on this type.
    */
   @Override
-  public Optional<GetUserCommentsPost> getPost() {
-    return this.post;
+  public Optional<String> getContent() {
+    return Optional.of(this.content);
   }
 
   /**
-   * Returns the {@code author} field of this class
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<GetUserCommentsUser> getAuthor() {
-    return this.author;
+  public UUID getId() {
+    return this.id;
   }
 }

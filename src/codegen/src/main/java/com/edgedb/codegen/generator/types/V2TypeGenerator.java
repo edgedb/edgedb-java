@@ -101,13 +101,24 @@ public class V2TypeGenerator implements TypeGenerator {
 
     private static final class InterfaceGenerationInfo extends ObjectGenerationInfo {
         private final TypeName jTypeName;
+        private final Map<ObjectCodec.ObjectProperty, Boolean> optionalProperties;
         public InterfaceGenerationInfo(
                 String typeName, Map<ObjectCodec.ObjectProperty, TypeName> properties,
+                Map<ObjectCodec.ObjectProperty, Boolean> optionalProperties,
                 Function<ObjectGenerationInfo, Path> filePathProvider, TypeName jTypeName,
                 @Nullable ObjectGenerationInfo parent
         ) {
             super(typeName, properties, filePathProvider, parent);
             this.jTypeName = jTypeName;
+            this.optionalProperties = optionalProperties;
+        }
+
+        public boolean isOptionalProperty(ObjectCodec.ObjectProperty property) {
+            if(!optionalProperties.containsKey(property)) {
+                throw new IllegalArgumentException("property \"" + property.name + "\" is not part of the supplied interface");
+            }
+
+            return optionalProperties.get(property);
         }
 
         @Override
@@ -138,6 +149,16 @@ public class V2TypeGenerator implements TypeGenerator {
     public V2TypeGenerator() {
         resultShapes = new HashMap<>();
         generatedTypes = new ArrayList<>();
+    }
+
+    private Optional<ObjectGenerationInfo> getGeneratedType(TypeName typeName) {
+        for (var generatedType : generatedTypes) {
+            if(generatedType.getTypeName().equals(typeName)) {
+                return Optional.of(generatedType);
+            }
+        }
+
+        return Optional.empty();
     }
 
     public Collection<GeneratedFileInfo> getGeneratedFiles() {
@@ -270,7 +291,7 @@ public class V2TypeGenerator implements TypeGenerator {
                 type.typeSpec.addSuperinterface(interfaceGenerationResult.name);
 
                 for (var interfaceElement : interfaceGenerationResult.members) {
-                    var field = type.fields.stream().filter(v -> v.name.equals(interfaceElement.property.name)).findFirst();
+                    var field = type.fields.stream().filter(v -> v.name.equals(interfaceElement.cleanName)).findFirst();
 
                     var methodSpec = MethodSpec.methodBuilder(interfaceElement.getMethod.name)
                             .addModifiers(Modifier.PUBLIC)
@@ -278,7 +299,7 @@ public class V2TypeGenerator implements TypeGenerator {
                             .returns(interfaceElement.getMethod.returnType);
 
                     if(field.isPresent()) {
-                        if(interfaceElement.isOptional) {
+                        if(!interfaceElement.isOptional) {
                             methodSpec.addJavadoc("Returns the {@code $L} field of this class", field.get().name);
                             methodSpec.addCode("return this.$N;", field.get());
                         } else {
@@ -310,12 +331,14 @@ public class V2TypeGenerator implements TypeGenerator {
     private static class InterfaceGenerationResult {
         private static class InterfaceMember {
             public final TypeName typeName;
+            public final String cleanName;
             public final MethodSpec getMethod;
             public final ObjectCodec.ObjectProperty property;
             public final boolean isOptional;
 
-            private InterfaceMember(TypeName typeName, MethodSpec getMethod, ObjectCodec.ObjectProperty property, boolean isOptional) {
+            private InterfaceMember(TypeName typeName, String cleanName, MethodSpec getMethod, ObjectCodec.ObjectProperty property, boolean isOptional) {
                 this.typeName = typeName;
+                this.cleanName = cleanName;
                 this.getMethod = getMethod;
                 this.property = property;
                 this.isOptional = isOptional;
@@ -352,13 +375,8 @@ public class V2TypeGenerator implements TypeGenerator {
 
         var interfaceInfo = new InterfaceGenerationInfo(
                 name,
-                props.entrySet().stream().collect(Collectors.toMap(v -> v.getKey().getValue(), v -> {
-                    if(!v.getValue()) {
-                        return ParameterizedTypeName.get(ClassName.get(Optional.class), v.getKey().getKey());
-                    }
-
-                    return v.getKey().getKey();
-                })),
+                props.entrySet().stream().collect(Collectors.toMap(v -> v.getKey().getValue(), v -> v.getKey().getKey())),
+                props.entrySet().stream().collect(Collectors.toMap(v -> v.getKey().getValue(), v -> !v.getValue())),
                 v -> context.outputDirectory.resolve(v.getTargetFilePath()),
                 ClassName.get(context.packageName + ".interfaces", name),
                 null
@@ -384,24 +402,27 @@ public class V2TypeGenerator implements TypeGenerator {
                                 .map(v -> "{@linkplain $T}")
                                 .collect(Collectors.joining("\n")), descendants.toArray())
                         .build()
-                        );
+                );
 
         var methodSpecMap = new HashMap<ObjectCodec.ObjectProperty, MethodSpec>();
 
         for (var prop : interfaceInfo.properties.entrySet()) {
             var availableDescendants = getAvailability.apply(prop.getKey().name);
-            var availability = availableDescendants.isEmpty()
+            var isOptional = interfaceInfo.isOptionalProperty(prop.getKey());
+            var availability = !isOptional
                     ? "all descendants of this interface."
                     : availableDescendants.stream()
                             .map(v -> "{@linkplain $T}")
                             .collect(Collectors.joining(", "));
 
+            var propertyType = getInterfacePropertyType(interfaceInfo, prop.getKey(), prop.getValue());
+
             var method = MethodSpec.methodBuilder("get" + NamingStrategy.pascalCase().convert(prop.getKey().name))
                     .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-                    .returns(prop.getValue())
+                    .returns(propertyType)
                     .addJavadoc(CodeBlock.builder()
                             .add("Gets the {@code $L}", prop.getKey().name)
-                            .add(" property, available on " + availability, availableDescendants.isEmpty() ? new Object[0] : availableDescendants.toArray() )
+                            .add(" property, available on " + availability, !isOptional ? new Object[0] : availableDescendants.toArray() )
                             .build())
                     .build();
 
@@ -420,10 +441,33 @@ public class V2TypeGenerator implements TypeGenerator {
                 interfaceInfo.getTypeName(),
                 interfaceInfo.properties.entrySet().stream().map(v -> new InterfaceGenerationResult.InterfaceMember(
                         v.getValue(),
+                        NamingStrategy.camelCase().convert(v.getKey().name),
                         methodSpecMap.get(v.getKey()),
                         v.getKey(),
-                        v.getValue() instanceof ParameterizedTypeName && ((ParameterizedTypeName)v.getValue()).rawType.equals(ClassName.get(Optional.class))
+                        interfaceInfo.isOptionalProperty(v.getKey())
                 )).collect(Collectors.toList())
         );
+    }
+
+    private final TypeName getInterfacePropertyType(InterfaceGenerationInfo info, ObjectCodec.ObjectProperty property, TypeName typeName) {
+        var elementType = typeName;
+
+        var generated = getGeneratedType(typeName);
+
+        if(generated.isPresent()) {
+            var element = generated.get();
+
+            while(element.parent != null) {
+                element = element.parent;
+            }
+
+            elementType = element.getTypeName();
+        }
+
+        if(info.isOptionalProperty(property))  {
+            return ParameterizedTypeName.get(ClassName.get(Optional.class), elementType);
+        }
+
+        return elementType;
     }
 }

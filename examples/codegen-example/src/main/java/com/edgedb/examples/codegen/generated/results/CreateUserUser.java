@@ -29,18 +29,18 @@ public final class CreateUserUser implements User {
   }
 
   /**
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
+  }
+
+  /**
    * Returns an optional whose value isn't present on the current class
    */
   @Override
   public Optional<OffsetDateTime> getJoinedAt() {
     return Optional.empty();
-  }
-
-  /**
-   * Returns the {@code id} field of this class
-   */
-  @Override
-  public Optional<UUID> getId() {
-    return this.id;
   }
 }

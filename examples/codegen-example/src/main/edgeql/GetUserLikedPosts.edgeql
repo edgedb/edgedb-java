@@ -1,6 +1,6 @@
 WITH 
     module codegen,
-    user := <User>global current_user_id
+    user := <User><uuid>$author_id
 SELECT user.liked_posts {
     title,
     content,

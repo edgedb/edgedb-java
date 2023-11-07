@@ -10,7 +10,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreateUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T11:00:36.610184-04:00}<br/>
+ * Generated on: {@code 2023-11-07T14:10:27.695227800-04:00}<br/>
  * Edgeql hash: {@code f36ffbe222a09889aac91c16372d6533427dcc4b6d1b8d5f5cf601b4e9564168}
  * @see CreateUserUser
  */

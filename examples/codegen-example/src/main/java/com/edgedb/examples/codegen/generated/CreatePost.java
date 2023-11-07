@@ -6,12 +6,13 @@ import com.edgedb.examples.codegen.generated.results.CreatePostPost;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreatePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T11:00:36.580184100-04:00}<br/>
- * Edgeql hash: {@code e7c2761c4ad3282c3122aaae9549bc890aba0987e0c2e1e66470101379fe7941}
+ * Generated on: {@code 2023-11-07T14:10:27.659227900-04:00}<br/>
+ * Edgeql hash: {@code 56ebb4f23fb0cdcc2882915a7ea173106b04f9263e793a4e9e0330e2a00420e9}
  * @see CreatePostPost
  */
 public final class CreatePost {
@@ -19,7 +20,7 @@ public final class CreatePost {
       + "    module codegen\r\n"
       + "INSERT Post {\r\n"
       + "    title := <str>$title,\r\n"
-      + "    author := <User>global current_user_id,\r\n"
+      + "    author := <User><uuid>$author_id,\r\n"
       + "    content := <str>$content\r\n"
       + "}";
 
@@ -31,7 +32,7 @@ public final class CreatePost {
    *     module codegen
    * INSERT Post {
    *     title := <str>$title,
-   *     author := <User>global current_user_id,
+   *     author := <User><uuid>$author_id,
    *     content := <str>$content
    * }}</pre>
    * The result of the query is represented as the generated class {@linkplain CreatePostPost}
@@ -39,12 +40,13 @@ public final class CreatePost {
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain CreatePostPost}.
    */
   public static CompletionStage<CreatePostPost> run(EdgeDBQueryable client, String title,
-      String content) {
+      UUID authorId, String content) {
       return client.queryRequiredSingle(
           CreatePostPost.class, 
           QUERY, 
           new HashMap<>(){{
             put("title", title);
+            put("author_id", authorId);
             put("content", content);
           }}, 
           EnumSet.of(

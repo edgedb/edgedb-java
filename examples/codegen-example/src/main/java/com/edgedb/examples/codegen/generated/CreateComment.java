@@ -11,8 +11,8 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreateComment.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T11:00:36.545189400-04:00}<br/>
- * Edgeql hash: {@code c879137c703267dc5c1c75d139e49a733cd1209c3ecc681104048b1c9c5fdf28}
+ * Generated on: {@code 2023-11-07T14:10:27.577673400-04:00}<br/>
+ * Edgeql hash: {@code 57af620f4ed72fa0e875e5adf8d38df2bf58d853fed06a5fcbd02af40ecd9fd2}
  * @see CreateCommentComment
  */
 public final class CreateComment {
@@ -20,7 +20,7 @@ public final class CreateComment {
       + "    module codegen,\r\n"
       + "    post_id := <uuid>$post_id\r\n"
       + "INSERT Comment {\r\n"
-      + "    author := <User>global current_user_id,\r\n"
+      + "    author := <User><uuid>$author_id,\r\n"
       + "    post := <Post>post_id,\r\n"
       + "    content := <str>$content\r\n"
       + "}";
@@ -33,7 +33,7 @@ public final class CreateComment {
    *     module codegen,
    *     post_id := <uuid>$post_id
    * INSERT Comment {
-   *     author := <User>global current_user_id,
+   *     author := <User><uuid>$author_id,
    *     post := <Post>post_id,
    *     content := <str>$content
    * }}</pre>
@@ -42,12 +42,13 @@ public final class CreateComment {
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain CreateCommentComment}.
    */
   public static CompletionStage<CreateCommentComment> run(EdgeDBQueryable client, UUID postId,
-      String content) {
+      UUID authorId, String content) {
       return client.queryRequiredSingle(
           CreateCommentComment.class, 
           QUERY, 
           new HashMap<>(){{
             put("post_id", postId);
+            put("author_id", authorId);
             put("content", content);
           }}, 
           EnumSet.of(

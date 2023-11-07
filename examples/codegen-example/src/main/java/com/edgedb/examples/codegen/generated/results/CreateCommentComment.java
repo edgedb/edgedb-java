@@ -4,6 +4,8 @@ import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.examples.codegen.generated.interfaces.Comment;
+import com.edgedb.examples.codegen.generated.interfaces.Post;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -21,18 +23,18 @@ public final class CreateCommentComment implements Comment {
   }
 
   /**
-   * Returns the {@code id} field of this class
+   * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<UUID> getId() {
-    return this.id;
+  public Optional<User> getAuthor() {
+    return Optional.empty();
   }
 
   /**
    * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<String> getContent() {
+  public Optional<Post> getPost() {
     return Optional.empty();
   }
 
@@ -48,15 +50,15 @@ public final class CreateCommentComment implements Comment {
    * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<GetUserCommentsPost> getPost() {
+  public Optional<String> getContent() {
     return Optional.empty();
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<GetUserCommentsUser> getAuthor() {
-    return Optional.empty();
+  public UUID getId() {
+    return this.id;
   }
 }

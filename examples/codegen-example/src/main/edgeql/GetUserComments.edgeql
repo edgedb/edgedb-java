@@ -17,4 +17,4 @@ SELECT Comment {
     content,
     created_at
 }
-FILTER .author.id = global current_user_id
+FILTER .author.id = <uuid>$author_id

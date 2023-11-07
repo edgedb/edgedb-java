@@ -30,26 +30,26 @@ public final class GetUserUser implements User {
   }
 
   /**
-   * Returns the {@code name} field of this class
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
    */
   @Override
   public Optional<String> getName() {
-    return this.name;
-  }
-
-  /**
-   * Returns an optional whose value isn't present on the current class
-   */
-  @Override
-  public Optional<OffsetDateTime> getJoinedAt() {
-    return Optional.empty();
+    return Optional.of(this.name);
   }
 
   /**
    * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<UUID> getId() {
+  public UUID getId() {
     return this.id;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code joinedAt} field, which is always present on this type.
+   */
+  @Override
+  public Optional<OffsetDateTime> getJoinedAt() {
+    return Optional.of(this.joinedAt);
   }
 }

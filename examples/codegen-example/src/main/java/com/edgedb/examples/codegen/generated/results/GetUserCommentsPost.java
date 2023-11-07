@@ -5,7 +5,6 @@ import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.examples.codegen.generated.interfaces.Post;
 import com.edgedb.examples.codegen.generated.interfaces.User;
-
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -14,6 +13,9 @@ import java.util.UUID;
 
 @EdgeDBType
 public final class GetUserCommentsPost implements Post {
+  @EdgeDBName("id")
+  public final UUID id;
+
   @EdgeDBName("created_at")
   public final OffsetDateTime createdAt;
 
@@ -27,9 +29,10 @@ public final class GetUserCommentsPost implements Post {
   public final GetUserCommentsUser author;
 
   @EdgeDBDeserializer
-  public GetUserCommentsPost(@EdgeDBName("createdAt") OffsetDateTime createdAt,
-      @EdgeDBName("title") String title, @EdgeDBName("content") String content,
-      @EdgeDBName("author") GetUserCommentsUser author) {
+  public GetUserCommentsPost(@EdgeDBName("id") UUID id,
+      @EdgeDBName("createdAt") OffsetDateTime createdAt, @EdgeDBName("title") String title,
+      @EdgeDBName("content") String content, @EdgeDBName("author") GetUserCommentsUser author) {
+    this.id = id;
     this.createdAt = createdAt;
     this.title = title;
     this.content = content;
@@ -37,39 +40,39 @@ public final class GetUserCommentsPost implements Post {
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
    */
   @Override
   public Optional<OffsetDateTime> getCreatedAt() {
-    return Optional.empty();
+    return Optional.of(this.createdAt);
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
-   */
-  @Override
-  public Optional<UUID> getId() {
-    return Optional.empty();
-  }
-
-  /**
-   * Returns the {@code title} field of this class
+   * Returns an optional wrapping the {@code title} field, which is always present on this type.
    */
   @Override
   public Optional<String> getTitle() {
-    return this.title;
+    return Optional.of(this.title);
   }
 
   /**
-   * Returns the {@code content} field of this class
+   * Returns an optional wrapping the {@code content} field, which is always present on this type.
    */
   @Override
   public Optional<String> getContent() {
-    return this.content;
+    return Optional.of(this.content);
   }
 
   /**
-   * Returns the {@code author} field of this class
+   * Returns an optional wrapping the {@code author} field, which is always present on this type.
    */
   @Override
   public Optional<User> getAuthor() {

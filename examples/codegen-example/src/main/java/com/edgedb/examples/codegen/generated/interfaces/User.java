@@ -23,12 +23,12 @@ public interface User {
   Optional<String> getName();
 
   /**
+   * Gets the {@code id} property, available on all descendants of this interface.
+   */
+  UUID getId();
+
+  /**
    * Gets the {@code joined_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsUser}
    */
   Optional<OffsetDateTime> getJoinedAt();
-
-  /**
-   * Gets the {@code id} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.CreateUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.LikePostUser}
-   */
-  Optional<UUID> getId();
 }

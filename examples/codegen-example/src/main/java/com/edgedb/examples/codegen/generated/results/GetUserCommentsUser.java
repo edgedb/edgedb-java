@@ -12,40 +12,44 @@ import java.util.UUID;
 
 @EdgeDBType
 public final class GetUserCommentsUser implements User {
-  @EdgeDBName("name")
-  public final String name;
-
   @EdgeDBName("joined_at")
   public final OffsetDateTime joinedAt;
 
+  @EdgeDBName("id")
+  public final UUID id;
+
+  @EdgeDBName("name")
+  public final String name;
+
   @EdgeDBDeserializer
-  public GetUserCommentsUser(@EdgeDBName("name") String name,
-      @EdgeDBName("joinedAt") OffsetDateTime joinedAt) {
-    this.name = name;
+  public GetUserCommentsUser(@EdgeDBName("joinedAt") OffsetDateTime joinedAt,
+      @EdgeDBName("id") UUID id, @EdgeDBName("name") String name) {
     this.joinedAt = joinedAt;
+    this.id = id;
+    this.name = name;
   }
 
   /**
-   * Returns the {@code name} field of this class
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
    */
   @Override
   public Optional<String> getName() {
-    return this.name;
+    return Optional.of(this.name);
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code joinedAt} field, which is always present on this type.
    */
   @Override
   public Optional<OffsetDateTime> getJoinedAt() {
-    return Optional.empty();
-  }
-
-  /**
-   * Returns an optional whose value isn't present on the current class
-   */
-  @Override
-  public Optional<UUID> getId() {
-    return Optional.empty();
+    return Optional.of(this.joinedAt);
   }
 }

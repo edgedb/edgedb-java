@@ -5,13 +5,15 @@ import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.examples.codegen.generated.results.GetUserPostsPost;
 import java.lang.String;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserPosts.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T11:00:36.730186100-04:00}<br/>
- * Edgeql hash: {@code 6d9e06460f2f96994306f419da29c27e3c00323e70215d3346936e85a7320751}
+ * Generated on: {@code 2023-11-07T14:10:27.934227300-04:00}<br/>
+ * Edgeql hash: {@code bd5c7530ae22329782d013e73a141e65e5fb26b68d1f8b0ef40f32b67438cafd}
  * @see GetUserPostsPost
  */
 public final class GetUserPosts {
@@ -26,7 +28,7 @@ public final class GetUserPosts {
       + "    content,\r\n"
       + "    created_at\r\n"
       + "}\r\n"
-      + "FILTER .author.id = global current_user_id";
+      + "FILTER .author.id = <uuid>$author_id";
 
   /**
    * Executes the query defined in the file {@code GetUserPosts.edgeql} with the capabilities {@code read only}.
@@ -43,15 +45,18 @@ public final class GetUserPosts {
    *     content,
    *     created_at
    * }
-   * FILTER .author.id = global current_user_id}</pre>
+   * FILTER .author.id = <uuid>$author_id}</pre>
    * The result of the query is represented as the generated class {@linkplain GetUserPostsPost}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserPostsPost}.
    */
-  public static CompletionStage<List<GetUserPostsPost>> run(EdgeDBQueryable client) {
+  public static CompletionStage<List<GetUserPostsPost>> run(EdgeDBQueryable client, UUID authorId) {
       return client.query(
           GetUserPostsPost.class, 
           QUERY, 
+          new HashMap<>(){{
+            put("author_id", authorId);
+          }}, 
           EnumSet.of(
             Capabilities.READ_ONLY
           )

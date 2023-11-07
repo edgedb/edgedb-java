@@ -1,5 +1,6 @@
 package com.edgedb.examples.codegen.generated.interfaces;
 
+import java.lang.String;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,14 +15,14 @@ import java.util.UUID;
  */
 public interface Post {
   /**
+   * Gets the {@code id} property, available on all descendants of this interface.
+   */
+  UUID getId();
+
+  /**
    * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
    */
   Optional<OffsetDateTime> getCreatedAt();
-
-  /**
-   * Gets the {@code id} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.CreatePostPost}
-   */
-  Optional<UUID> getId();
 
   /**
    * Gets the {@code title} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}

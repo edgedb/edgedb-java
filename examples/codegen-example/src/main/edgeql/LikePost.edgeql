@@ -1,6 +1,6 @@
 WITH 
     module codegen,
-    current_user := <User>global current_user_id,
+    current_user := <User><uuid>$author_id,
     post_id := <uuid>$post_id
 UPDATE current_user
 SET {
