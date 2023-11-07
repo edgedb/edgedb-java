@@ -15,18 +15,18 @@ public final class GetUserUser implements User {
   @EdgeDBName("name")
   public final String name;
 
-  @EdgeDBName("id")
-  public final UUID id;
-
   @EdgeDBName("joined_at")
   public final OffsetDateTime joinedAt;
 
+  @EdgeDBName("id")
+  public final UUID id;
+
   @EdgeDBDeserializer
-  public GetUserUser(@EdgeDBName("name") String name, @EdgeDBName("id") UUID id,
-      @EdgeDBName("joinedAt") OffsetDateTime joinedAt) {
+  public GetUserUser(@EdgeDBName("name") String name,
+      @EdgeDBName("joinedAt") OffsetDateTime joinedAt, @EdgeDBName("id") UUID id) {
     this.name = name;
-    this.id = id;
     this.joinedAt = joinedAt;
+    this.id = id;
   }
 
   /**
@@ -38,18 +38,18 @@ public final class GetUserUser implements User {
   }
 
   /**
-   * Returns the {@code id} field of this class
-   */
-  @Override
-  public UUID getId() {
-    return this.id;
-  }
-
-  /**
    * Returns an optional wrapping the {@code joinedAt} field, which is always present on this type.
    */
   @Override
   public Optional<OffsetDateTime> getJoinedAt() {
     return Optional.of(this.joinedAt);
+  }
+
+  /**
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
   }
 }

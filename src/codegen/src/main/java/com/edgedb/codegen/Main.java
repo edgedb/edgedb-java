@@ -17,7 +17,7 @@ public class Main {
         put("generate", Generate::new);
     }};
 
-    public static void main(String[] args) throws ParseException, ExecutionException, InterruptedException, EdgeDBException, IOException {
+    public static void main(String[] args) {
         if(args.length == 0) {
             displayHelp();
             System.exit(0);
@@ -26,32 +26,41 @@ public class Main {
         var command = COMMANDS.get(args[0]);
 
         if(command == null) {
-            displayUnknownCommand();
-            System.exit(0);
+            displayUnknownCommand(args[0]);
+            System.exit(1);
         }
 
         if(args.length >= 2 && args[1].equalsIgnoreCase("help")) {
             new HelpFormatter().printHelp(args[0], command.get().getCommandOptions());
-            System.exit(0);
+            System.exit(2);
         }
 
         var commandInstance = command.get();
 
-        commandInstance.execute(new DefaultParser().parse(commandInstance.getCommandOptions(), args))
-                .toCompletableFuture()
-                .get();
+        try {
+            commandInstance.execute(new DefaultParser().parse(commandInstance.getCommandOptions(), args))
+                    .toCompletableFuture()
+                    .get();
+        } catch (InterruptedException | EdgeDBException | IOException | ParseException | ExecutionException e) {
+            System.err.println("Failed to run generator");
+            System.err.println(e);
+            System.exit(3);
+        }
 
         System.exit(0);
     }
 
-    private static void displayUnknownCommand(){
-
+    private static void displayUnknownCommand(String command) {
+        System.out.println("Unknown command \"" + command + "\"");
+        displayHelp();
     }
 
     private static void displayHelp() {
         var formatter = new HelpFormatter();
+        System.out.println("EdgeDB Java Code generator"); // TODO: print version
         for (var cmd : COMMANDS.entrySet()) {
-            formatter.printHelp(cmd.getKey(), cmd.getValue().get().getCommandOptions());
+            var commandInstance = cmd.getValue().get();
+            formatter.printHelp(commandInstance.getSyntax(), commandInstance.getCommandOptions());
         }
     }
 }

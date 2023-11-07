@@ -13,6 +13,21 @@ import java.util.UUID;
  */
 public interface Comment {
   /**
+   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   */
+  Optional<String> getContent();
+
+  /**
+   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   */
+  Optional<OffsetDateTime> getCreatedAt();
+
+  /**
+   * Gets the {@code id} property, available on all descendants of this interface.
+   */
+  UUID getId();
+
+  /**
    * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
   Optional<User> getAuthor();
@@ -21,19 +36,4 @@ public interface Comment {
    * Gets the {@code post} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
   Optional<Post> getPost();
-
-  /**
-   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
-   */
-  Optional<OffsetDateTime> getCreatedAt();
-
-  /**
-   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
-   */
-  Optional<String> getContent();
-
-  /**
-   * Gets the {@code id} property, available on all descendants of this interface.
-   */
-  UUID getId();
 }

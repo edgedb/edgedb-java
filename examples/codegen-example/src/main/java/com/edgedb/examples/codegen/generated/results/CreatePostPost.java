@@ -22,27 +22,27 @@ public final class CreatePostPost implements Post {
   }
 
   /**
-   * Returns the {@code id} field of this class
-   */
-  @Override
-  public UUID getId() {
-    return this.id;
-  }
-
-  /**
-   * Returns an optional whose value isn't present on the current class
-   */
-  @Override
-  public Optional<OffsetDateTime> getCreatedAt() {
-    return Optional.empty();
-  }
-
-  /**
    * Returns an optional whose value isn't present on the current class
    */
   @Override
   public Optional<String> getTitle() {
     return Optional.empty();
+  }
+
+  /**
+   * Returns an optional whose value isn't present on the current class
+   */
+  @Override
+  public Optional<User> getAuthor() {
+    return Optional.empty();
+  }
+
+  /**
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
   }
 
   /**
@@ -57,7 +57,7 @@ public final class CreatePostPost implements Post {
    * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<User> getAuthor() {
+  public Optional<OffsetDateTime> getCreatedAt() {
     return Optional.empty();
   }
 }

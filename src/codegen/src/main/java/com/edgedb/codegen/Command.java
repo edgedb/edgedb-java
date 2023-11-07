@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.concurrent.CompletionStage;
 
 public interface Command {
+    String getSyntax();
+
     Options getCommandOptions();
 
     CompletionStage<Void> execute(CommandLine commandLine) throws EdgeDBException, IOException;

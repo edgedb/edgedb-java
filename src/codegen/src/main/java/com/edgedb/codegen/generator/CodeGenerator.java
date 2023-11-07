@@ -96,6 +96,8 @@ public class CodeGenerator {
                 .thenCompose(v -> {
                     if(!v) {
                         logger.warn("Got unsuccessful generation result for file {}, skipping...", target.path);
+                    } else {
+                        logger.info("Generation complete for {}", target.path);
                     }
 
                     if(iter.hasNext()) {
@@ -207,6 +209,7 @@ public class CodeGenerator {
                     try(var fileStream = Files.newBufferedWriter(targetOutputPath)) {
                         file.writeTo(fileStream);
                         fileStream.flush();
+                        logger.info("{} -> {}", target.path, targetOutputPath);
                         return true;
                     } catch (IOException e) {
                         logger.error("Failed to write generated file to the directory {}", context.outputDirectory, e);

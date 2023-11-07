@@ -25,6 +25,11 @@ import java.util.stream.Stream;
 
 public class Generate implements Command, ConnectionOptionsProvider, LoggerOptionsProvider {
     @Override
+    public String getSyntax() {
+        return "generate <options> <connection>";
+    }
+
+    @Override
     public Options getCommandOptions() {
         var options = new Options();
         for (var option : getOptions()) {

@@ -13,46 +13,30 @@ import java.util.UUID;
 
 @EdgeDBType
 public final class GetUserLikedPostsPost implements Post {
-  @EdgeDBName("id")
-  public final UUID id;
-
-  @EdgeDBName("created_at")
-  public final OffsetDateTime createdAt;
-
   @EdgeDBName("title")
   public final String title;
-
-  @EdgeDBName("content")
-  public final String content;
 
   @EdgeDBName("author")
   public final GetUserLikedPostsUser author;
 
+  @EdgeDBName("content")
+  public final String content;
+
+  @EdgeDBName("created_at")
+  public final OffsetDateTime createdAt;
+
+  @EdgeDBName("id")
+  public final UUID id;
+
   @EdgeDBDeserializer
-  public GetUserLikedPostsPost(@EdgeDBName("id") UUID id,
-      @EdgeDBName("createdAt") OffsetDateTime createdAt, @EdgeDBName("title") String title,
-      @EdgeDBName("content") String content, @EdgeDBName("author") GetUserLikedPostsUser author) {
-    this.id = id;
-    this.createdAt = createdAt;
+  public GetUserLikedPostsPost(@EdgeDBName("title") String title,
+      @EdgeDBName("author") GetUserLikedPostsUser author, @EdgeDBName("content") String content,
+      @EdgeDBName("createdAt") OffsetDateTime createdAt, @EdgeDBName("id") UUID id) {
     this.title = title;
-    this.content = content;
     this.author = author;
-  }
-
-  /**
-   * Returns the {@code id} field of this class
-   */
-  @Override
-  public UUID getId() {
-    return this.id;
-  }
-
-  /**
-   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
-   */
-  @Override
-  public Optional<OffsetDateTime> getCreatedAt() {
-    return Optional.of(this.createdAt);
+    this.content = content;
+    this.createdAt = createdAt;
+    this.id = id;
   }
 
   /**
@@ -64,6 +48,22 @@ public final class GetUserLikedPostsPost implements Post {
   }
 
   /**
+   * Returns an optional wrapping the {@code author} field, which is always present on this type.
+   */
+  @Override
+  public Optional<User> getAuthor() {
+    return Optional.of(this.author);
+  }
+
+  /**
+   * Returns the {@code id} field of this class
+   */
+  @Override
+  public UUID getId() {
+    return this.id;
+  }
+
+  /**
    * Returns an optional wrapping the {@code content} field, which is always present on this type.
    */
   @Override
@@ -72,10 +72,10 @@ public final class GetUserLikedPostsPost implements Post {
   }
 
   /**
-   * Returns an optional wrapping the {@code author} field, which is always present on this type.
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
    */
   @Override
-  public Optional<User> getAuthor() {
-    return Optional.of(this.author);
+  public Optional<OffsetDateTime> getCreatedAt() {
+    return Optional.of(this.createdAt);
   }
 }

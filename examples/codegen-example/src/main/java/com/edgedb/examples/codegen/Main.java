@@ -22,18 +22,20 @@ public class Main {
                 .withModule("codegen");
 
         runGeneratedQueries(client).toCompletableFuture().get();
+
+        System.exit(0);
     }
 
     private static CompletionStage<LikePostUser> runGeneratedQueries(EdgeDBClient client) {
         return CreateUser.run(client, "username")
                 .thenCompose(user ->
                     createPost(client, user, "My First Post", "This is a post!")
-                )
-                .thenCompose(post ->
-                    createComment(client, post, post.getAuthor().orElseThrow(), "Wow! Epic post!")
-                )
-                .thenCompose(comment ->
-                    LikePost.run(client, comment.getPost().orElseThrow().getId(), comment.getAuthor().orElseThrow().getId())
+                    .thenCompose(post ->
+                        createComment(client, post, user, "Wow! Epic post!")
+                        .thenCompose(comment ->
+                            likePost(client, post, user)
+                        )
+                    )
                 );
     }
 
@@ -43,5 +45,9 @@ public class Main {
 
     private static CompletionStage<CreateCommentComment> createComment(EdgeDBClient client, Post post, User author, String content) {
         return CreateComment.run(client, post.getId(), author.getId(), content);
+    }
+
+    private static CompletionStage<LikePostUser> likePost(EdgeDBClient client, Post post, User user) {
+        return LikePost.run(client, post.getId(), user.getId());
     }
 }
