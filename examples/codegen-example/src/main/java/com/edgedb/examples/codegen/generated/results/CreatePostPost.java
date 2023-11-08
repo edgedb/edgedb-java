@@ -3,6 +3,7 @@ package com.edgedb.examples.codegen.generated.results;
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.datatypes.NullableOptional;
 import com.edgedb.examples.codegen.generated.interfaces.Post;
 import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
@@ -10,9 +11,13 @@ import java.lang.String;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.jetbrains.annotations.Nullable;
 
 @EdgeDBType
 public final class CreatePostPost implements Post {
+  /**
+   * The {@code id} field on the {@code codegen::Post} object
+   */
   @EdgeDBName("id")
   public final UUID id;
 
@@ -38,11 +43,11 @@ public final class CreatePostPost implements Post {
   }
 
   /**
-   * Returns the {@code id} field of this class
+   * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public UUID getId() {
-    return this.id;
+  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
+    return Optional.empty();
   }
 
   /**
@@ -54,10 +59,10 @@ public final class CreatePostPost implements Post {
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<OffsetDateTime> getCreatedAt() {
-    return Optional.empty();
+  public UUID getId() {
+    return this.id;
   }
 }

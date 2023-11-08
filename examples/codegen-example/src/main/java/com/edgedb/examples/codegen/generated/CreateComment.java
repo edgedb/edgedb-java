@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreateComment.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T14:46:49.672422400-04:00}<br/>
+ * Generated on: {@code 2023-11-08T13:22:07.643481200-04:00}<br/>
  * Edgeql hash: {@code 57af620f4ed72fa0e875e5adf8d38df2bf58d853fed06a5fcbd02af40ecd9fd2}
  * @see CreateCommentComment
  */
@@ -30,13 +30,13 @@ public final class CreateComment {
    * The query:
    * <pre>
    * {@literal WITH
-   *     module codegen,
-   *     post_id := <uuid>$post_id
-   * INSERT Comment {
-   *     author := <User><uuid>$author_id,
-   *     post := <Post>post_id,
-   *     content := <str>$content
-   * }}</pre>
+   *       module codegen,
+   *       post_id := <uuid>$post_id
+   *   INSERT Comment {
+   *       author := <User><uuid>$author_id,
+   *       post := <Post>post_id,
+   *       content := <str>$content
+   *   }}</pre>
    * The result of the query is represented as the generated class {@linkplain CreateCommentComment}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain CreateCommentComment}.

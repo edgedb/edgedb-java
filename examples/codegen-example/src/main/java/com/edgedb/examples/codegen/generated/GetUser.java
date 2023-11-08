@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T14:46:49.782423900-04:00}<br/>
+ * Generated on: {@code 2023-11-08T13:22:07.736180500-04:00}<br/>
  * Edgeql hash: {@code 9e084d7e0f3ffab82a66561d6221d0739b76453f485ec7ada58dca46f5251df8}
  * @see GetUserUser
  */
@@ -30,13 +30,13 @@ public final class GetUser {
    * The query:
    * <pre>
    * {@literal WITH
-   *     module codegen
-   * SELECT User {
-   *     id,
-   *     name,
-   *     joined_at,
-   * }
-   * FILTER .name = <str>$name}</pre>
+   *       module codegen
+   *   SELECT User {
+   *       id,
+   *       name,
+   *       joined_at,
+   *   }
+   *   FILTER .name = <str>$name}</pre>
    * The result of the query is represented as the generated class {@linkplain GetUserUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserUser}.

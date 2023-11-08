@@ -7,6 +7,8 @@ import com.edgedb.codegen.utils.TextUtils;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodec;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
+import com.edgedb.driver.datatypes.NullableOptional;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
@@ -76,12 +78,16 @@ public class V2TypeGenerator implements TypeGenerator {
             this.fields = properties.entrySet().stream()
                     .map(v ->
                             FieldSpec.builder(
-                                            v.getValue(),
+                                            applyPropertyCardinality(v.getKey(), v.getValue()),
                                             NamingStrategy.camelCase().convert(v.getKey().name),
                                             Modifier.FINAL, Modifier.PUBLIC
                                     )
                                     .addAnnotation(AnnotationSpec.builder(EdgeDBName.class)
                                             .addMember("value", CodeBlock.of("$S", v.getKey().name)).build()
+                                    ).addJavadoc(
+                                            "The {@code $L} field on the {@code $L} object",
+                                            v.getKey().name,
+                                            codec.metadata == null ? typeName : codec.metadata.schemaName
                                     ).build()
                     ).collect(Collectors.toList());
 
@@ -303,7 +309,10 @@ public class V2TypeGenerator implements TypeGenerator {
                             methodSpec.addJavadoc("Returns the {@code $L} field of this class", field.get().name);
                             methodSpec.addCode("return this.$N;", field.get());
                         } else {
-                            methodSpec.addCode("return $T.of(this.$N);",Optional.class, field.get());
+                            var optionalType = interfaceElement.property.cardinality == Cardinality.AT_MOST_ONE
+                                    ? NullableOptional.class
+                                    : Optional.class;
+                            methodSpec.addCode("return $T.of(this.$N);", optionalType, field.get());
                             methodSpec.addJavadoc(
                                     "Returns an optional wrapping the {@code $L} field, which is always present on " +
                                             "this type.",
@@ -464,10 +473,30 @@ public class V2TypeGenerator implements TypeGenerator {
             elementType = element.getTypeName();
         }
 
+        elementType = applyPropertyCardinality(property, elementType);
+
         if(info.isOptionalProperty(property))  {
-            return ParameterizedTypeName.get(ClassName.get(Optional.class), elementType);
+            var optionalType = property.cardinality == Cardinality.AT_MOST_ONE //elementType.annotations.stream().anyMatch(v -> v.type.equals(ClassName.get(Nullable.class)))
+                    ? NullableOptional.class
+                    : Optional.class;
+
+            return ParameterizedTypeName.get(ClassName.get(optionalType), elementType);
         }
 
         return elementType;
+    }
+
+    private static TypeName applyPropertyCardinality(ObjectCodec.ObjectProperty property, TypeName type) {
+        if(property.cardinality != null) {
+            switch (property.cardinality) {
+                case AT_MOST_ONE:
+                    return type.annotated(AnnotationSpec.builder(Nullable.class).build());
+                case MANY:
+                case AT_LEAST_ONE:
+                    return ParameterizedTypeName.get(ClassName.get(Collection.class), type);
+            }
+        }
+
+        return type;
     }
 }

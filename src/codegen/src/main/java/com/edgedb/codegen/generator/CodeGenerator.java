@@ -299,7 +299,7 @@ public class CodeGenerator {
                                         v.name().toLowerCase(Locale.ROOT).replace("_", " ")
                                 )
                                 .collect(Collectors.joining(", ")),
-                        target.edgeql
+                        String.join(System.lineSeparator() + "  ", target.edgeql.split(System.lineSeparator()))
                 );
 
         if(resultType instanceof ClassName && ((ClassName)resultType).canonicalName().startsWith(context.packageName)) {

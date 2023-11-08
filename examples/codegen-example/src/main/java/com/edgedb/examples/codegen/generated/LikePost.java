@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T14:46:49.890422100-04:00}<br/>
+ * Generated on: {@code 2023-11-08T13:22:07.844007900-04:00}<br/>
  * Edgeql hash: {@code 28ea11f3c3059ac7c43e1458c567d3328b1e39e20a3e170a9f3dbaeaa2ce10b6}
  * @see LikePostUser
  */
@@ -30,13 +30,13 @@ public final class LikePost {
    * The query:
    * <pre>
    * {@literal WITH 
-   *     module codegen,
-   *     current_user := <User><uuid>$author_id,
-   *     post_id := <uuid>$post_id
-   * UPDATE current_user
-   * SET {
-   *     liked_posts += <Post>post_id
-   * }}</pre>
+   *       module codegen,
+   *       current_user := <User><uuid>$author_id,
+   *       post_id := <uuid>$post_id
+   *   UPDATE current_user
+   *   SET {
+   *       liked_posts += <Post>post_id
+   *   }}</pre>
    * The result of the query is represented as the generated class {@linkplain LikePostUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostUser}.

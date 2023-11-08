@@ -1,9 +1,11 @@
 package com.edgedb.examples.codegen.generated.interfaces;
 
+import com.edgedb.driver.datatypes.NullableOptional;
 import java.lang.String;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents the schema type {@code codegen::Post} with properties that are shared
@@ -25,9 +27,9 @@ public interface Post {
   Optional<User> getAuthor();
 
   /**
-   * Gets the {@code id} property, available on all descendants of this interface.
+   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
    */
-  UUID getId();
+  NullableOptional<@Nullable OffsetDateTime> getCreatedAt();
 
   /**
    * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
@@ -35,7 +37,7 @@ public interface Post {
   Optional<String> getContent();
 
   /**
-   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
+   * Gets the {@code id} property, available on all descendants of this interface.
    */
-  Optional<OffsetDateTime> getCreatedAt();
+  UUID getId();
 }

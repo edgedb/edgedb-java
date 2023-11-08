@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserPosts.edgeql}.<br/>
- * Generated on: {@code 2023-11-07T14:46:49.865422100-04:00}<br/>
+ * Generated on: {@code 2023-11-08T13:22:07.819006900-04:00}<br/>
  * Edgeql hash: {@code bd5c7530ae22329782d013e73a141e65e5fb26b68d1f8b0ef40f32b67438cafd}
  * @see GetUserPostsPost
  */
@@ -35,17 +35,17 @@ public final class GetUserPosts {
    * The query:
    * <pre>
    * {@literal WITH
-   *     module codegen
-   * SELECT Post {
-   *     title,
-   *     author: {
-   *         name,
-   *         joined_at
-   *     },
-   *     content,
-   *     created_at
-   * }
-   * FILTER .author.id = <uuid>$author_id}</pre>
+   *       module codegen
+   *   SELECT Post {
+   *       title,
+   *       author: {
+   *           name,
+   *           joined_at
+   *       },
+   *       content,
+   *       created_at
+   *   }
+   *   FILTER .author.id = <uuid>$author_id}</pre>
    * The result of the query is represented as the generated class {@linkplain GetUserPostsPost}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
    * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserPostsPost}.
