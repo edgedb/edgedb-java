@@ -1,8 +1,8 @@
-package com.edgedb.examples.codegen.generated;
+package com.edgedb.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.CreateCommentComment;
+import com.edgedb.generated.results.CreateCommentComment;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreateComment.edgeql}.<br/>
- * Generated on: {@code 2023-11-08T13:22:07.643481200-04:00}<br/>
+ * Generated on: {@code 2023-11-13T15:56:05.551493500-04:00}<br/>
  * Edgeql hash: {@code 57af620f4ed72fa0e875e5adf8d38df2bf58d853fed06a5fcbd02af40ecd9fd2}
  * @see CreateCommentComment
  */

@@ -1,11 +1,11 @@
-package com.edgedb.examples.codegen.generated.results;
+package com.edgedb.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.examples.codegen.generated.interfaces.Post;
-import com.edgedb.examples.codegen.generated.interfaces.User;
+import com.edgedb.generated.interfaces.Post;
+import com.edgedb.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -16,16 +16,10 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserPostsPost implements Post {
   /**
-   * The {@code id} field on the {@code codegen::Post} object
+   * The {@code author} field on the {@code codegen::Post} object
    */
-  @EdgeDBName("id")
-  public final UUID id;
-
-  /**
-   * The {@code created_at} field on the {@code codegen::Post} object
-   */
-  @EdgeDBName("created_at")
-  public final @Nullable OffsetDateTime createdAt;
+  @EdgeDBName("author")
+  public final GetUserPostsUser author;
 
   /**
    * The {@code content} field on the {@code codegen::Post} object
@@ -40,29 +34,26 @@ public final class GetUserPostsPost implements Post {
   public final String title;
 
   /**
-   * The {@code author} field on the {@code codegen::Post} object
+   * The {@code id} field on the {@code codegen::Post} object
    */
-  @EdgeDBName("author")
-  public final GetUserPostsUser author;
-
-  @EdgeDBDeserializer
-  public GetUserPostsPost(@EdgeDBName("id") UUID id,
-      @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt,
-      @EdgeDBName("content") String content, @EdgeDBName("title") String title,
-      @EdgeDBName("author") GetUserPostsUser author) {
-    this.id = id;
-    this.createdAt = createdAt;
-    this.content = content;
-    this.title = title;
-    this.author = author;
-  }
+  @EdgeDBName("id")
+  public final UUID id;
 
   /**
-   * Returns an optional wrapping the {@code title} field, which is always present on this type.
+   * The {@code created_at} field on the {@code codegen::Post} object
    */
-  @Override
-  public Optional<String> getTitle() {
-    return Optional.of(this.title);
+  @EdgeDBName("created_at")
+  public final @Nullable OffsetDateTime createdAt;
+
+  @EdgeDBDeserializer
+  public GetUserPostsPost(@EdgeDBName("author") GetUserPostsUser author,
+      @EdgeDBName("content") String content, @EdgeDBName("title") String title,
+      @EdgeDBName("id") UUID id, @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt) {
+    this.author = author;
+    this.content = content;
+    this.title = title;
+    this.id = id;
+    this.createdAt = createdAt;
   }
 
   /**
@@ -74,11 +65,11 @@ public final class GetUserPostsPost implements Post {
   }
 
   /**
-   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   * Returns an optional wrapping the {@code title} field, which is always present on this type.
    */
   @Override
-  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
-    return NullableOptional.of(this.createdAt);
+  public Optional<String> getTitle() {
+    return Optional.of(this.title);
   }
 
   /**
@@ -95,5 +86,13 @@ public final class GetUserPostsPost implements Post {
   @Override
   public UUID getId() {
     return this.id;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   */
+  @Override
+  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
+    return NullableOptional.of(this.createdAt);
   }
 }

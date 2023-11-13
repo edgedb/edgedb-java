@@ -14,7 +14,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -41,7 +40,8 @@ public class Generate implements Command, ConnectionOptionsProvider, LoggerOptio
                         "source to be placed. When generating a project, source files will be placed in that projects " +
                         "directory. Default is the current directory")
                 .addOption("n", "package-name", true, "The package name for generated files.")
-                .addOption("f", "force", false, "Force regeneration of all query files.");
+                .addOption("f", "force", false, "Force regeneration of all query files.")
+                .addOption("p", "preserve", false, "Don't delete any files in the target directory");
     }
 
     @Override
@@ -51,10 +51,6 @@ public class Generate implements Command, ConnectionOptionsProvider, LoggerOptio
 
         var projectRoot = ProjectUtils.getProjectRoot();
         var outputDirectory = PathUtils.fromRelativeInput(commandLine.getOptionValue("output", System.getProperty("user.dir")));
-
-        if(!Files.exists(outputDirectory)) {
-            Files.createDirectory(outputDirectory);
-        }
 
         var edgeqlFiles = ProjectUtils.getTargetEdgeQLFiles(projectRoot);
 
@@ -88,7 +84,7 @@ public class Generate implements Command, ConnectionOptionsProvider, LoggerOptio
                 generator
         );
 
-        return generator.generate(edgeqlFiles, context, null, commandLine.hasOption("force"));
+        return generator.generate(edgeqlFiles, context, null, commandLine.hasOption("force"), commandLine.hasOption("preserve"));
     }
 
     @Override

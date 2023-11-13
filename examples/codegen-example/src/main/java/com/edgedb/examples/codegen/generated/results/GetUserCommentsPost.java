@@ -1,11 +1,11 @@
-package com.edgedb.examples.codegen.generated.results;
+package com.edgedb.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.examples.codegen.generated.interfaces.Post;
-import com.edgedb.examples.codegen.generated.interfaces.User;
+import com.edgedb.generated.interfaces.Post;
+import com.edgedb.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -16,22 +16,16 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserCommentsPost implements Post {
   /**
-   * The {@code title} field on the {@code codegen::Post} object
-   */
-  @EdgeDBName("title")
-  public final String title;
-
-  /**
    * The {@code author} field on the {@code codegen::Post} object
    */
   @EdgeDBName("author")
   public final GetUserCommentsUser author;
 
   /**
-   * The {@code created_at} field on the {@code codegen::Post} object
+   * The {@code title} field on the {@code codegen::Post} object
    */
-  @EdgeDBName("created_at")
-  public final @Nullable OffsetDateTime createdAt;
+  @EdgeDBName("title")
+  public final String title;
 
   /**
    * The {@code id} field on the {@code codegen::Post} object
@@ -45,24 +39,22 @@ public final class GetUserCommentsPost implements Post {
   @EdgeDBName("content")
   public final String content;
 
+  /**
+   * The {@code created_at} field on the {@code codegen::Post} object
+   */
+  @EdgeDBName("created_at")
+  public final @Nullable OffsetDateTime createdAt;
+
   @EdgeDBDeserializer
-  public GetUserCommentsPost(@EdgeDBName("title") String title,
-      @EdgeDBName("author") GetUserCommentsUser author,
-      @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt, @EdgeDBName("id") UUID id,
-      @EdgeDBName("content") String content) {
-    this.title = title;
+  public GetUserCommentsPost(@EdgeDBName("author") GetUserCommentsUser author,
+      @EdgeDBName("title") String title, @EdgeDBName("id") UUID id,
+      @EdgeDBName("content") String content,
+      @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt) {
     this.author = author;
-    this.createdAt = createdAt;
+    this.title = title;
     this.id = id;
     this.content = content;
-  }
-
-  /**
-   * Returns an optional wrapping the {@code title} field, which is always present on this type.
-   */
-  @Override
-  public Optional<String> getTitle() {
-    return Optional.of(this.title);
+    this.createdAt = createdAt;
   }
 
   /**
@@ -74,11 +66,11 @@ public final class GetUserCommentsPost implements Post {
   }
 
   /**
-   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   * Returns an optional wrapping the {@code title} field, which is always present on this type.
    */
   @Override
-  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
-    return NullableOptional.of(this.createdAt);
+  public Optional<String> getTitle() {
+    return Optional.of(this.title);
   }
 
   /**
@@ -95,5 +87,13 @@ public final class GetUserCommentsPost implements Post {
   @Override
   public UUID getId() {
     return this.id;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   */
+  @Override
+  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
+    return NullableOptional.of(this.createdAt);
   }
 }

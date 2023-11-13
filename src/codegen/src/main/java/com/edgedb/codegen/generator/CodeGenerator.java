@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import javax.lang.model.element.Modifier;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,8 +61,9 @@ public class CodeGenerator {
     }
 
     public CompletionStage<Void> generate(
-            List<String> edgeqlFiles, GeneratorContext context, @Nullable TypeGenerator typeGenerator, boolean force
-    ) {
+            List<String> edgeqlFiles, GeneratorContext context, @Nullable TypeGenerator typeGenerator, boolean force,
+            boolean preserve
+    ) throws IOException {
         var targetInfos = new ArrayList<GeneratorTargetInfo>();
 
         for (var target : edgeqlFiles) {
@@ -72,6 +74,16 @@ public class CodeGenerator {
                 return CompletableFuture.failedFuture(e);
             }
         }
+
+        if(!preserve && Files.exists(context.outputDirectory)) {
+            try (var pathStream = Files.walk(context.outputDirectory)) {
+                pathStream.sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            }
+        }
+
+        Files.createDirectories(context.outputDirectory);
 
         if(targetInfos.isEmpty()) {
             logger.info("Found no files to generate from");

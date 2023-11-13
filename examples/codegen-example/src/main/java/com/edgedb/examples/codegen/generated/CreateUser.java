@@ -1,8 +1,8 @@
-package com.edgedb.examples.codegen.generated;
+package com.edgedb.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.CreateUserUser;
+import com.edgedb.generated.results.CreateUserUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreateUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-08T13:22:07.707180900-04:00}<br/>
+ * Generated on: {@code 2023-11-13T15:56:05.634003700-04:00}<br/>
  * Edgeql hash: {@code f36ffbe222a09889aac91c16372d6533427dcc4b6d1b8d5f5cf601b4e9564168}
  * @see CreateUserUser
  */

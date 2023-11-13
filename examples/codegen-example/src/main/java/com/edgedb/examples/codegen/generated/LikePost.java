@@ -1,8 +1,8 @@
-package com.edgedb.examples.codegen.generated;
+package com.edgedb.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.LikePostUser;
+import com.edgedb.generated.results.LikePostUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-08T13:22:07.844007900-04:00}<br/>
+ * Generated on: {@code 2023-11-13T15:56:05.789003300-04:00}<br/>
  * Edgeql hash: {@code 28ea11f3c3059ac7c43e1458c567d3328b1e39e20a3e170a9f3dbaeaa2ce10b6}
  * @see LikePostUser
  */
