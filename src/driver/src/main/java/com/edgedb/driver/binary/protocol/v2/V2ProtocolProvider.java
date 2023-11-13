@@ -42,6 +42,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
             put(DescriptorType.SCALAR, ScalarTypeDescriptor::new);
             put(DescriptorType.SET, SetTypeDescriptor::new);
             put(DescriptorType.TUPLE, TupleTypeDescriptor::new);
+            put(DescriptorType.MULTI_RANGE, MultiRangeDescriptor::new);
             put(DescriptorType.TYPE_ANNOTATION_TEXT, (ignored, reader) -> new TypeAnnotationTextDescriptor(reader));
         }};
     }
@@ -245,6 +246,22 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
                                         getRelativeCodec.apply(rangeDescriptor.type.intValue()),
                                         RangeCodec::new,
                                         t -> Range.empty(t).getClass()
+                                )
+                );
+            case MULTI_RANGE:
+                var multirangeDescriptor = descriptorInfo.as(MultiRangeDescriptor.class);
+
+                return CodecBuilder.getOrCreateCodec(
+                        this,
+                        descriptorInfo.getId(),
+                        metadata,
+                        (id, meta) ->
+                                new CompilableCodec(
+                                        id,
+                                        meta,
+                                        getRelativeCodec.apply(multirangeDescriptor.type.intValue()),
+                                        MultiRangeCodec::new,
+                                        t -> t
                                 )
                 );
             case SCALAR:

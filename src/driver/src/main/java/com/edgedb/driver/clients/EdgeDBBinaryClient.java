@@ -90,7 +90,6 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         if(!getDuplexer().isConnected()) {
             return reconnect().thenCompose(v -> ensureConnected());
         }
-
         return CompletableFuture.runAsync(() -> {
                     try {
                         logger.debug("acquiring query semaphore...");
