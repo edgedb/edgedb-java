@@ -268,6 +268,10 @@ public class V2TypeGenerator implements TypeGenerator {
 
     @Override
     public void postProcess(GeneratorContext context) throws IOException {
+        if(!resultShapes.isEmpty()) {
+            Files.createDirectories(context.outputDirectory.resolve("results"));
+        }
+
         var groups = resultShapes.entrySet().stream()
                 .flatMap(v -> v.getValue().stream())
                 .collect(Collectors.groupingBy(v -> v.codec.metadata == null ? v.codec.typeId.toString() : v.codec.metadata.schemaName));
@@ -277,6 +281,10 @@ public class V2TypeGenerator implements TypeGenerator {
         for(var group : groups.entrySet()) {
             var interfaceName = TextUtils.nameWithoutModule(group.getKey());
             interfaces.put(Map.entry(group.getKey(), getAndApplyInterfaceInfo(interfaceName, group.getValue(), context)), group.getValue());
+        }
+
+        if(!interfaces.isEmpty()) {
+            Files.createDirectories(context.outputDirectory.resolve("interfaces"));
         }
 
         for(var iface : interfaces.entrySet()) {
