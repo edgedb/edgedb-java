@@ -312,14 +312,16 @@ public class V2TypeGenerator implements TypeGenerator {
                             .addAnnotation(Override.class)
                             .returns(interfaceElement.getMethod.returnType);
 
+                    var optionalType = interfaceElement.property.cardinality == Cardinality.AT_MOST_ONE
+                            ? NullableOptional.class
+                            : Optional.class;
+
                     if(field.isPresent()) {
                         if(!interfaceElement.isOptional) {
                             methodSpec.addJavadoc("Returns the {@code $L} field of this class", field.get().name);
                             methodSpec.addCode("return this.$N;", field.get());
                         } else {
-                            var optionalType = interfaceElement.property.cardinality == Cardinality.AT_MOST_ONE
-                                    ? NullableOptional.class
-                                    : Optional.class;
+
                             methodSpec.addCode("return $T.of(this.$N);", optionalType, field.get());
                             methodSpec.addJavadoc(
                                     "Returns an optional wrapping the {@code $L} field, which is always present on " +
@@ -328,7 +330,7 @@ public class V2TypeGenerator implements TypeGenerator {
                             );
                         }
                     } else {
-                        methodSpec.addCode("return $T.empty();", Optional.class);
+                        methodSpec.addCode("return $T.empty();", optionalType);
                         methodSpec.addJavadoc("Returns an optional whose value isn't present on the current class");
                     }
 

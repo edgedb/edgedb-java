@@ -23,18 +23,6 @@ public final class GetUserCommentsComment implements Comment {
   public final UUID id;
 
   /**
-   * The {@code created_at} field on the {@code codegen::Comment} object
-   */
-  @EdgeDBName("created_at")
-  public final @Nullable OffsetDateTime createdAt;
-
-  /**
-   * The {@code post} field on the {@code codegen::Comment} object
-   */
-  @EdgeDBName("post")
-  public final GetUserCommentsPost post;
-
-  /**
    * The {@code author} field on the {@code codegen::Comment} object
    */
   @EdgeDBName("author")
@@ -46,16 +34,44 @@ public final class GetUserCommentsComment implements Comment {
   @EdgeDBName("content")
   public final String content;
 
+  /**
+   * The {@code created_at} field on the {@code codegen::Comment} object
+   */
+  @EdgeDBName("created_at")
+  public final @Nullable OffsetDateTime createdAt;
+
+  /**
+   * The {@code post} field on the {@code codegen::Comment} object
+   */
+  @EdgeDBName("post")
+  public final GetUserCommentsPost post;
+
   @EdgeDBDeserializer
   public GetUserCommentsComment(@EdgeDBName("id") UUID id,
+      @EdgeDBName("author") GetUserCommentsUser author, @EdgeDBName("content") String content,
       @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt,
-      @EdgeDBName("post") GetUserCommentsPost post,
-      @EdgeDBName("author") GetUserCommentsUser author, @EdgeDBName("content") String content) {
+      @EdgeDBName("post") GetUserCommentsPost post) {
     this.id = id;
-    this.createdAt = createdAt;
-    this.post = post;
     this.author = author;
     this.content = content;
+    this.createdAt = createdAt;
+    this.post = post;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code content} field, which is always present on this type.
+   */
+  @Override
+  public Optional<String> getContent() {
+    return Optional.of(this.content);
+  }
+
+  /**
+   * Returns an optional wrapping the {@code author} field, which is always present on this type.
+   */
+  @Override
+  public Optional<User> getAuthor() {
+    return Optional.of(this.author);
   }
 
   /**
@@ -80,21 +96,5 @@ public final class GetUserCommentsComment implements Comment {
   @Override
   public Optional<Post> getPost() {
     return Optional.of(this.post);
-  }
-
-  /**
-   * Returns an optional wrapping the {@code author} field, which is always present on this type.
-   */
-  @Override
-  public Optional<User> getAuthor() {
-    return Optional.of(this.author);
-  }
-
-  /**
-   * Returns an optional wrapping the {@code content} field, which is always present on this type.
-   */
-  @Override
-  public Optional<String> getContent() {
-    return Optional.of(this.content);
   }
 }

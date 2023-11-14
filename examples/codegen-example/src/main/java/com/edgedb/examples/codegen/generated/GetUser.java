@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-14T11:16:52.822790-04:00}<br/>
+ * Generated on: {@code 2023-11-14T14:06:19.876004800-04:00}<br/>
  * Edgeql hash: {@code 9e084d7e0f3ffab82a66561d6221d0739b76453f485ec7ada58dca46f5251df8}
  * @see GetUserUser
  */

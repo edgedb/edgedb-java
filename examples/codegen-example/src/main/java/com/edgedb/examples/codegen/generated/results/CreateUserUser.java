@@ -26,11 +26,11 @@ public final class CreateUserUser implements User {
   }
 
   /**
-   * Returns an optional whose value isn't present on the current class
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<String> getName() {
-    return Optional.empty();
+  public UUID getId() {
+    return this.id;
   }
 
   /**
@@ -38,14 +38,14 @@ public final class CreateUserUser implements User {
    */
   @Override
   public NullableOptional<@Nullable OffsetDateTime> getJoinedAt() {
-    return Optional.empty();
+    return NullableOptional.empty();
   }
 
   /**
-   * Returns the {@code id} field of this class
+   * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public UUID getId() {
-    return this.id;
+  public Optional<String> getName() {
+    return Optional.empty();
   }
 }

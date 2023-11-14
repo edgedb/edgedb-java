@@ -17,6 +17,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Post {
   /**
+   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
+   */
+  NullableOptional<@Nullable OffsetDateTime> getCreatedAt();
+
+  /**
    * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
    */
   Optional<User> getAuthor();
@@ -27,17 +32,12 @@ public interface Post {
   Optional<String> getTitle();
 
   /**
-   * Gets the {@code id} property, available on all descendants of this interface.
-   */
-  UUID getId();
-
-  /**
    * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
    */
   Optional<String> getContent();
 
   /**
-   * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsPost}
+   * Gets the {@code id} property, available on all descendants of this interface.
    */
-  NullableOptional<@Nullable OffsetDateTime> getCreatedAt();
+  UUID getId();
 }

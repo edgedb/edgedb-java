@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserComments.edgeql}.<br/>
- * Generated on: {@code 2023-11-14T11:16:52.854790-04:00}<br/>
+ * Generated on: {@code 2023-11-14T14:06:19.915004800-04:00}<br/>
  * Edgeql hash: {@code 8e8232921413c7354f7a4ee2e4441fee6f30c5bfbc0c2efee1e4a83f0a6d7fc8}
  * @see GetUserCommentsComment
  */

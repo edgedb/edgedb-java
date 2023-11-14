@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserCommentsUser implements User {
   /**
-   * The {@code id} field on the {@code codegen::User} object
+   * The {@code name} field on the {@code codegen::User} object
    */
-  @EdgeDBName("id")
-  public final UUID id;
+  @EdgeDBName("name")
+  public final String name;
 
   /**
    * The {@code joined_at} field on the {@code codegen::User} object
@@ -27,25 +27,25 @@ public final class GetUserCommentsUser implements User {
   public final @Nullable OffsetDateTime joinedAt;
 
   /**
-   * The {@code name} field on the {@code codegen::User} object
+   * The {@code id} field on the {@code codegen::User} object
    */
-  @EdgeDBName("name")
-  public final String name;
+  @EdgeDBName("id")
+  public final UUID id;
 
   @EdgeDBDeserializer
-  public GetUserCommentsUser(@EdgeDBName("id") UUID id,
-      @EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt, @EdgeDBName("name") String name) {
-    this.id = id;
-    this.joinedAt = joinedAt;
+  public GetUserCommentsUser(@EdgeDBName("name") String name,
+      @EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt, @EdgeDBName("id") UUID id) {
     this.name = name;
+    this.joinedAt = joinedAt;
+    this.id = id;
   }
 
   /**
-   * Returns an optional wrapping the {@code name} field, which is always present on this type.
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<String> getName() {
-    return Optional.of(this.name);
+  public UUID getId() {
+    return this.id;
   }
 
   /**
@@ -57,10 +57,10 @@ public final class GetUserCommentsUser implements User {
   }
 
   /**
-   * Returns the {@code id} field of this class
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
    */
   @Override
-  public UUID getId() {
-    return this.id;
+  public Optional<String> getName() {
+    return Optional.of(this.name);
   }
 }

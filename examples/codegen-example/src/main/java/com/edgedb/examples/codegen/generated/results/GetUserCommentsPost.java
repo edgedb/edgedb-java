@@ -16,6 +16,18 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserCommentsPost implements Post {
   /**
+   * The {@code created_at} field on the {@code codegen::Post} object
+   */
+  @EdgeDBName("created_at")
+  public final @Nullable OffsetDateTime createdAt;
+
+  /**
+   * The {@code id} field on the {@code codegen::Post} object
+   */
+  @EdgeDBName("id")
+  public final UUID id;
+
+  /**
    * The {@code author} field on the {@code codegen::Post} object
    */
   @EdgeDBName("author")
@@ -28,33 +40,28 @@ public final class GetUserCommentsPost implements Post {
   public final String title;
 
   /**
-   * The {@code id} field on the {@code codegen::Post} object
-   */
-  @EdgeDBName("id")
-  public final UUID id;
-
-  /**
    * The {@code content} field on the {@code codegen::Post} object
    */
   @EdgeDBName("content")
   public final String content;
 
-  /**
-   * The {@code created_at} field on the {@code codegen::Post} object
-   */
-  @EdgeDBName("created_at")
-  public final @Nullable OffsetDateTime createdAt;
-
   @EdgeDBDeserializer
-  public GetUserCommentsPost(@EdgeDBName("author") GetUserCommentsUser author,
-      @EdgeDBName("title") String title, @EdgeDBName("id") UUID id,
-      @EdgeDBName("content") String content,
-      @EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt) {
+  public GetUserCommentsPost(@EdgeDBName("createdAt") @Nullable OffsetDateTime createdAt,
+      @EdgeDBName("id") UUID id, @EdgeDBName("author") GetUserCommentsUser author,
+      @EdgeDBName("title") String title, @EdgeDBName("content") String content) {
+    this.createdAt = createdAt;
+    this.id = id;
     this.author = author;
     this.title = title;
-    this.id = id;
     this.content = content;
-    this.createdAt = createdAt;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   */
+  @Override
+  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
+    return NullableOptional.of(this.createdAt);
   }
 
   /**
@@ -74,14 +81,6 @@ public final class GetUserCommentsPost implements Post {
   }
 
   /**
-   * Returns the {@code id} field of this class
-   */
-  @Override
-  public UUID getId() {
-    return this.id;
-  }
-
-  /**
    * Returns an optional wrapping the {@code content} field, which is always present on this type.
    */
   @Override
@@ -90,10 +89,10 @@ public final class GetUserCommentsPost implements Post {
   }
 
   /**
-   * Returns an optional wrapping the {@code createdAt} field, which is always present on this type.
+   * Returns the {@code id} field of this class
    */
   @Override
-  public NullableOptional<@Nullable OffsetDateTime> getCreatedAt() {
-    return NullableOptional.of(this.createdAt);
+  public UUID getId() {
+    return this.id;
   }
 }

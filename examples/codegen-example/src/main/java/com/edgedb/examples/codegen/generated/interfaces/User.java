@@ -20,9 +20,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface User {
   /**
-   * Gets the {@code name} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsUser}
+   * Gets the {@code id} property, available on all descendants of this interface.
    */
-  Optional<String> getName();
+  UUID getId();
 
   /**
    * Gets the {@code joined_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsUser}
@@ -30,7 +30,7 @@ public interface User {
   NullableOptional<@Nullable OffsetDateTime> getJoinedAt();
 
   /**
-   * Gets the {@code id} property, available on all descendants of this interface.
+   * Gets the {@code name} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserLikedPostsUser}, {@linkplain com.edgedb.examples.codegen.generated.results.GetUserPostsUser}
    */
-  UUID getId();
+  Optional<String> getName();
 }

@@ -15,12 +15,6 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserUser implements User {
   /**
-   * The {@code name} field on the {@code codegen::User} object
-   */
-  @EdgeDBName("name")
-  public final String name;
-
-  /**
    * The {@code id} field on the {@code codegen::User} object
    */
   @EdgeDBName("id")
@@ -32,20 +26,26 @@ public final class GetUserUser implements User {
   @EdgeDBName("joined_at")
   public final @Nullable OffsetDateTime joinedAt;
 
+  /**
+   * The {@code name} field on the {@code codegen::User} object
+   */
+  @EdgeDBName("name")
+  public final String name;
+
   @EdgeDBDeserializer
-  public GetUserUser(@EdgeDBName("name") String name, @EdgeDBName("id") UUID id,
-      @EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt) {
-    this.name = name;
+  public GetUserUser(@EdgeDBName("id") UUID id,
+      @EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt, @EdgeDBName("name") String name) {
     this.id = id;
     this.joinedAt = joinedAt;
+    this.name = name;
   }
 
   /**
-   * Returns an optional wrapping the {@code name} field, which is always present on this type.
+   * Returns the {@code id} field of this class
    */
   @Override
-  public Optional<String> getName() {
-    return Optional.of(this.name);
+  public UUID getId() {
+    return this.id;
   }
 
   /**
@@ -57,10 +57,10 @@ public final class GetUserUser implements User {
   }
 
   /**
-   * Returns the {@code id} field of this class
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
    */
   @Override
-  public UUID getId() {
-    return this.id;
+  public Optional<String> getName() {
+    return Optional.of(this.name);
   }
 }

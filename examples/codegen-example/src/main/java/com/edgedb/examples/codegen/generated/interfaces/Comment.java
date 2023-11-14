@@ -15,6 +15,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Comment {
   /**
+   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   */
+  Optional<String> getContent();
+
+  /**
+   * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
+   */
+  Optional<User> getAuthor();
+
+  /**
    * Gets the {@code created_at} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
   NullableOptional<@Nullable OffsetDateTime> getCreatedAt();
@@ -28,14 +38,4 @@ public interface Comment {
    * Gets the {@code post} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
    */
   Optional<Post> getPost();
-
-  /**
-   * Gets the {@code author} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
-   */
-  Optional<User> getAuthor();
-
-  /**
-   * Gets the {@code content} property, available on {@linkplain com.edgedb.examples.codegen.generated.results.GetUserCommentsComment}
-   */
-  Optional<String> getContent();
 }

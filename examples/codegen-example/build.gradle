@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     implementation project(path: ':src:driver')
+    compileOnly project(path: ':src:codegen')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
@@ -15,4 +16,28 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register('runEdgeDBCodegen', JavaExec) {
+    dependsOn project(':src:codegen').tasks.named("publish-jar")
+
+    ResolvedArtifact artifact = configurations.compileClasspath.resolvedConfiguration.resolvedArtifacts.find { it
+        it != null && it.moduleVersion.id.module.toString() == "com.edgedb:codegen"
+    }
+
+    if (artifact == null) {
+        errorOutput.println("Failed to find com.edgedb:codegen");
+        return
+    }
+
+    println projectDir
+
+    mainClass = "com.edgedb.codegen.Main"
+    classpath = files(artifact.file)
+    var outputPath = getProjectDir().toPath().resolve(java.nio.file.Path.of("src", "main", "java", "com", "edgedb", "examples", "codegen", "generated"));
+    args("generate", "-o", outputPath.toString(), "-n", "com.edgedb.examples.codegen.generated");
+}
+
+build {
+    dependsOn("runEdgeDBCodegen")
 }

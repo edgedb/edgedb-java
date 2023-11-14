@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-14T11:16:52.941789400-04:00}<br/>
+ * Generated on: {@code 2023-11-14T14:06:20.013526100-04:00}<br/>
  * Edgeql hash: {@code 28ea11f3c3059ac7c43e1458c567d3328b1e39e20a3e170a9f3dbaeaa2ce10b6}
  * @see LikePostUser
  */
