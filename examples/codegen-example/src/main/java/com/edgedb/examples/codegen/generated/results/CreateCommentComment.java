@@ -1,12 +1,12 @@
-package com.edgedb.generated.results;
+package com.edgedb.examples.codegen.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.generated.interfaces.Comment;
-import com.edgedb.generated.interfaces.Post;
-import com.edgedb.generated.interfaces.User;
+import com.edgedb.examples.codegen.generated.interfaces.Comment;
+import com.edgedb.examples.codegen.generated.interfaces.Post;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -55,7 +55,7 @@ public final class CreateCommentComment implements Comment {
    * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<String> getContent() {
+  public Optional<User> getAuthor() {
     return Optional.empty();
   }
 
@@ -63,7 +63,7 @@ public final class CreateCommentComment implements Comment {
    * Returns an optional whose value isn't present on the current class
    */
   @Override
-  public Optional<User> getAuthor() {
+  public Optional<String> getContent() {
     return Optional.empty();
   }
 }

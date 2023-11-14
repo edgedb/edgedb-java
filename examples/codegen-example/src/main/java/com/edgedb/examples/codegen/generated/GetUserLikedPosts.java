@@ -1,8 +1,8 @@
-package com.edgedb.generated;
+package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.generated.results.GetUserLikedPostsPost;
+import com.edgedb.examples.codegen.generated.results.GetUserLikedPostsPost;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserLikedPosts.edgeql}.<br/>
- * Generated on: {@code 2023-11-13T15:56:05.733002700-04:00}<br/>
+ * Generated on: {@code 2023-11-14T11:16:52.885791-04:00}<br/>
  * Edgeql hash: {@code 1f3497b68a32121bb11aa23cb509dee9d3e0365e749abbddd79d69f86d41c9f3}
  * @see GetUserLikedPostsPost
  */

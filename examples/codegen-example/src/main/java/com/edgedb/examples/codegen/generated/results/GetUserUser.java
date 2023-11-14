@@ -1,10 +1,10 @@
-package com.edgedb.generated.results;
+package com.edgedb.examples.codegen.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.generated.interfaces.User;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 @EdgeDBType
 public final class GetUserUser implements User {
   /**
-   * The {@code joined_at} field on the {@code codegen::User} object
+   * The {@code name} field on the {@code codegen::User} object
    */
-  @EdgeDBName("joined_at")
-  public final @Nullable OffsetDateTime joinedAt;
+  @EdgeDBName("name")
+  public final String name;
 
   /**
    * The {@code id} field on the {@code codegen::User} object
@@ -27,17 +27,25 @@ public final class GetUserUser implements User {
   public final UUID id;
 
   /**
-   * The {@code name} field on the {@code codegen::User} object
+   * The {@code joined_at} field on the {@code codegen::User} object
    */
-  @EdgeDBName("name")
-  public final String name;
+  @EdgeDBName("joined_at")
+  public final @Nullable OffsetDateTime joinedAt;
 
   @EdgeDBDeserializer
-  public GetUserUser(@EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt,
-      @EdgeDBName("id") UUID id, @EdgeDBName("name") String name) {
-    this.joinedAt = joinedAt;
-    this.id = id;
+  public GetUserUser(@EdgeDBName("name") String name, @EdgeDBName("id") UUID id,
+      @EdgeDBName("joinedAt") @Nullable OffsetDateTime joinedAt) {
     this.name = name;
+    this.id = id;
+    this.joinedAt = joinedAt;
+  }
+
+  /**
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
+   */
+  @Override
+  public Optional<String> getName() {
+    return Optional.of(this.name);
   }
 
   /**
@@ -54,13 +62,5 @@ public final class GetUserUser implements User {
   @Override
   public UUID getId() {
     return this.id;
-  }
-
-  /**
-   * Returns an optional wrapping the {@code name} field, which is always present on this type.
-   */
-  @Override
-  public Optional<String> getName() {
-    return Optional.of(this.name);
   }
 }

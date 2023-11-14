@@ -1,12 +1,12 @@
-package com.edgedb.generated.results;
+package com.edgedb.examples.codegen.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.generated.interfaces.Comment;
-import com.edgedb.generated.interfaces.Post;
-import com.edgedb.generated.interfaces.User;
+import com.edgedb.examples.codegen.generated.interfaces.Comment;
+import com.edgedb.examples.codegen.generated.interfaces.Post;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -83,18 +83,18 @@ public final class GetUserCommentsComment implements Comment {
   }
 
   /**
-   * Returns an optional wrapping the {@code content} field, which is always present on this type.
-   */
-  @Override
-  public Optional<String> getContent() {
-    return Optional.of(this.content);
-  }
-
-  /**
    * Returns an optional wrapping the {@code author} field, which is always present on this type.
    */
   @Override
   public Optional<User> getAuthor() {
     return Optional.of(this.author);
+  }
+
+  /**
+   * Returns an optional wrapping the {@code content} field, which is always present on this type.
+   */
+  @Override
+  public Optional<String> getContent() {
+    return Optional.of(this.content);
   }
 }

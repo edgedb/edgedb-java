@@ -1,8 +1,8 @@
-package com.edgedb.generated;
+package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.generated.results.GetUserUser;
+import com.edgedb.examples.codegen.generated.results.GetUserUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-13T15:56:05.670007200-04:00}<br/>
+ * Generated on: {@code 2023-11-14T11:16:52.822790-04:00}<br/>
  * Edgeql hash: {@code 9e084d7e0f3ffab82a66561d6221d0739b76453f485ec7ada58dca46f5251df8}
  * @see GetUserUser
  */

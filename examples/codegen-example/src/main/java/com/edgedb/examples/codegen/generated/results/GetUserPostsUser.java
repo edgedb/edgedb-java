@@ -1,10 +1,10 @@
-package com.edgedb.generated.results;
+package com.edgedb.examples.codegen.generated.results;
 
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.NullableOptional;
-import com.edgedb.generated.interfaces.User;
+import com.edgedb.examples.codegen.generated.interfaces.User;
 import java.lang.Override;
 import java.lang.String;
 import java.time.OffsetDateTime;
@@ -41,6 +41,14 @@ public final class GetUserPostsUser implements User {
   }
 
   /**
+   * Returns an optional wrapping the {@code name} field, which is always present on this type.
+   */
+  @Override
+  public Optional<String> getName() {
+    return Optional.of(this.name);
+  }
+
+  /**
    * Returns an optional wrapping the {@code joinedAt} field, which is always present on this type.
    */
   @Override
@@ -54,13 +62,5 @@ public final class GetUserPostsUser implements User {
   @Override
   public UUID getId() {
     return this.id;
-  }
-
-  /**
-   * Returns an optional wrapping the {@code name} field, which is always present on this type.
-   */
-  @Override
-  public Optional<String> getName() {
-    return Optional.of(this.name);
   }
 }

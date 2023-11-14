@@ -1,8 +1,8 @@
-package com.edgedb.generated;
+package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.generated.results.CreatePostPost;
+import com.edgedb.examples.codegen.generated.results.CreatePostPost;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreatePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-13T15:56:05.599490600-04:00}<br/>
+ * Generated on: {@code 2023-11-14T11:16:52.756791700-04:00}<br/>
  * Edgeql hash: {@code 56ebb4f23fb0cdcc2882915a7ea173106b04f9263e793a4e9e0330e2a00420e9}
  * @see CreatePostPost
  */
