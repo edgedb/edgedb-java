@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserPostsPost;
+import com.edgedb.examples.codegen.generated.results.GetUserPostsResult;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,22 +12,22 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserPosts.edgeql}.<br/>
- * Generated on: {@code 2023-11-14T14:06:19.983527-04:00}<br/>
- * Edgeql hash: {@code bd5c7530ae22329782d013e73a141e65e5fb26b68d1f8b0ef40f32b67438cafd}
- * @see GetUserPostsPost
+ * Generated on: {@code 2023-11-15T12:44:37.920404-05:00}<br/>
+ * Edgeql hash: {@code f77ad16675a4b3605965ba85381b3b5a976ecc9f6cc72f5d1546f4dc97b8c69f}
+ * @see GetUserPostsResult
  */
 public final class GetUserPosts {
-  public static final String QUERY = "WITH\r\n"
-      + "    module codegen\r\n"
-      + "SELECT Post {\r\n"
-      + "    title,\r\n"
-      + "    author: {\r\n"
-      + "        name,\r\n"
-      + "        joined_at\r\n"
-      + "    },\r\n"
-      + "    content,\r\n"
-      + "    created_at\r\n"
-      + "}\r\n"
+  public static final String QUERY = "WITH\n"
+      + "    module codegen\n"
+      + "SELECT Post {\n"
+      + "    title,\n"
+      + "    author: {\n"
+      + "        name,\n"
+      + "        joined_at\n"
+      + "    },\n"
+      + "    content,\n"
+      + "    created_at\n"
+      + "}\n"
       + "FILTER .author.id = <uuid>$author_id";
 
   /**
@@ -46,13 +46,14 @@ public final class GetUserPosts {
    *       created_at
    *   }
    *   FILTER .author.id = <uuid>$author_id}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserPostsPost}
+   * The result of the query is represented as the generated class {@linkplain GetUserPostsResult}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserPostsPost}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserPostsResult}.
    */
-  public static CompletionStage<List<GetUserPostsPost>> run(EdgeDBQueryable client, UUID authorId) {
+  public static CompletionStage<List<GetUserPostsResult>> run(EdgeDBQueryable client,
+      UUID authorId) {
       return client.query(
-          GetUserPostsPost.class, 
+          GetUserPostsResult.class, 
           QUERY, 
           new HashMap<>(){{
             put("author_id", authorId);

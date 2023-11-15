@@ -144,7 +144,7 @@ public final class TypeVisitor implements CodecVisitor {
             innerCodec = visitor.visit(codec.getInnerCodec());
         }
 
-        return visitor.visit(codec.compile(visitor.getContext().type, innerCodec));
+        return visitor.visit(codec.getOrCompile(visitor.getContext().type, innerCodec));
     }
 
     public static Codec<?> visitComplexCodec(@NotNull TypeVisitor visitor, @NotNull ComplexCodec<?> codec) {

@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserUser;
+import com.edgedb.examples.codegen.generated.results.GetUserResult;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,18 +11,38 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-14T14:06:19.876004800-04:00}<br/>
- * Edgeql hash: {@code 9e084d7e0f3ffab82a66561d6221d0739b76453f485ec7ada58dca46f5251df8}
- * @see GetUserUser
+ * Generated on: {@code 2023-11-15T12:44:37.605995-05:00}<br/>
+ * Edgeql hash: {@code ec6fd763528c072fa2801a23b62d176f426681c46b333384b98130e775494c1d}
+ * @see GetUserResult
  */
 public final class GetUser {
-  public static final String QUERY = "WITH\r\n"
-      + "    module codegen\r\n"
-      + "SELECT User {\r\n"
-      + "    id,\r\n"
-      + "    name,\r\n"
-      + "    joined_at,\r\n"
-      + "}\r\n"
+  public static final String QUERY = "WITH\n"
+      + "    module codegen\n"
+      + "SELECT User {\n"
+      + "    id,\n"
+      + "    name,\n"
+      + "    joined_at,\n"
+      + "    liked_posts: {\n"
+      + "        id,\n"
+      + "        title,\n"
+      + "        created_at,\n"
+      + "    },\n"
+      + "    posts := (\n"
+      + "        SELECT Post {\n"
+      + "            id,\n"
+      + "            title,\n"
+      + "            created_at,\n"
+      + "        } FILTER .author = User\n"
+      + "    ),\n"
+      + "    comments := (\n"
+      + "        SELECT Comment {\n"
+      + "            id,\n"
+      + "            content,\n"
+      + "            post: { id },\n"
+      + "            created_at,\n"
+      + "        } FILTER .author = User\n"
+      + "    )\n"
+      + "}\n"
       + "FILTER .name = <str>$name";
 
   /**
@@ -35,15 +55,35 @@ public final class GetUser {
    *       id,
    *       name,
    *       joined_at,
+   *       liked_posts: {
+   *           id,
+   *           title,
+   *           created_at,
+   *       },
+   *       posts := (
+   *           SELECT Post {
+   *               id,
+   *               title,
+   *               created_at,
+   *           } FILTER .author = User
+   *       ),
+   *       comments := (
+   *           SELECT Comment {
+   *               id,
+   *               content,
+   *               post: { id },
+   *               created_at,
+   *           } FILTER .author = User
+   *       )
    *   }
    *   FILTER .name = <str>$name}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserUser}
+   * The result of the query is represented as the generated class {@linkplain GetUserResult}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserUser}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserResult}.
    */
-  public static CompletionStage<@Nullable GetUserUser> run(EdgeDBQueryable client, String name) {
+  public static CompletionStage<@Nullable GetUserResult> run(EdgeDBQueryable client, String name) {
       return client.querySingle(
-          GetUserUser.class, 
+          GetUserResult.class, 
           QUERY, 
           new HashMap<>(){{
             put("name", name);

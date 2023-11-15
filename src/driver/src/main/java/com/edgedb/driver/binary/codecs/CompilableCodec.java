@@ -56,8 +56,12 @@ public final class CompilableCodec implements Codec {
         return this.innerCodec;
     }
 
+    public Codec<?> getOrCompile(Class<?> cls, Codec<?> innerCodec) {
+        return instanceCache.computeIfAbsent(cls, (c) -> compile(c, innerCodec));
+    }
+
     public Codec<?> compile(Class<?> cls, Codec<?> innerCodec) {
-        return instanceCache.computeIfAbsent(cls, (c) -> this.factory.compile(this.id, this.metadata, c, innerCodec));
+        return this.factory.compile(this.id, this.metadata, cls, innerCodec);
     }
 
     public Class<?> getInnerType() {

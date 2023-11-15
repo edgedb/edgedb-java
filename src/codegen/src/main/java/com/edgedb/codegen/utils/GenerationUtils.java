@@ -3,8 +3,11 @@ package com.edgedb.codegen.utils;
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.binary.codecs.ObjectCodec;
+import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.squareup.javapoet.*;
+import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -14,6 +17,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class GenerationUtils {
+    public static TypeName applyPropertyCardinality(ObjectCodec.ObjectProperty property, TypeName type) {
+        if(property.cardinality != null) {
+            if (property.cardinality == Cardinality.AT_MOST_ONE) {
+                return type.annotated(AnnotationSpec.builder(Nullable.class).build());
+            }
+        }
+
+        return type;
+    }
+
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));

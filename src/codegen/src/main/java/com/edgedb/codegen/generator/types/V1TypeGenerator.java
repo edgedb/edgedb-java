@@ -2,6 +2,7 @@ package com.edgedb.codegen.generator.types;
 
 import com.edgedb.codegen.generator.GeneratorContext;
 import com.edgedb.codegen.generator.GeneratorTargetInfo;
+import com.edgedb.codegen.utils.GenerationUtils;
 import com.edgedb.driver.annotations.EdgeDBDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
@@ -52,12 +53,17 @@ public class V1TypeGenerator implements TypeGenerator {
             return TypeName.get(scalarCodec.getConvertingClass());
         } else if (codec instanceof NullCodec) {
             return TypeName.OBJECT;
+        } else if (codec instanceof CompilableCodec) {
+            var compilableCodec = (CompilableCodec)codec;
+            return getType(compilableCodec.compile(Object.class, compilableCodec.getInnerCodec()), name, workingFile, context);
         }
 
         throw new UnsupportedOperationException("Unknown type parse path for the codec " + codec.getClass());
     }
 
     private TypeName generateResultType(ObjectCodec object, @Nullable String name, @Nullable Path workingFile, GeneratorContext context) throws IOException {
+        Files.createDirectories(context.outputDirectory.resolve(Path.of("results")));
+
         var typeName = name == null ? getSubtypeName(null) : name;
         var typeSpec = TypeSpec.classBuilder(typeName)
                 .addAnnotation(EdgeDBType.class)
@@ -66,8 +72,17 @@ public class V1TypeGenerator implements TypeGenerator {
         var fields = new ArrayList<FieldSpec>();
 
         for (var property : object.elements) {
-            var fieldSpec = FieldSpec.builder(
-                    getType(property.codec, property.name, workingFile, context),
+            var propertyType = GenerationUtils.applyPropertyCardinality(
+                    property,
+                    getType(
+                            property.codec,
+                            typeName+NamingStrategy.pascalCase().convert(property.name),
+                            workingFile,
+                            context
+                    )
+            );
+
+            var fieldSpec = FieldSpec.builder(propertyType,
                     NamingStrategy.camelCase().convert(property.name),
                     Modifier.FINAL, Modifier.PRIVATE
             ).addAnnotation(AnnotationSpec.builder(EdgeDBName.class)

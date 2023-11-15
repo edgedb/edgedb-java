@@ -78,7 +78,7 @@ public class V2TypeGenerator implements TypeGenerator {
             this.fields = properties.entrySet().stream()
                     .map(v ->
                             FieldSpec.builder(
-                                            applyPropertyCardinality(v.getKey(), v.getValue()),
+                                            GenerationUtils.applyPropertyCardinality(v.getKey(), v.getValue()),
                                             NamingStrategy.camelCase().convert(v.getKey().name),
                                             Modifier.FINAL, Modifier.PUBLIC
                                     )
@@ -147,7 +147,13 @@ public class V2TypeGenerator implements TypeGenerator {
         define(SetCodec.class, V2TypeGenerator.this::parseSetCodec);
         define(ScalarCodec.class, V2TypeGenerator.this::parseScalarCodec);
         define(NullCodec.class, V2TypeGenerator.this::parseNullCodec);
+        define(CompilableCodec.class, V2TypeGenerator.this::parseCompilableCodec);
     }};
+
+    private TypeName parseCompilableCodec(Codec<?> codec, GeneratorTargetInfo target, GeneratorContext context) {
+        var compilableCodec = (CompilableCodec)codec;
+        return getType(compilableCodec.compile(Object.class, compilableCodec.getInnerCodec()), target, context);
+    }
 
     private final Map<UUID, List<ClassGenerationInfo>> resultShapes;
     private final List<ObjectGenerationInfo> generatedTypes;
@@ -483,7 +489,7 @@ public class V2TypeGenerator implements TypeGenerator {
             elementType = element.getTypeName();
         }
 
-        elementType = applyPropertyCardinality(property, elementType);
+        elementType = GenerationUtils.applyPropertyCardinality(property, elementType);
 
         if(info.isOptionalProperty(property))  {
             var optionalType = property.cardinality == Cardinality.AT_MOST_ONE //elementType.annotations.stream().anyMatch(v -> v.type.equals(ClassName.get(Nullable.class)))
@@ -494,19 +500,5 @@ public class V2TypeGenerator implements TypeGenerator {
         }
 
         return elementType;
-    }
-
-    private static TypeName applyPropertyCardinality(ObjectCodec.ObjectProperty property, TypeName type) {
-        if(property.cardinality != null) {
-            switch (property.cardinality) {
-                case AT_MOST_ONE:
-                    return type.annotated(AnnotationSpec.builder(Nullable.class).build());
-                case MANY:
-                case AT_LEAST_ONE:
-                    return ParameterizedTypeName.get(ClassName.get(Collection.class), type);
-            }
-        }
-
-        return type;
     }
 }
