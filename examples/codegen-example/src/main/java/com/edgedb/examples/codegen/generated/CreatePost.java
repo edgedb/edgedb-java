@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.CreatePostResult;
+import com.edgedb.examples.codegen.generated.results.CreatePostPost;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,9 +11,9 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code CreatePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-15T12:44:37.972945-05:00}<br/>
+ * Generated on: {@code 2023-11-15T12:47:47.748381-05:00}<br/>
  * Edgeql hash: {@code 4fc76a0aeecf7e7794ccab762a3dc6a790b93369c30cef13fec3eeff71509d16}
- * @see CreatePostResult
+ * @see CreatePostPost
  */
 public final class CreatePost {
   public static final String QUERY = "WITH\n"
@@ -35,14 +35,14 @@ public final class CreatePost {
    *       author := <User><uuid>$author_id,
    *       content := <str>$content
    *   }}</pre>
-   * The result of the query is represented as the generated class {@linkplain CreatePostResult}
+   * The result of the query is represented as the generated class {@linkplain CreatePostPost}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain CreatePostResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain CreatePostPost}.
    */
-  public static CompletionStage<CreatePostResult> run(EdgeDBQueryable client, String title,
+  public static CompletionStage<CreatePostPost> run(EdgeDBQueryable client, String title,
       UUID authorId, String content) {
       return client.queryRequiredSingle(
-          CreatePostResult.class, 
+          CreatePostPost.class, 
           QUERY, 
           new HashMap<>(){{
             put("title", title);

@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.LikePostResult;
+import com.edgedb.examples.codegen.generated.results.LikePostUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,9 +11,9 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code LikePost.edgeql}.<br/>
- * Generated on: {@code 2023-11-15T12:44:37.675554-05:00}<br/>
+ * Generated on: {@code 2023-11-15T12:47:47.382881-05:00}<br/>
  * Edgeql hash: {@code 14b91fa021d16c11322dfce0cda923611ae1a454bcf3e757ec10914b8e3c0b11}
- * @see LikePostResult
+ * @see LikePostUser
  */
 public final class LikePost {
   public static final String QUERY = "WITH \n"
@@ -37,14 +37,14 @@ public final class LikePost {
    *   SET {
    *       liked_posts += <Post>post_id
    *   }}</pre>
-   * The result of the query is represented as the generated class {@linkplain LikePostResult}
+   * The result of the query is represented as the generated class {@linkplain LikePostUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain LikePostUser}.
    */
-  public static CompletionStage<LikePostResult> run(EdgeDBQueryable client, UUID postId,
+  public static CompletionStage<LikePostUser> run(EdgeDBQueryable client, UUID postId,
       UUID authorId) {
       return client.queryRequiredSingle(
-          LikePostResult.class, 
+          LikePostUser.class, 
           QUERY, 
           new HashMap<>(){{
             put("post_id", postId);

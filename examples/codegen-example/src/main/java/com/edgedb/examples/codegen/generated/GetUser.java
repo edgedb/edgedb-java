@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserResult;
+import com.edgedb.examples.codegen.generated.results.GetUserUser;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,9 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUser.edgeql}.<br/>
- * Generated on: {@code 2023-11-15T12:44:37.605995-05:00}<br/>
+ * Generated on: {@code 2023-11-15T12:47:47.264427-05:00}<br/>
  * Edgeql hash: {@code ec6fd763528c072fa2801a23b62d176f426681c46b333384b98130e775494c1d}
- * @see GetUserResult
+ * @see GetUserUser
  */
 public final class GetUser {
   public static final String QUERY = "WITH\n"
@@ -77,13 +77,13 @@ public final class GetUser {
    *       )
    *   }
    *   FILTER .name = <str>$name}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserResult}
+   * The result of the query is represented as the generated class {@linkplain GetUserUser}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserUser}.
    */
-  public static CompletionStage<@Nullable GetUserResult> run(EdgeDBQueryable client, String name) {
+  public static CompletionStage<@Nullable GetUserUser> run(EdgeDBQueryable client, String name) {
       return client.querySingle(
-          GetUserResult.class, 
+          GetUserUser.class, 
           QUERY, 
           new HashMap<>(){{
             put("name", name);

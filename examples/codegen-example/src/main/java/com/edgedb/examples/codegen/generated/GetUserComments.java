@@ -2,7 +2,7 @@ package com.edgedb.examples.codegen.generated;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.EdgeDBQueryable;
-import com.edgedb.examples.codegen.generated.results.GetUserCommentsResult;
+import com.edgedb.examples.codegen.generated.results.GetUserCommentsComment;
 import java.lang.String;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,9 +12,9 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * A class containing the generated code responsible for the edgeql file {@code GetUserComments.edgeql}.<br/>
- * Generated on: {@code 2023-11-15T12:44:37.501660-05:00}<br/>
+ * Generated on: {@code 2023-11-15T12:47:47.130498-05:00}<br/>
  * Edgeql hash: {@code 95a5d9b606a76365b04dbdf4920cd89a2d814093e429d0e0446faa66ff421f83}
- * @see GetUserCommentsResult
+ * @see GetUserCommentsComment
  */
 public final class GetUserComments {
   public static final String QUERY = "WITH\n"
@@ -62,14 +62,14 @@ public final class GetUserComments {
    *       created_at
    *   }
    *   FILTER .author.id = <uuid>$author_id}</pre>
-   * The result of the query is represented as the generated class {@linkplain GetUserCommentsResult}
+   * The result of the query is represented as the generated class {@linkplain GetUserCommentsComment}
    * @return A {@linkplain CompletionStage} that represents the asynchronous operation of executing the query and 
-   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserCommentsResult}.
+   * parsing the result. The {@linkplain CompletionStage} result is {@linkplain GetUserCommentsComment}.
    */
-  public static CompletionStage<List<GetUserCommentsResult>> run(EdgeDBQueryable client,
+  public static CompletionStage<List<GetUserCommentsComment>> run(EdgeDBQueryable client,
       UUID authorId) {
       return client.query(
-          GetUserCommentsResult.class, 
+          GetUserCommentsComment.class, 
           QUERY, 
           new HashMap<>(){{
             put("author_id", authorId);
