@@ -28,18 +28,18 @@ object Main {
                 Transactions()
         )
 
-        runBlocking {
-            for (example in examples) {
-                logger.info("Running Kotlin example {}...", example)
-                try {
-                    example.runAsync(client)
-                    logger.info("Kotlin example {} complete!", example)
-                } catch (x: Exception) {
-                    logger.error("Failed to run Kotlin example {}", example, x)
+        client.use {
+            runBlocking {
+                for (example in examples) {
+                    logger.info("Running Kotlin example {}...", example)
+                    try {
+                        example.runAsync(client)
+                        logger.info("Kotlin example {} complete!", example)
+                    } catch (x: Exception) {
+                        logger.error("Failed to run Kotlin example {}", example, x)
+                    }
                 }
             }
         }
-
-        exitProcess(0)
     }
 }

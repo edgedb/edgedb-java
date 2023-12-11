@@ -5,9 +5,11 @@ import com.edgedb.driver.clients.*;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConfigurationException;
 import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.pooling.ClientPool;
+import com.edgedb.driver.pooling.PoolContract;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
-import com.edgedb.driver.util.ClientPoolHolder;
+import com.edgedb.driver.util.CleanerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,10 +61,12 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
     private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
-    private final ClientPoolHolder poolHolder;
+    private final ClientPool clientPool;
     private final ClientFactory clientFactory;
     private final Session session;
     private final int clientAvailability;
+
+    private final AtomicBoolean isClosed;
 
     /**
      * Constructs a new {@linkplain EdgeDBClient}.
@@ -73,10 +78,20 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
-        this.poolHolder = new ClientPoolHolder(config.getPoolSize());
         this.clientFactory = createClientFactory();
         this.session = Session.DEFAULT;
         this.clientAvailability = config.getClientAvailability();
+        this.isClosed = new AtomicBoolean(false);
+
+        this.clientPool = new ClientPool(config.getPoolSize());
+        this.clientPool.addShareholder();
+
+        CleanerProvider.getCleaner().register(this, new CleanerState(
+                this.clientPool,
+                this.clients,
+                this.clientCount,
+                this.isClosed
+        ));
     }
 
     /**
@@ -111,10 +126,20 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = other.config;
         this.connection = other.connection;
-        this.poolHolder = other.poolHolder;
         this.clientFactory = other.clientFactory;
         this.session = session;
         this.clientAvailability = other.clientAvailability;
+        this.isClosed = new AtomicBoolean(false);
+
+        this.clientPool = other.clientPool;
+        this.clientPool.addShareholder();
+
+        CleanerProvider.getCleaner().register(this, new CleanerState(
+                this.clientPool,
+                this.clients,
+                this.clientCount,
+                this.isClosed
+        ));
     }
 
     public int getClientCount() {
@@ -327,15 +352,6 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         );
     }
 
-    @Override
-    public void close() throws Exception {
-        int count = clientCount.get();
-        while(!clients.isEmpty() && count > 0) {
-            clients.poll().client.disconnect().toCompletableFuture().get();
-            count = clientCount.decrementAndGet();
-        }
-    }
-
     private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
         logger.trace("polling cached clients...");
         var cachedClient = clients.poll();
@@ -394,15 +410,15 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
     private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseEdgeDBClient client) {
         var suggestedConcurrency = client.getSuggestedPoolConcurrency();
 
-        suggestedConcurrency.ifPresent(this.poolHolder::resize);
+        suggestedConcurrency.ifPresent(this.clientPool::resize);
 
         return CompletableFuture.completedFuture(null);
     }
 
     private CompletionStage<BaseEdgeDBClient> createClient() {
-        return this.poolHolder.acquireContract()
+        return this.clientPool.acquireContract()
                 .thenApply(contract -> {
-                    logger.trace("Contract acquired, remaining handles: {}", this.poolHolder.remaining());
+                    logger.trace("Contract acquired, remaining handles: {}", this.clientPool.remaining());
                     BaseEdgeDBClient client;
                     try {
                         client = clientFactory.create(this.connection, this.config, contract);
@@ -417,9 +433,79 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
                 .thenApply(client -> client.withSession(this.session));
     }
 
+    @Override
+    public void close() throws Exception {
+        logger.debug("Cleaning from explicit close");
+        if(!isClosed.compareAndSet(false, true)) {
+            logger.debug("Cleaning already preformed");
+            return;
+        }
+
+        int count = clientCount.get();
+        while(!clients.isEmpty() && count > 0) {
+            clients.poll().client.disconnect().toCompletableFuture().get();
+            count = clientCount.decrementAndGet();
+        }
+
+        if(this.clientPool.removeShareholder()) {
+            this.clientPool.close();
+        }
+
+        logger.debug("Cleaning complete");
+    }
+
+    private static class CleanerState implements Runnable {
+        private final ClientPool pool;
+        private final ConcurrentLinkedQueue<PooledClient> clients;
+        private final AtomicInteger clientCount;
+        private final AtomicBoolean isClosed;
+
+        public CleanerState(
+                ClientPool pool,
+                ConcurrentLinkedQueue<PooledClient> clients,
+                AtomicInteger clientCount,
+                AtomicBoolean isClosed
+        ) {
+            this.pool = pool;
+            this.clients = clients;
+            this.clientCount = clientCount;
+            this.isClosed = isClosed;
+        }
+
+        @Override
+        public void run() {
+            logger.debug("Running cleaning from garbage collection");
+            if(!isClosed.compareAndSet(false, true)) {
+                logger.debug("Cleaning already preformed");
+                return;
+            }
+
+            int count = clientCount.get();
+            while(!clients.isEmpty() && count > 0) {
+                try {
+                    clients.poll().client.disconnect().toCompletableFuture().get();
+                } catch (Exception x) {
+                    logger.warn("Failed to disconnect client", x);
+                }
+                count = clientCount.decrementAndGet();
+            }
+
+            if(this.pool.removeShareholder()) {
+                try {
+                    this.pool.close();
+                } catch (Exception x) {
+                    logger.warn("Failed to close client pool", x);
+                }
+            }
+
+            logger.debug("Cleaning complete");
+        }
+    }
+
+
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
+        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, PoolContract poolContract)
                 throws EdgeDBException;
     }
 }

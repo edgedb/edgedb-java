@@ -21,11 +21,13 @@ class GlobalsAndConfig : Example {
                         "current_user_id" to UUID.randomUUID()
                 ))
 
-        val currentUserId = configuredClient.queryRequiredSingle(
-                UUID::class.java,
-                "SELECT GLOBAL current_user_id"
-        ).await()
+       configuredClient.use {
+           val currentUserId = configuredClient.queryRequiredSingle(
+                   UUID::class.java,
+                   "SELECT GLOBAL current_user_id"
+           ).await()
 
-        logger.info("Current user ID: {}", currentUserId)
+           logger.info("Current user ID: {}", currentUserId)
+       }
     }
 }

@@ -1,19 +1,18 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.*;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, EdgeDBException {
+    public static void main(String[] args) throws Exception {
         var client = new EdgeDBClient(EdgeDBClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
@@ -24,7 +23,7 @@ public class Main {
 
         logger.info("Examples complete");
 
-        System.exit(0);
+        client.close();
     }
 
     private static void runJavaExamples(EdgeDBClient client) {
