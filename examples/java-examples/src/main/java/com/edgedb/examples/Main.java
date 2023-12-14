@@ -13,17 +13,18 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        var client = new EdgeDBClient(EdgeDBClientConfig.builder()
+        try (var client = new EdgeDBClient(EdgeDBClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
                 .build()
-        ).withModule("examples");
+        ).withModule("examples")) {
+            runJavaExamples(client);
 
-        runJavaExamples(client);
+            logger.info("Examples complete");
+        }
 
-        logger.info("Examples complete");
-
-        client.close();
+        // run a GC cycle to ensure that any remaining dormant client instances get collected and closed.
+        System.gc();
     }
 
     private static void runJavaExamples(EdgeDBClient client) {

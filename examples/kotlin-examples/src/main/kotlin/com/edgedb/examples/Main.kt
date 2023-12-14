@@ -41,5 +41,8 @@ object Main {
                 }
             }
         }
+
+        // run a GC cycle to ensure that any remaining dormant client instances get collected and closed.
+        System.gc();
     }
 }
