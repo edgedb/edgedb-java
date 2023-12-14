@@ -4,6 +4,7 @@ import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.driver.async.AsyncEvent;
+import com.edgedb.driver.pooling.PoolContract;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
 import org.jetbrains.annotations.NotNull;
@@ -21,16 +22,20 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
     private final EdgeDBConnection connection;
     private final EdgeDBClientConfig config;
-    private final AutoCloseable poolHandle;
+    private final PoolContract poolContract;
 
     protected Session session;
 
-    public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config, PoolContract poolContract) {
         this.connection = connection;
         this.config = config;
         this.session = new Session();
-        this.poolHandle = poolHandle;
+        this.poolContract = poolContract;
         this.onReady = new AsyncEvent<>();
+    }
+
+    protected PoolContract getContract() {
+        return this.poolContract;
     }
 
     public void onReady(Function<BaseEdgeDBClient, CompletionStage<?>> handler) {
@@ -100,6 +105,6 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
 
     @Override
     public void close() throws Exception {
-        this.poolHandle.close();
+        this.poolContract.close();
     }
 }

@@ -15,6 +15,7 @@ import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBErrorException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.ResultCardinalityMismatchException;
+import com.edgedb.driver.pooling.PoolContract;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +47,8 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
-    public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
-        super(connection, config, poolHandle);
+    public EdgeDBBinaryClient(EdgeDBConnection connection, EdgeDBClientConfig config, PoolContract poolContract) {
+        super(connection, config, poolContract);
         this.connectionSemaphore = new Semaphore(1);
         this.querySemaphore = new Semaphore(1);
         this.readyPromise = new CompletableFuture<>();

@@ -13,16 +13,16 @@ public final class GlobalsAndConfig implements Example {
     private static final Logger logger = LoggerFactory.getLogger(GlobalsAndConfig.class);
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        var configuredClient = client
+    public CompletionStage<Void> run(EdgeDBClient client) throws Exception {
+        try(var configuredClient = client
                 .withConfig(config -> config
                         .withIdleTransactionTimeout(Duration.ZERO)
                         .applyAccessPolicies(true))
                 .withGlobals(new HashMap<>(){{
                     put("current_user_id", UUID.randomUUID());
-                }});
-
-        return configuredClient.queryRequiredSingle(UUID.class, "select global current_user_id")
-                .thenAccept(result -> logger.info("current_user_id global: {}", result));
+                }})) {
+            return configuredClient.queryRequiredSingle(UUID.class, "select global current_user_id")
+                    .thenAccept(result -> logger.info("current_user_id global: {}", result));
+        }
     }
 }

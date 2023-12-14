@@ -5,18 +5,16 @@ import com.edgedb.driver.async.ChannelCompletableFuture;
 import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.duplexers.ChannelDuplexer;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
+import com.edgedb.driver.pooling.PoolContract;
 import com.edgedb.driver.util.SslUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,20 +29,17 @@ import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
 public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
-    private static final NioEventLoopGroup NETTY_TCP_GROUP = new NioEventLoopGroup();
-    private static final EventExecutorGroup DUPLEXER_GROUP = new DefaultEventExecutorGroup(8);
-
     private final @NotNull ChannelDuplexer duplexer;
     private final Bootstrap bootstrap;
     private TransactionState transactionState;
 
-    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
-        super(connection, config, poolHandle);
+    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, PoolContract poolContract) {
+        super(connection, config, poolContract);
         this.duplexer = new ChannelDuplexer(this);
 
         this.bootstrap = new Bootstrap()
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .group(NETTY_TCP_GROUP)
+                .group(poolContract.getPool().getNettyEventGroup())
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -77,7 +72,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                                 PacketSerializer.createEncoder()
                         );
 
-                        pipeline.addLast(DUPLEXER_GROUP, duplexer.channelHandler);
+                        pipeline.addLast(poolContract.getPool().getDuplexerGroup(), duplexer.channelHandler);
 
                         duplexer.init(ch);
                     }

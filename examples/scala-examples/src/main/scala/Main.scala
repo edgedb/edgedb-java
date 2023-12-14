@@ -8,16 +8,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, blocking}
 import scala.util.control.NonFatal
 import ExecutionContext.Implicits.global
+import scala.util.Using
 
 @main
 def main(): Unit = {
   val logger = LoggerFactory.getLogger("Main")
-
-  val client = new EdgeDBClient(EdgeDBClientConfig.builder
-    .withNamingStrategy(NamingStrategy.snakeCase)
-    .useFieldSetters(true)
-    .build
-  ).withModule("examples")
 
   val examples = List(
     AbstractTypes(),
@@ -28,12 +23,20 @@ def main(): Unit = {
     Transactions()
   )
 
-  for (example <- examples)
-    Await.ready(runExample(logger, client, example), Duration.Inf)
+  Using(
+  new EdgeDBClient(EdgeDBClientConfig.builder
+    .withNamingStrategy(NamingStrategy.snakeCase)
+    .useFieldSetters(true)
+    .build
+  ).withModule("examples")) { client =>
+    for (example <- examples)
+      Await.ready(runExample(logger, client, example), Duration.Inf)
 
-  logger.info("Examples complete!")
+    logger.info("Examples complete!")
+  }
 
-  System.exit(0)
+  // run a GC cycle to ensure that any remaining dormant client instances get collected and closed.
+  System.gc();
 }
 
 private def runExample(logger: Logger, client: EdgeDBClient, example: Example)(implicit context: ExecutionContext): Future[Unit] = {
