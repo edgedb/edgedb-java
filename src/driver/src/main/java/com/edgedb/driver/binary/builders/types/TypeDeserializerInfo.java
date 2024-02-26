@@ -179,59 +179,89 @@ public class TypeDeserializerInfo<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private @NotNull TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException {
-        // check for constructor deserializer
-        var constructors = this.type.getDeclaredConstructors();
+    private @Nullable TypeDeserializerFactory<T> createFactoryFromBestConstructor(Constructor<?>[] constructors) {
+        var fields = getFields();
 
-        var ctorDeserializer = Arrays.stream(constructors).filter(x -> x.getAnnotation(EdgeDBDeserializer.class) != null).findFirst();
-
-        if(ctorDeserializer.isPresent()) {
-            var ctor = ctorDeserializer.get();
+        for(var i = 0; i != constructors.length; i++) {
+            var ctor = constructors[i];
             var ctorParams = ctor.getParameters();
+
             if(ctorParams.length == 1 && ctorParams[0].getType().equals(ObjectEnumerator.class)) {
                 return (enumerator, parent) -> (T)ctor.newInstance(enumerator);
             }
 
-            return (enumerator, parent) -> {
-                var namingStrategyEntry = constructorNamingMap.computeIfAbsent(
-                        ((ObjectEnumeratorImpl)enumerator).getClient().getConfig().getNamingStrategy(),
-                        (n) -> new NamingStrategyMap<>(n, (v) -> getNameOrAnnotated(v, Parameter::getName), ctor.getParameters())
-                );
-
-                var params = new Object[namingStrategyEntry.nameIndexMap.size()];
-                var inverseIndexer = new FastInverseIndexer(params.length);
-
-                ObjectEnumerator.ObjectElement element;
-
-                var unhandled = new Vector<ObjectEnumerator.ObjectElement>(params.length);
-
-                while(enumerator.hasRemaining() && (element = enumerator.next()) != null) {
-                    if(namingStrategyEntry.map.containsKey(element.getName())) {
-                        var i = namingStrategyEntry.nameIndexMap.get(element.getName());
-                        inverseIndexer.set(i);
-                        params[i] = element.getValue();
-                    } else {
-                        unhandled.add(element);
+            if(fields.size() == ctorParams.length) {
+                // assert that all types match
+                var valid = true;
+                for(var j = 0; j != fields.size(); j++) {
+                    if(!ctorParams[j].getType().isAssignableFrom(fields.get(j).fieldType)) {
+                        valid = false;
+                        break;
                     }
                 }
 
-                var missed = inverseIndexer.getInverseIndexes();
+                if(!valid) continue;
 
-                for(int i = 0; i != missed.length; i++) {
-                    params[missed[i]] = TypeUtils.getDefaultValue(namingStrategyEntry.values.get(i).getType());
+                // update each field with annotations from the parameters
+                for(var j = 0; j != fields.size(); j++) {
+                    fields.get(j).updateFromDeserializerParameter(ctorParams[j]);
                 }
 
-                var instance = (T)ctor.newInstance(params);
+                return (enumerator, parent) -> {
+                    var namingStrategyEntry = constructorNamingMap.computeIfAbsent(
+                            ((ObjectEnumeratorImpl)enumerator).getClient().getConfig().getNamingStrategy(),
+                            (n) -> new NamingStrategyMap<>(n, (v) -> getNameOrAnnotated(n, v, v, Parameter::getName), ctor.getParameters())
+                    );
 
-                if(parent != null) {
-                    for (var unhandledElement : unhandled) {
-                        parent.accept(instance, unhandledElement);
+                    var params = new Object[namingStrategyEntry.nameIndexMap.size()];
+                    var inverseIndexer = new FastInverseIndexer(params.length);
+
+                    ObjectEnumerator.ObjectElement element;
+
+                    var unhandled = new Vector<ObjectEnumerator.ObjectElement>(params.length);
+
+                    while(enumerator.hasRemaining() && (element = enumerator.next()) != null) {
+                        if(namingStrategyEntry.map.containsKey(element.getName())) {
+                            var namingIndex = namingStrategyEntry.nameIndexMap.get(element.getName());
+                            var field = fields.get(namingIndex);
+                            inverseIndexer.set(namingIndex);
+                            params[namingIndex] = field.convertToType(element.getValue());
+                        } else {
+                            unhandled.add(element);
+                        }
                     }
-                }
 
-                return instance;
-            };
+                    var missed = inverseIndexer.getInverseIndexes();
 
+                    for(int j = 0; j != missed.length; j++) {
+                        params[missed[j]] = TypeUtils.getDefaultValue(namingStrategyEntry.values.get(j).getType());
+                    }
+
+                    var instance = (T)ctor.newInstance(params);
+
+                    if(parent != null) {
+                        for (var unhandledElement : unhandled) {
+                            parent.accept(instance, unhandledElement);
+                        }
+                    }
+
+                    return instance;
+                };
+            }
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private @NotNull TypeDeserializerFactory<T> createFactory() throws ReflectiveOperationException {
+        // check for constructor deserializer
+        var constructors = this.type.getDeclaredConstructors();
+
+        var deserializer = createFactoryFromBestConstructor(constructors);
+
+        if(deserializer != null) {
+            return deserializer;
         }
 
         // abstract or interface
@@ -246,7 +276,7 @@ public class TypeDeserializerInfo<T> {
 
                 var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
                         ((ObjectEnumeratorImpl)enumerator).getClient().getConfig().getNamingStrategy(),
-                        (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), getFields())
+                        (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(v, u, u.field, Field::getName), getFields())
                 );
 
                 var element = enumerator.next();
@@ -293,7 +323,7 @@ public class TypeDeserializerInfo<T> {
         return (enumerator, parent) -> {
             var namingStrategyEntry = fieldNamingMap.computeIfAbsent(
                     ((ObjectEnumeratorImpl)enumerator).getClient().getConfig().getNamingStrategy(),
-                    (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), getFields())
+                    (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(v, u, u.field, Field::getName), getFields())
             );
 
             var instance = (T)ctor.newInstance();
@@ -315,11 +345,15 @@ public class TypeDeserializerInfo<T> {
     public @NotNull NamingStrategyMap<FieldInfo> getFieldMap(NamingStrategy strategy) {
         return fieldNamingMap.computeIfAbsent(
                 strategy,
-                (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(u.field, Field::getName), getFields())
+                (v) -> new NamingStrategyMap<>(v, (u) -> getNameOrAnnotated(v, u, u.field, Field::getName), getFields())
         );
     }
 
-    private <U extends AnnotatedElement> String getNameOrAnnotated(@NotNull U value, @NotNull Function<U, String> getName) {
+    private <U extends AnnotatedElement, V> String getNameOrAnnotated(NamingStrategy strategy, V root, @NotNull U value, @NotNull Function<U, String> getName) {
+        if(root instanceof FieldInfo) {
+            return ((FieldInfo)root).getEdgeDBName(strategy);
+        }
+
         var anno = value.getAnnotation(EdgeDBName.class);
         if(anno != null && anno.value() != null) {
             return anno.value();
@@ -329,12 +363,12 @@ public class TypeDeserializerInfo<T> {
     }
 
     public static class FieldInfo {
-        public final EdgeDBName edgedbNameAnno;
+        public EdgeDBName edgedbNameAnno;
         public final @NotNull Class<?> fieldType;
         public final @NotNull Field field;
         private final @Nullable Method setMethod;
 
-        private final @Nullable EdgeDBLinkType linkType;
+        private @Nullable EdgeDBLinkType linkType;
 
         public FieldInfo(@NotNull Field field, @NotNull Map<String, Method> setters) {
             this.field = field;
@@ -394,8 +428,12 @@ public class TypeDeserializerInfo<T> {
             throw new EdgeDBException("Cannot find element type of the collection " + cls.getName());
         }
 
-        public @NotNull String getFieldName() {
-            return this.field.getName();
+        public @NotNull String getEdgeDBName(NamingStrategy strategy) {
+            if(this.edgedbNameAnno != null && this.edgedbNameAnno.value() != null) {
+                return this.edgedbNameAnno.value();
+            }
+
+            return strategy.convert(this.field.getName());
         }
 
         public void convertAndSet(boolean useMethodSetter, Object instance, Object value) throws EdgeDBException, ReflectiveOperationException {
@@ -425,6 +463,16 @@ public class TypeDeserializerInfo<T> {
             }
 
             return ObjectBuilder.convertTo(fieldType, value);
+        }
+
+        private void updateFromDeserializerParameter(Parameter parameter) {
+            if(this.edgedbNameAnno == null) {
+                this.edgedbNameAnno = parameter.getAnnotation(EdgeDBName.class);
+            }
+
+            if(this.linkType == null) {
+                this.linkType = parameter.getAnnotation(EdgeDBLinkType.class);
+            }
         }
     }
 
