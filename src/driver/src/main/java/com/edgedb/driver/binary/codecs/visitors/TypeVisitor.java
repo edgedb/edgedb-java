@@ -131,6 +131,10 @@ public final class TypeVisitor implements CodecVisitor {
         // context type control:
         // inner codec:
         try(var ignored = visitor.enterNewContext(v -> {
+            if(v.isRealType) {
+                return;
+            }
+
             var innerType = TypeUtils.tryPullWrappingType(visitor.getContext().type);
 
             if(innerType == null) {
