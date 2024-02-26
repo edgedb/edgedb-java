@@ -4,4 +4,12 @@ module tests {
         required property b -> str;
         required property c -> str;
     }
+
+    type Links {
+        a: str {
+            constraint exclusive;
+        };
+        b: Links;
+        multi c: Links;
+    }
 }

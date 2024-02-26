@@ -1,15 +1,50 @@
 import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.annotations.EdgeDBLinkType;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.datatypes.MultiRange;
 import com.edgedb.driver.datatypes.Range;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueryTests {
+    @EdgeDBType
+    public static final class Links {
+        public String a;
+        public Links b;
+        @EdgeDBLinkType(Links.class)
+        public Collection<Links> c;
+    }
+
+    @Test
+    public void testLinkProperties() throws Exception {
+        try(var client = new EdgeDBClient().withModule("tests")) {
+            var result = client
+                    .execute(
+                            "with a := (insert Links { a := 'A' } unless conflict on .a)," +
+                            "b := (insert Links { a := 'B'} unless conflict on .a)," +
+                            "c := (insert Links { a := 'C', c := b } unless conflict on .a)" +
+                            "insert Links { a := 'D', c := { a, b, c }, b := c } unless conflict on .a")
+                    .thenCompose(v ->
+                            client.queryRequiredSingle(
+                                    Links.class,
+                                    "select Links { a, c: { a, b, c }, b: { a, b, c } } filter .a = 'D'"
+                            )
+                    )
+                    .toCompletableFuture().get();
+
+            assertThat(result.a).isEqualTo("D");
+            
+            for (var linkClass : result.c) {
+                assertThat(linkClass.getClass()).isEqualTo(Links.class); // verify its deserialized an actual object
+            }
+        }
+    }
+
     @Test
     public void testMultiRanges() {
         try(var client = new EdgeDBClient()) {

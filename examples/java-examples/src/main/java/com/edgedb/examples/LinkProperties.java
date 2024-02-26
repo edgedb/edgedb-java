@@ -1,6 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.annotations.EdgeDBLinkType;
 import com.edgedb.driver.annotations.EdgeDBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ public final class LinkProperties implements Example {
         public String name;
         public Long age;
         public Person bestFriend;
+        @EdgeDBLinkType(Person.class)
         public Collection<Person> friends;
     }
 
