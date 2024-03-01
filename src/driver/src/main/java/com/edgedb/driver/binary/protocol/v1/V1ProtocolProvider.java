@@ -293,10 +293,6 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
     @Override
     public CompletionStage<ParseResult> parseQuery(QueryParameters queryParameters) {
-        var cacheKey = queryParameters.getCacheKey();
-
-        var cachedCodecs = CodecBuilder.getCachedCodecs(this, cacheKey);
-
         ByteBuf stateBuffer;
 
         try {
@@ -304,6 +300,22 @@ public class V1ProtocolProvider implements ProtocolProvider {
         } catch (OperationNotSupportedException | EdgeDBException e) {
             return CompletableFuture.failedFuture(e);
         }
+
+        if(queryParameters.format == IOFormat.NONE && (queryParameters.arguments == null || queryParameters.arguments.isEmpty())) {
+            return CompletableFuture.completedFuture(new ParseResult(
+                    CodecBuilder.NULL_CODEC,
+                    CodecBuilder.NULL_CODEC,
+                    CodecBuilder.NULL_CODEC_ID,
+                    CodecBuilder.NULL_CODEC_ID,
+                    stateBuffer,
+                    queryParameters.capabilities,
+                    queryParameters.cardinality
+            ));
+        }
+
+        var cacheKey = queryParameters.getCacheKey();
+
+        var cachedCodecs = CodecBuilder.getCachedCodecs(this, cacheKey);
 
         if(cachedCodecs == null) {
             ProtocolState parseState = new ProtocolState(queryParameters, stateBuffer);
