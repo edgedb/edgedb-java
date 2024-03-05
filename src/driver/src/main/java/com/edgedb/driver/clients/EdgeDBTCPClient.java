@@ -135,7 +135,6 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
     @Override
     public CompletionStage<Void> startTransaction(@NotNull TransactionIsolation isolation, boolean readonly, boolean deferrable) {
-
         String query = "start transaction isolation " +
                 isolation +
                 ", " +

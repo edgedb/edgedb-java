@@ -54,6 +54,8 @@ public final class CodecBuilder {
     public static final UUID NULL_CODEC_ID = new UUID(0L, 0L);
     public static final UUID INVALID_CODEC_ID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
 
+    public static final NullCodec NULL_CODEC = new NullCodec();
+
     private static final ConcurrentMap<ProtocolVersion, CodecCache> codecCaches;
 
     static {
