@@ -7,7 +7,7 @@ import com.edgedb.driver.binary.codecs.scalars.*;
 import com.edgedb.driver.binary.codecs.scalars.complex.DateTimeCodec;
 import com.edgedb.driver.binary.codecs.scalars.complex.RelativeDurationCodec;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
-import com.edgedb.driver.binary.protocol.ProtocolVersion;
+import com.edgedb.driver.ProtocolVersion;
 import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;

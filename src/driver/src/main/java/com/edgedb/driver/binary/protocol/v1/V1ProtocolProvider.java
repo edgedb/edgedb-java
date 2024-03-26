@@ -2,6 +2,7 @@ package com.edgedb.driver.binary.protocol.v1;
 
 import com.edgedb.driver.Capabilities;
 import com.edgedb.driver.ErrorCode;
+import com.edgedb.driver.ProtocolVersion;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.builders.CodecBuilder;
 import com.edgedb.driver.binary.codecs.*;

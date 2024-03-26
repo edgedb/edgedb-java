@@ -52,7 +52,12 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
         this.querySemaphore = new Semaphore(1);
         this.readyPromise = new CompletableFuture<>();
         this.stateDescriptorId = CodecBuilder.INVALID_CODEC_ID;
-        this.protocolProvider = ProtocolProvider.getProvider(this);
+
+        this.protocolProvider = config.getForcedProtocolVersion()
+                .map(v -> ProtocolProvider.getProvider(this, v))
+                .orElseGet(() -> ProtocolProvider.getProvider(this));
+
+        logger.debug("Picked protocol provider {}", this.protocolProvider);
     }
 
     public abstract Duplexer getDuplexer();
