@@ -8,6 +8,7 @@ import com.edgedb.driver.binary.duplexers.HttpDuplexer;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.ScramException;
+import com.edgedb.driver.pooling.PoolContract;
 import com.edgedb.driver.util.Scram;
 import com.edgedb.driver.util.SslUtils;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +46,8 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
     private @Nullable URI authUri;
     private @Nullable URI execUri;
 
-    public EdgeDBHttpClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
-        super(connection, config, poolHandle);
+    public EdgeDBHttpClient(EdgeDBConnection connection, EdgeDBClientConfig config, PoolContract poolContract) throws EdgeDBException {
+        super(connection, config, poolContract);
         this.duplexer = new HttpDuplexer(this);
         SSLContext context;
         try {
