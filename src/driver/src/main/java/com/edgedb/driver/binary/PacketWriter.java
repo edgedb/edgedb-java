@@ -159,7 +159,12 @@ public class PacketWriter implements AutoCloseable {
         write(uuid.getLeastSignificantBits());
     }
 
-    public void write(@NotNull String value) throws OperationNotSupportedException {
+    public void write(@Nullable String value) throws OperationNotSupportedException {
+        if(value == null) {
+            write(UInteger.valueOf(0));
+            return;
+        }
+
         writeArray(value.getBytes(StandardCharsets.UTF_8));
     }
 

@@ -4,14 +4,15 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.SerializableData;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
 
 public class ConnectionParam implements SerializableData {
     private final String name;
-    private final String value;
+    private final @Nullable String value;
 
-    public ConnectionParam(String name, String value) {
+    public ConnectionParam(String name, @Nullable String value) {
         this.name = name;
         this.value = value;
     }
