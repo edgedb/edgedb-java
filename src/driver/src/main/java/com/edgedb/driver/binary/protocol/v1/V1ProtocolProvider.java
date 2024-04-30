@@ -925,14 +925,11 @@ public class V1ProtocolProvider implements ProtocolProvider {
     public Sendable handshake() {
         var connection = client.getConnectionArguments();
 
-        var connectionParams = connection.getSecretKey() != null
-                ? new ConnectionParam[] {
+        var connectionParams = new ConnectionParam[] {
                 new ConnectionParam("user", connection.getUsername()),
                 new ConnectionParam("database", connection.getDatabase()),
-                new ConnectionParam("secret_key", connection.getSecretKey())
-        } : new ConnectionParam[] {
-                new ConnectionParam("user", connection.getUsername()),
-                new ConnectionParam("database", connection.getDatabase())
+                new ConnectionParam("secret_key", connection.getSecretKey()),
+                new ConnectionParam("branch", connection.getBranch())
         };
 
         return new ClientHandshake(
