@@ -1,6 +1,7 @@
 package com.edgedb.driver.binary.protocol;
 
 import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.ProtocolVersion;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
@@ -26,10 +27,21 @@ public interface ProtocolProvider {
        put(ProtocolVersion.of(2, 0), V2ProtocolProvider::new);
     }};
 
+    static boolean supports(ProtocolVersion version) {
+        return PROVIDERS.containsKey(version);
+    }
+
     static ProtocolProvider getProvider(EdgeDBBinaryClient client) {
         return PROVIDERS_FACTORY.computeIfAbsent(
                 client.getConnectionArguments(),
                 ignored -> PROVIDERS.get(ProtocolVersion.BINARY_PROTOCOL_DEFAULT_VERSION)
+        ).apply(client);
+    }
+
+    static ProtocolProvider getProvider(EdgeDBBinaryClient client, ProtocolVersion version) {
+        return PROVIDERS_FACTORY.compute(
+                client.getConnectionArguments(),
+                (connection, old) -> PROVIDERS.get(version)
         ).apply(client);
     }
 

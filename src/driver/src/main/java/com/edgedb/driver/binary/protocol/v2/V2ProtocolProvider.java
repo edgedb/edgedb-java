@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.builders.CodecBuilder;
 import com.edgedb.driver.binary.codecs.*;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
-import com.edgedb.driver.binary.protocol.ProtocolVersion;
+import com.edgedb.driver.ProtocolVersion;
 import com.edgedb.driver.binary.protocol.TypeDescriptor;
 import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
