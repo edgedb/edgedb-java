@@ -28,25 +28,19 @@ public class AbstractTypes implements Example {
     @Override
     public CompletionStage<Void> run(EdgeDBClient client) {
         return client
-                .querySingle(String.class, "select <optional str>$arg")
+                .execute("insert Movie { title := \"The Matrix\", release_year := 1999 } unless conflict on .title")
+                .thenCompose(v -> client.execute("insert Show { title := \"The Office\", seasons := 9 } unless conflict on .title"))
+                .thenCompose(v -> client.query(Media.class, "select Media { title, [is Movie].release_year, [is Show].seasons }"))
                 .thenAccept(content -> {
-                    logger.info("Content: {}", content);
-                });
+                    for (var media : content) {
+                        if(media instanceof Show) {
+                            logger.info("Got show {}", media);
+                        }
 
-//        return client
-//                .execute("insert Movie { title := \"The Matrix\", release_year := 1999 } unless conflict on .title")
-//                .thenCompose(v -> client.execute("insert Show { title := \"The Office\", seasons := 9 } unless conflict on .title"))
-//                .thenCompose(v -> client.query(Media.class, "select Media { title, [is Movie].release_year, [is Show].seasons }"))
-//                .thenAccept(content -> {
-//                    for (var media : content) {
-//                        if(media instanceof Show) {
-//                            logger.info("Got show {}", media);
-//                        }
-//
-//                        if(media instanceof Movie) {
-//                            logger.info("Got movie {}", media);
-//                        }
-//                    }
-//                });
+                        if(media instanceof Movie) {
+                            logger.info("Got movie {}", media);
+                        }
+                    }
+                });
     }
 }
