@@ -81,7 +81,7 @@ public class HttpDuplexer extends Duplexer {
         logger.debug("Preforming read, is authed?: {}", isConnected());
         if(!isConnected()) {
             return CompletableFuture.failedFuture(
-                    new EdgeDBException("Cannot preform read without authorization")
+                    new EdgeDBException("Cannot perform read without authorization")
             );
         }
 
