@@ -335,8 +335,8 @@ public class EdgeDBConnection implements Cloneable {
      * @throws IOException            A file argument within the DSN cannot be found or be read.
      */
     public static @NotNull EdgeDBConnection fromDSN(@NotNull String dsn) throws ConfigurationException, IOException {
-        if (!dsn.startsWith("edgedb://")) {
-            throw new ConfigurationException(String.format("DSN schema 'edgedb' expected but got '%s'", dsn.split("://")[0]));
+        if (!dsn.startsWith("edgedb://") && !dsn.startsWith("gel://")) {
+            throw new ConfigurationException(String.format("DSN schema 'gel' expected but got '%s'", dsn.split("://")[0]));
         }
 
         String database = null, username = null, port = null, host = null, password = null;
@@ -765,7 +765,7 @@ public class EdgeDBConnection implements Cloneable {
 
         boolean isDSN = false;
 
-        if (autoResolve && !((connParam != null && connParam.contains("/")) || (connParam != null && !connParam.startsWith("edgedb://")))) {
+        if (autoResolve && !((connParam != null && connParam.contains("/")) || (connParam != null && !connParam.startsWith("edgedb://") && !connParam.startsWith("gel://")))) {
             try {
                 connection = connection.mergeInto(resolveEdgeDBTOML());
             } catch (IOException x) {
@@ -1017,7 +1017,7 @@ public class EdgeDBConnection implements Cloneable {
      */
     @Override
     public @NotNull String toString() {
-        var sb = new StringBuilder("edgedb://");
+        var sb = new StringBuilder("gel://");
 
         this.getUsername();
         sb.append(this.getUsername());
