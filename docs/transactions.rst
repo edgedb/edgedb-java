@@ -22,5 +22,5 @@ method on ``EdgeDBClient``.
     })
 
 It is important to note that you must use the ``tx`` parameter of the
-transaction to preform queries, otherwise you won't get the benefits
+transaction to perform queries, otherwise you won't get the benefits
 of transactions.
