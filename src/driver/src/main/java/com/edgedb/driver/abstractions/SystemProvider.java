@@ -20,4 +20,44 @@ public interface SystemProvider {
     public boolean fileExists(@NotNull Path path);
     public @NotNull String fileReadAllText(@NotNull Path path) throws IOException;
     public void writeWarning(@NotNull String message);
+
+    public class GelEnvVar
+    {
+        public final @NotNull String name;
+        public final @NotNull String value;
+        public GelEnvVar(@NotNull String name, @NotNull String value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
+
+    public static @Nullable GelEnvVar getGelEnvVariable(SystemProvider provider, @NotNull String key)
+    {
+        @NotNull String edgedbKey = String.format("EDGEDB_%s", key);
+        @Nullable String edgedbVal = provider.getEnvVariable(edgedbKey);
+        @NotNull String gelKey = String.format("GEL_%s", key);
+        @Nullable String gelVal = provider.getEnvVariable(gelKey);
+        if (edgedbVal != null && gelVal != null)
+        {
+            provider.writeWarning(String.format(
+                "Both GEL_%s and EDGEDB_%s are set; EDGEDB_%s will be ignored",
+                key,
+                key,
+                key
+            ));
+        }
+
+        if (gelVal != null)
+        {
+            return new GelEnvVar(gelKey, gelVal);
+        }
+        else if (edgedbVal != null)
+        {
+            return new GelEnvVar(edgedbKey, edgedbVal);
+        }
+        else
+        {
+            return null;
+        }
+    }
 }

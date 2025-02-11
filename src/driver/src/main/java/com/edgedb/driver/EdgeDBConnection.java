@@ -35,18 +35,18 @@ public class EdgeDBConnection implements Cloneable {
         return new Builder();
     }
 
-    private static final String EDGEDB_INSTANCE_ENV_NAME = "EDGEDB_INSTANCE";
-    private static final String EDGEDB_DSN_ENV_NAME = "EDGEDB_DSN";
-    private static final String EDGEDB_CREDENTIALS_FILE_ENV_NAME = "EDGEDB_CREDENTIALS_FILE";
-    private static final String EDGEDB_USER_ENV_NAME = "EDGEDB_USER";
-    private static final String EDGEDB_PASSWORD_ENV_NAME = "EDGEDB_PASSWORD";
-    private static final String EDGEDB_DATABASE_ENV_NAME = "EDGEDB_DATABASE";
-    private static final String EDGEDB_BRANCH_ENV_NAME = "EDGEDB_BRANCH";
-    private static final String EDGEDB_HOST_ENV_NAME = "EDGEDB_HOST";
-    private static final String EDGEDB_PORT_ENV_NAME = "EDGEDB_PORT";
+    private static final String INSTANCE_ENV_NAME = "INSTANCE";
+    private static final String DSN_ENV_NAME = "DSN";
+    private static final String CREDENTIALS_FILE_ENV_NAME = "CREDENTIALS_FILE";
+    private static final String USER_ENV_NAME = "USER";
+    private static final String PASSWORD_ENV_NAME = "PASSWORD";
+    private static final String DATABASE_ENV_NAME = "DATABASE";
+    private static final String BRANCH_ENV_NAME = "BRANCH";
+    private static final String HOST_ENV_NAME = "HOST";
+    private static final String PORT_ENV_NAME = "PORT";
+    private static final String CLOUD_PROFILE_ENV_NAME = "CLOUD_PROFILE";
+    private static final String SECRET_KEY_ENV_NAME = "SECRET_KEY";
 
-    private static final String EDGEDB_CLOUD_PROFILE_ENV_NAME = "EDGEDB_CLOUD_PROFILE";
-    private static final String EDGEDB_SECRET_KEY_ENV_NAME = "EDGEDB_SECRET_KEY";
     private static final int DOMAIN_NAME_MAX_LEN = 62;
 
     private static final Pattern DSN_FORMATTER = Pattern.compile("^([a-z]+)://");
@@ -833,48 +833,56 @@ public class EdgeDBConnection implements Cloneable {
         @NotNull SystemProvider provider
     ) throws ConfigurationException, IOException {
 
-        var instanceName = provider.getEnvVariable(EDGEDB_INSTANCE_ENV_NAME);
-        var dsn = provider.getEnvVariable(EDGEDB_DSN_ENV_NAME);
-        var host = provider.getEnvVariable(EDGEDB_HOST_ENV_NAME);
-        var port = provider.getEnvVariable(EDGEDB_PORT_ENV_NAME);
-        var credentials = provider.getEnvVariable(EDGEDB_CREDENTIALS_FILE_ENV_NAME);
-        var user = provider.getEnvVariable(EDGEDB_USER_ENV_NAME);
-        var pass = provider.getEnvVariable(EDGEDB_PASSWORD_ENV_NAME);
-        var db = provider.getEnvVariable(EDGEDB_DATABASE_ENV_NAME);
-        var cloudProfile = provider.getEnvVariable(EDGEDB_CLOUD_PROFILE_ENV_NAME);
-        var cloudSecret = provider.getEnvVariable(EDGEDB_SECRET_KEY_ENV_NAME);
-        var branch = provider.getEnvVariable(EDGEDB_BRANCH_ENV_NAME);
+        var instanceName = SystemProvider.getGelEnvVariable(provider, INSTANCE_ENV_NAME);
+        var dsn = SystemProvider.getGelEnvVariable(provider, DSN_ENV_NAME);
+        var host = SystemProvider.getGelEnvVariable(provider, HOST_ENV_NAME);
+        var port = SystemProvider.getGelEnvVariable(provider, PORT_ENV_NAME);
+        var credentials = SystemProvider.getGelEnvVariable(provider, CREDENTIALS_FILE_ENV_NAME);
+        var user = SystemProvider.getGelEnvVariable(provider, USER_ENV_NAME);
+        var pass = SystemProvider.getGelEnvVariable(provider, PASSWORD_ENV_NAME);
+        var db = SystemProvider.getGelEnvVariable(provider, DATABASE_ENV_NAME);
+        var cloudProfile = SystemProvider.getGelEnvVariable(provider, CLOUD_PROFILE_ENV_NAME);
+        var cloudSecret = SystemProvider.getGelEnvVariable(provider, SECRET_KEY_ENV_NAME);
+        var branch = SystemProvider.getGelEnvVariable(provider, BRANCH_ENV_NAME);
 
         if (cloudProfile != null) {
             connection = connection.mergeInto(new EdgeDBConnection() {{
-                setCloudProfile(cloudProfile);
+                setCloudProfile(cloudProfile.value);
             }});
         }
 
         if (cloudSecret != null) {
             connection = connection.mergeInto(new EdgeDBConnection() {{
-                setSecretKey(cloudSecret);
+                setSecretKey(cloudSecret.value);
             }});
         }
 
         if (instanceName != null) {
-            connection = connection.mergeInto(_fromInstanceName(instanceName, null, connection, provider));
+            connection = connection.mergeInto(
+                _fromInstanceName(instanceName.value, null, connection, provider)
+            );
         }
 
         if (dsn != null) {
-            if (Pattern.matches("^([A-Za-z0-9](-?[A-Za-z0-9])*)/([A-Za-z0-9](-?[A-Za-z0-9])*)$", dsn)) {
-                connection.parseCloudInstanceName(dsn, null, provider);
+            if (Pattern.matches(
+                "^([A-Za-z0-9](-?[A-Za-z0-9])*)/([A-Za-z0-9](-?[A-Za-z0-9])*)$",
+                dsn.value
+            )) {
+                connection.parseCloudInstanceName(dsn.value, null, provider);
             } else {
-                connection = connection.mergeInto(fromDSN(dsn));
+                connection = connection.mergeInto(fromDSN(dsn.value));
             }
         }
 
         if (host != null) {
             try {
-                connection.setHostname(host);
+                connection.setHostname(host.value);
             } catch (ConfigurationException x) {
                 if (x.getMessage().equals("DSN cannot contain more than one host")) {
-                    throw new ConfigurationException("Environment variable 'EDGEDB_HOST' cannot contain more than one host", x);
+                    throw new ConfigurationException(
+                        "Environment variable 'EDGEDB_HOST' cannot contain more than one host",
+                        x
+                    );
                 }
 
                 throw x;
@@ -883,25 +891,25 @@ public class EdgeDBConnection implements Cloneable {
 
         if (port != null) {
             try {
-                connection.port = Integer.parseInt(port);
+                connection.port = Integer.parseInt(port.value);
             } catch (NumberFormatException x) {
                 throw new ConfigurationException(
                     String.format(
                         "Expected integer for environment variable '%s' but got '%s'",
-                        EDGEDB_PORT_ENV_NAME,
-                        port
+                        port.name,
+                        port.value
                     )
                 );
             }
         }
 
         if (credentials != null) {
-            var path = Path.of(credentials);
+            var path = Path.of(credentials.value);
             if (!provider.fileExists(path)) {
                 throw new ConfigurationException(
                     String.format(
                         "Could not find the file specified in '%s'",
-                        EDGEDB_CREDENTIALS_FILE_ENV_NAME
+                        credentials.name
                     )
                 );
             }
@@ -910,23 +918,23 @@ public class EdgeDBConnection implements Cloneable {
         }
 
         if (user != null) {
-            connection.user = user;
+            connection.user = user.value;
         }
 
         if (pass != null) {
-            connection.password = pass;
+            connection.password = pass.value;
         }
 
         if (db != null) {
             if(branch != null) {
-                throw new IllegalArgumentException(EDGEDB_BRANCH_ENV_NAME + " conflicts with " + EDGEDB_DATABASE_ENV_NAME);
+                throw new IllegalArgumentException(branch.name + " conflicts with " + db.name);
             }
 
-            connection.database = db;
+            connection.database = db.value;
         }
 
         if(branch != null) {
-            connection.branch = branch;
+            connection.branch = branch.value;
         }
 
         return connection;
