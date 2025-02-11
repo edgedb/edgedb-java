@@ -1,11 +1,17 @@
 import com.edgedb.driver.EdgeDBConnection;
 import com.edgedb.driver.TLSSecurityMode;
+import com.edgedb.driver.EdgeDBConnection.ConfigureFunction;
+import com.edgedb.driver.abstractions.SystemProvider;
+import com.edgedb.driver.internal.BaseDefaultSystemProvider;
 import com.edgedb.driver.exceptions.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -195,8 +201,8 @@ public class ConnectionTests {
 
     private static <T extends Throwable> void expect(Result result, Class<T> exception, String message) {
         assertThat(result.exception).isNotNull();
+        assertThat(result.exception).hasMessage(message);
         assertThat(result.exception).isInstanceOf(exception);
-        assertThat(result.exception.getMessage()).isEqualTo(message);
     }
 
     private static Result parse(String conn) {
@@ -223,9 +229,22 @@ public class ConnectionTests {
         return parse(null, conf, null);
     }
 
-    private static Result parse(String conn, EdgeDBConnection.ConfigureFunction conf, Map<String, String> env) {
+    private static Result parse(
+        String conn,
+        EdgeDBConnection.ConfigureFunction conf,
+        Map<String, String> env
+    ) {
         try {
-            return new Result(EdgeDBConnection.parse(conn, conf, false, env == null ? System::getenv : env::get));
+            // Use reflection to access internal parse method
+            return new Result((EdgeDBConnection) connectionParse().invoke(
+                null,
+                conn,
+                conf,
+                false,
+                new MockProvider(env)
+            ));
+        } catch (InvocationTargetException e) {
+            return new Result((Exception) e.getCause());
         } catch (Exception e) {
             return new Result(e);
         }
@@ -243,6 +262,35 @@ public class ConnectionTests {
         public Result(@NotNull Exception exception) {
             this.connection = null;
             this.exception = exception;
+        }
+    }
+
+    private static Method connectionParse() throws NoSuchMethodException {
+        Method method = EdgeDBConnection.class.getDeclaredMethod(
+            "_parse",
+            String.class,
+            ConfigureFunction.class,
+            boolean.class,
+            SystemProvider.class
+        );
+        method.setAccessible(true);
+        return method;
+    }
+
+    private static class MockProvider extends BaseDefaultSystemProvider {
+        Map<String, String> env;
+        MockProvider() {}
+        MockProvider(Map<String, String> env) {
+            this.env = env;
+        }
+
+        @Override
+        public @Nullable String getEnvVariable(@NotNull String name)
+        {
+            if (env != null) {
+                return env.getOrDefault(name, null);
+            }
+            return super.getEnvVariable(name);
         }
     }
 }

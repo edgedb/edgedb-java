@@ -2,7 +2,7 @@ package com.edgedb.driver.util;
 
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
-import com.edgedb.driver.abstractions.impl.DefaultSystemProvider;
+import com.edgedb.driver.internal.DefaultSystemProvider;
 import com.edgedb.driver.datatypes.internal.CloudProfile;
 import com.edgedb.driver.exceptions.ConfigurationException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -11,12 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 public class ConfigUtils {
     private static final SystemProvider DEFAULT_SYSTEM_PROVIDER = new DefaultSystemProvider();
@@ -31,43 +28,45 @@ public class ConfigUtils {
         }
     }
 
-    public static String getInstanceProjectDirectory(@NotNull String projectDir) {
-        return getInstanceProjectDirectory(projectDir, DEFAULT_SYSTEM_PROVIDER);
+    public static @NotNull SystemProvider getDefaultSystemProvider() {
+        return DEFAULT_SYSTEM_PROVIDER;
     }
-    public static String getInstanceProjectDirectory(@NotNull String projectDir, @Nullable SystemProvider systemProvider) {
-        var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
 
-        var fullPath = provider.getFullPath(projectDir);
-        var baseName = CollectionUtils.last(projectDir.split(Pattern.quote(provider.getDirectorySeparator())));
+    public static @NotNull Path getInstanceProjectDirectory(
+        @NotNull Path projectDir,
+        @NotNull SystemProvider provider
+    ) {
+        Path fullPath = provider.getFullPath(projectDir);
+        var baseName = projectDir.getName(projectDir.getNameCount() - 1);
 
         if (provider.isOSPlatform(OSType.WINDOWS) && !fullPath.startsWith("\\\\")) {
-            fullPath = "\\\\?\\" + fullPath;
+            fullPath = provider.combinePaths(Path.of("\\\\?\\"), fullPath);
         }
 
-        var hash = HexUtils.byteArrayToHexString(SHA1.digest(fullPath.getBytes(StandardCharsets.UTF_8)));
+        var hash = HexUtils.byteArrayToHexString(SHA1.digest(
+            fullPath.toString().getBytes(StandardCharsets.UTF_8)
+        ));
 
-        return provider.combinePaths(getEdgeDBConfigDir(provider), "projects", String.format("%s-%s", baseName, hash.toLowerCase()));
+        return provider.combinePaths(
+            getEdgeDBConfigDir(provider),
+            "projects",
+            String.format("%s-%s", baseName, hash.toLowerCase())
+        );
     }
 
-    public static String getEdgeDBConfigDir(@Nullable SystemProvider systemProvider) {
-        var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
+    public static @NotNull Path getEdgeDBConfigDir(@NotNull SystemProvider provider) {
 
         return provider.isOSPlatform(OSType.WINDOWS)
                 ? provider.combinePaths(getEdgeDBBasePath(provider), "config")
                 : getEdgeDBBasePath(provider);
     }
 
-    public static String getCredentialsDir() {
-        return getCredentialsDir(DEFAULT_SYSTEM_PROVIDER);
-    }
-    public static String getCredentialsDir(@Nullable SystemProvider systemProvider) {
-        var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
+    public static @NotNull Path getCredentialsDir(@NotNull SystemProvider provider) {
 
         return provider.combinePaths(getEdgeDBConfigDir(provider), "credentials");
     }
 
-    private static String getEdgeDBBasePath(@Nullable SystemProvider systemProvider) {
-        var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
+    private static @NotNull Path getEdgeDBBasePath(@NotNull SystemProvider provider) {
 
         var basePath = getEdgeDBKnownBasePath(provider);
         return provider.directoryExists(basePath)
@@ -75,8 +74,7 @@ public class ConfigUtils {
                 : provider.combinePaths(provider.getHomeDir(), ".edgedb");
     }
 
-    private static String getEdgeDBKnownBasePath(@Nullable SystemProvider systemProvider) {
-        var provider = systemProvider == null ? DEFAULT_SYSTEM_PROVIDER : systemProvider;
+    private static @NotNull Path getEdgeDBKnownBasePath(@NotNull SystemProvider provider) {
 
         if (provider.isOSPlatform(OSType.WINDOWS)) {
            return provider.combinePaths(provider.getHomeDir(), "AppData", "Local", "EdgeDB");
@@ -85,7 +83,12 @@ public class ConfigUtils {
             return provider.combinePaths(provider.getHomeDir(), "Library", "Application Support", "edgedb");
         }
         else {
-            var xdgConfigDir = provider.getEnvVariable(XDG_CONFIG_HOME);
+            @Nullable String xdgConfigDirString = provider.getEnvVariable(XDG_CONFIG_HOME);
+            @Nullable Path xdgConfigDir = null;
+
+            if (xdgConfigDirString != null) {
+                xdgConfigDir = Path.of(xdgConfigDirString);
+            }
 
             if (xdgConfigDir == null || !provider.isRooted(xdgConfigDir)) {
                 xdgConfigDir = provider.combinePaths(provider.getHomeDir(), ".config");
@@ -95,44 +98,21 @@ public class ConfigUtils {
         }
     }
 
-    public static Optional<Path> tryResolveInstanceTOML() {
-        return tryResolveInstanceTOML(Path.of(System.getProperty("user.dir")));
-    }
-
-    public static Optional<Path> tryResolveInstanceTOML(Path startDir) {
-        Path dir = startDir;
-
-        while(true) {
-            var target = dir.resolve("edgedb.toml");
-
-            if(target.toFile().exists()) {
-                return Optional.of(target);
-            }
-
-            var parent = target.getParent();
-
-            if(parent == null || !Files.exists(parent)) {
-                break;
-            }
-
-            dir = parent;
-        }
-
-        return Optional.empty();
-    }
-
-    public static Optional<String> tryResolveProjectDatabase(Path stashDir) throws IOException {
-        if(!Files.exists(stashDir)) {
-            return Optional.empty();
+    public static @Nullable String tryResolveProjectDatabase(
+        @NotNull Path stashDir,
+        @NotNull SystemProvider provider
+    ) throws IOException {
+        if(!provider.fileExists(stashDir)) {
+            return null;
         }
 
         var databasePath = stashDir.resolve("database");
 
-        if(!Files.exists(databasePath)) {
-            return Optional.empty();
+        if(!provider.fileExists(databasePath)) {
+            return null;
         }
 
-        return Optional.of(Files.readString(databasePath, StandardCharsets.UTF_8));
+        return provider.fileReadAllText(databasePath);
     }
 
     public static class CloudInstanceDetails {
@@ -152,24 +132,12 @@ public class ConfigUtils {
         }
     }
 
-    public static Optional<CloudInstanceDetails> tryResolveInstanceCloudProfile() throws IOException {
-        var instanceToml = tryResolveInstanceTOML();
-
-        if(instanceToml.isEmpty()) {
-            return Optional.empty();
-        }
-
-        var stashDir =
-                getInstanceProjectDirectory(
-                        getInstanceProjectDirectory(instanceToml.get().getParent().toString())
-                );
-
-        return tryResolveInstanceCloudProfile(Path.of(stashDir));
-    }
-
-    public static Optional<CloudInstanceDetails> tryResolveInstanceCloudProfile(Path stashDir) throws IOException {
-        if(!Files.exists(stashDir)) {
-            return Optional.empty();
+    public static @Nullable CloudInstanceDetails tryResolveInstanceCloudProfile(
+        Path stashDir,
+        @Nullable SystemProvider provider
+    ) throws IOException {
+        if(!provider.directoryExists(stashDir)) {
+            return null;
         }
 
         String profile = null;
@@ -177,36 +145,38 @@ public class ConfigUtils {
 
         var cloudProfilePath = stashDir.resolve("cloud-profile");
 
-        if(Files.exists(cloudProfilePath)) {
-            profile = Files.readString(cloudProfilePath);
+        if(provider.fileExists(cloudProfilePath)) {
+            profile = provider.fileReadAllText(cloudProfilePath);
         }
 
         var linkedInstancePath = stashDir.resolve("instance-name");
 
-        if(Files.exists(linkedInstancePath)) {
-            linkedInstanceName = Files.readString(linkedInstancePath);
+        if(provider.fileExists(linkedInstancePath)) {
+            linkedInstanceName = provider.fileReadAllText(linkedInstancePath);
         }
 
         return profile == null && linkedInstanceName == null
-                ? Optional.empty()
-                : Optional.of(new CloudInstanceDetails(profile, linkedInstanceName));
+            ? null
+            : new CloudInstanceDetails(profile, linkedInstanceName);
     }
 
-    public static CloudProfile readCloudProfile(String profile, JsonMapper mapper)
-    throws ConfigurationException, IOException {
-        return readCloudProfile(profile, DEFAULT_SYSTEM_PROVIDER, mapper);
-    }
+    public static @NotNull CloudProfile readCloudProfile(
+        String profile,
+        JsonMapper mapper,
+        @NotNull SystemProvider provider
+        ) throws ConfigurationException, IOException {
+        var profilePath = provider.combinePaths(
+            getEdgeDBConfigDir(provider),
+            "cloud-credentials",
+            profile + ".json"
+        );
 
-    public static CloudProfile readCloudProfile(String profile, SystemProvider provider, JsonMapper mapper)
-    throws ConfigurationException, IOException {
-        var profilePath = Path.of(provider.combinePaths(getEdgeDBConfigDir(provider), "cloud-credentials", profile + ".json"));
-
-        if(!Files.exists(profilePath)) {
+        if(!provider.fileExists(profilePath)) {
             throw new ConfigurationException(
-                    String.format("Unknown cloud profile '%s'", profile)
+                String.format("Unknown cloud profile '%s'", profile)
             );
         }
 
-        return mapper.readValue(Files.readString(profilePath), CloudProfile.class);
+        return mapper.readValue(provider.fileReadAllText(profilePath), CloudProfile.class);
     }
 }
