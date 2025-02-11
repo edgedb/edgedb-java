@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -119,6 +120,9 @@ public class EdgeDBConnection implements Cloneable {
 
     @JsonIgnore
     private @Nullable String cloudProfile;
+
+    private @Nullable Long waitUntilAvailableValue;
+    private @Nullable TimeUnit waitUntilAvailableUnit;
 
     /**
      * Gets the current connections' username field.
@@ -303,6 +307,36 @@ public class EdgeDBConnection implements Cloneable {
      */
     protected void setSecretKey(@Nullable String secretKey) {
         this.secretKey = secretKey;
+    }
+
+    /**
+     * Gets the time a client will wait for a connection to be established with the server.
+     *
+     * @return The time to wait.
+     */
+    public @NotNull long getWaitUntilAvailableValue() {
+        return waitUntilAvailableValue == null ? _defaultWaitUntilAvailableTime : waitUntilAvailableValue;
+    }
+    private static final @NotNull long _defaultWaitUntilAvailableTime = 30;
+
+    /**
+     * Gets the time a client will wait for a connection to be established with the server.
+     *
+     * @return The time to wait.
+     */
+    public @NotNull TimeUnit getWaitUntilAvailableUnit() {
+        return waitUntilAvailableValue == null ? _defaultWaitUntilAvailableUnit : waitUntilAvailableUnit;
+    }
+    private static final @NotNull TimeUnit _defaultWaitUntilAvailableUnit = TimeUnit.SECONDS;
+
+    /**
+     * Sets the time a client will wait for a connection to be established with the server.
+     *
+     * @param value The time to wait.
+     */
+    protected void setWaitUntilAvailable(long value, TimeUnit unit) {
+        waitUntilAvailableValue = value;
+        waitUntilAvailableUnit = unit;
     }
 
     /**

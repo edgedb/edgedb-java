@@ -115,7 +115,10 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
                         return CompletableFuture.failedFuture(e);
                     })
-                    .orTimeout(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit());
+                    .orTimeout(
+                        getConnectionArguments().getWaitUntilAvailableValue(),
+                        getConnectionArguments().getWaitUntilAvailableUnit()
+                    );
         }
         catch (Exception err) {
             logger.error("Failed to open connection", err);

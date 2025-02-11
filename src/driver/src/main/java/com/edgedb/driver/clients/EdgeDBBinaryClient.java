@@ -432,7 +432,10 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
                 .runAsync(() -> {
                     try {
                         logger.debug("Acquiring connection lock...");
-                        if(!this.connectionSemaphore.tryAcquire(getConfig().getConnectionTimeoutValue(), getConfig().getConnectionTimeoutUnit())) {
+                        if(!this.connectionSemaphore.tryAcquire(
+                            getConnectionArguments().getWaitUntilAvailableValue(),
+                            getConnectionArguments().getWaitUntilAvailableUnit()
+                        )) {
                             logger.debug("Failed to acquire connection lock after timeout");
                             throw new CompletionException(new ConnectionFailedException("Connection failed to be established because of a already existing attempt"));
                         }
