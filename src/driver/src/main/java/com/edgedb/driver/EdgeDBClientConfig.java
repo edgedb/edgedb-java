@@ -16,8 +16,6 @@ public class EdgeDBClientConfig {
     private int poolSize = 50;
     private ConnectionRetryMode retryMode = ConnectionRetryMode.ALWAYS_RETRY;
     private int maxConnectionRetries = 5;
-    private long connectionTimeout = 5;
-    private TimeUnit connectionTimeoutUnit = TimeUnit.SECONDS;
     private long messageTimeout = 15;
     private TimeUnit messageTimeoutUnit = TimeUnit.SECONDS;
     private boolean explicitObjectIds = true;
@@ -35,31 +33,6 @@ public class EdgeDBClientConfig {
      */
     public int getMaxConnectionRetries() {
         return maxConnectionRetries;
-    }
-
-    /**
-     * Gets the connection timeout value.
-     * @return The current connection timeout value.
-     */
-    public long getConnectionTimeoutValue() {
-        return connectionTimeout;
-    }
-
-    /**
-     * Gets the connection timeouts' unit.
-     * @return The current unit of the connection timeout.
-     */
-    public TimeUnit getConnectionTimeoutUnit() {
-        return connectionTimeoutUnit;
-    }
-
-    /**
-     * Gets the connection timeout as a specific unit.
-     * @param unit The unit to get the timeout as.
-     * @return The current timeout value, as the supplied unit.
-     */
-    public long getConnectionTimeout(@NotNull TimeUnit unit) {
-        return unit.convert(connectionTimeout, connectionTimeoutUnit);
     }
 
     /**
@@ -178,8 +151,6 @@ public class EdgeDBClientConfig {
         private int poolSize = DEFAULT.poolSize;
         private ConnectionRetryMode retryMode = DEFAULT.retryMode;
         private int maxConnectionRetries = DEFAULT.maxConnectionRetries;
-        private long connectionTimeout = DEFAULT.connectionTimeout;
-        private TimeUnit connectionTimeoutUnit = DEFAULT.connectionTimeoutUnit;
         private long messageTimeout = DEFAULT.messageTimeout;
         private TimeUnit messageTimeoutUnit = DEFAULT.messageTimeoutUnit;
         private boolean explicitObjectIds = DEFAULT.explicitObjectIds;
@@ -224,18 +195,6 @@ public class EdgeDBClientConfig {
          */
         public @NotNull Builder withMaxConnectionRetries(int maxConnectionRetries) {
             this.maxConnectionRetries = maxConnectionRetries;
-            return this;
-        }
-
-        /**
-         * Sets the connection timeout of the current builder.
-         * @param connectionTimeout The value to set.
-         * @param unit The unit of the value.
-         * @return The current builder.
-         */
-        public @NotNull Builder withConnectionTimeout(long connectionTimeout, TimeUnit unit) {
-            this.connectionTimeout = connectionTimeout;
-            this.connectionTimeoutUnit = unit;
             return this;
         }
 
@@ -351,7 +310,6 @@ public class EdgeDBClientConfig {
         public @NotNull EdgeDBClientConfig build() {
             EdgeDBClientConfig edgeDBClientConfig = new EdgeDBClientConfig();
             edgeDBClientConfig.clientType = this.clientType;
-            edgeDBClientConfig.connectionTimeoutUnit = this.connectionTimeoutUnit;
             edgeDBClientConfig.implicitLimit = this.implicitLimit;
             edgeDBClientConfig.explicitObjectIds = this.explicitObjectIds;
             edgeDBClientConfig.messageTimeoutUnit = this.messageTimeoutUnit;
@@ -360,7 +318,6 @@ public class EdgeDBClientConfig {
             edgeDBClientConfig.poolSize = this.poolSize;
             edgeDBClientConfig.useFieldSetters = this.useFieldSetters;
             edgeDBClientConfig.namingStrategy = this.namingStrategy;
-            edgeDBClientConfig.connectionTimeout = this.connectionTimeout;
             edgeDBClientConfig.clientAvailability = this.clientAvailability;
             edgeDBClientConfig.implicitTypeIds = this.implicitTypeIds;
             edgeDBClientConfig.retryMode = this.retryMode;
