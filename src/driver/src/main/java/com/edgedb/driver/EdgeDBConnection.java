@@ -3,6 +3,7 @@ package com.edgedb.driver;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.exceptions.ConfigurationException;
 import com.edgedb.driver.util.*;
+import com.edgedb.driver.util.ConfigUtils.DatabaseOrBranch;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -389,9 +390,110 @@ public class EdgeDBConnection implements Cloneable {
     @JsonIgnore
     private @Nullable String tlsServerName;
 
-    private @NotNull Dictionary<String, String> serverSettings = new Hashtable<String,String>();
+    private @NotNull HashMap<String, String> serverSettings = new HashMap<String, String>();
 
     //#endregion
+
+    private static EdgeDBConnection _fromResolvedFields(
+        ConfigUtils.ResolvedFields resolvedFields,
+        SystemProvider platform
+    ) throws Exception {
+        EdgeDBConnection result = new EdgeDBConnection();
+
+        result.hostname = ConfigUtils.checkAndGetFieldValue(
+            resolvedFields.getHost(),
+            (String value) -> {
+                if (value == null) {
+                    return;
+                }
+
+                if (value.contains(",")) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid host: \"%s\", DSN cannot contain more than one host",
+                        value
+                    ));
+                }
+                if (value == "") {
+                    throw new ConfigurationException(String.format(
+                        "Invalid host: \"%s\"",
+                        value
+                    ));
+                }
+                if (value.startsWith("/")) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid host: \"%s\", unix socket paths not supported",
+                        value
+                    ));
+                }
+            }
+        );
+
+        result.port = ConfigUtils.checkAndGetFieldValue(
+            resolvedFields.getPort(),
+            (Integer value) -> {
+                if (value == null) {
+                    return;
+                }
+
+                if (value < 1 || 65535 < value) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid port: \"%i\", must be between 1 and 65535",
+                        value
+                    ));
+                }
+            }
+        );
+
+        @Nullable DatabaseOrBranch databaseOrBranch = ConfigUtils.checkAndGetFieldValue(
+            resolvedFields.getDatabaseOrBranch(),
+            (DatabaseOrBranch value) -> {
+                if (value == null) {
+                    return;
+                }
+
+                if (value.getDatabase().equals("")) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid database name: \"%s\"",
+                        value.getDatabase()
+                    ));
+                }
+                if (value.getBranch().equals("")) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid branch name: \"%s\"",
+                        value.getDatabase()
+                    ));
+                }
+            }
+        );
+        result.database = databaseOrBranch != null ? databaseOrBranch.getDatabase() : null;
+        result.branch = databaseOrBranch != null ? databaseOrBranch.getBranch() : null;
+
+        result.user = ConfigUtils.checkAndGetFieldValue(
+            resolvedFields.getUser(),
+            (String value) -> {
+                if (value == null) {
+                    return;
+                }
+
+                if (value.equals("")) {
+                    throw new ConfigurationException(String.format(
+                        "Invalid user: \"%s\"",
+                        value
+                    ));
+                }
+            }
+        );
+
+        result.password = ConfigUtils.checkAndGetFieldValue(resolvedFields.getPassword());
+        result.secretKey = ConfigUtils.checkAndGetFieldValue(resolvedFields.getSecretKey());
+        result.tlsCertificateAuthority = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSCertificateAuthority());
+        result.tlsSecurity = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSSecurity());
+        result.tlsServerName = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSServerName());
+        result.waitUntilAvailable = ConfigUtils.checkAndGetFieldValue(resolvedFields.getWaitUntilAvailable());
+        result.serverSettings = ConfigUtils.checkAndGetServerSettings(resolvedFields.getServerSettings());
+
+        return result;
+    }
 
     /**
      * Creates a {@linkplain EdgeDBConnection} from a given DSN string.
