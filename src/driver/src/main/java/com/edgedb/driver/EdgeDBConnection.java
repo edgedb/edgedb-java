@@ -39,14 +39,19 @@ public class EdgeDBConnection implements Cloneable {
     private static final String INSTANCE_ENV_NAME = "INSTANCE";
     private static final String DSN_ENV_NAME = "DSN";
     private static final String CREDENTIALS_FILE_ENV_NAME = "CREDENTIALS_FILE";
-    private static final String USER_ENV_NAME = "USER";
-    private static final String PASSWORD_ENV_NAME = "PASSWORD";
-    private static final String DATABASE_ENV_NAME = "DATABASE";
-    private static final String BRANCH_ENV_NAME = "BRANCH";
     private static final String HOST_ENV_NAME = "HOST";
     private static final String PORT_ENV_NAME = "PORT";
-    private static final String CLOUD_PROFILE_ENV_NAME = "CLOUD_PROFILE";
+    private static final String DATABASE_ENV_NAME = "DATABASE";
+    private static final String BRANCH_ENV_NAME = "BRANCH";
+    private static final String USER_ENV_NAME = "USER";
+    private static final String PASSWORD_ENV_NAME = "PASSWORD";
     private static final String SECRET_KEY_ENV_NAME = "SECRET_KEY";
+    private static final String TLS_CA_ENV_NAME = "TLS_CA";
+    private static final String CLIENT_SECURITY_ENV_NAME = "CLIENT_SECURITY";
+    private static final String CLIENT_TLS_SECURITY_ENV_NAME = "CLIENT_TLS_SECURITY";
+    private static final String TLS_SERVER_NAME_ENV_NAME = "TLS_SERVER_NAME";
+    private static final String WAIT_UNTIL_AVAILABLE_ENV_NAME = "WAIT_UNTIL_AVAILABLE";
+    private static final String CLOUD_PROFILE_ENV_NAME = "CLOUD_PROFILE";
 
     private static final int DOMAIN_NAME_MAX_LEN = 62;
 
@@ -81,7 +86,7 @@ public class EdgeDBConnection implements Cloneable {
         this.database = database;
         this.hostname = hostname;
         this.port = port;
-        this.tlsca = tlsca;
+        this.tlsCertificateAuthority = tlsca;
         this.tlsSecurity = tlsSecurity;
     }
 
@@ -91,86 +96,7 @@ public class EdgeDBConnection implements Cloneable {
     public EdgeDBConnection() {
     }
 
-    @JsonProperty("user")
-    private String user;
-
-    @JsonProperty("password")
-    private String password;
-
-    @JsonProperty("database")
-    private String database;
-
-    @JsonIgnore
-    private String hostname;
-
-    @JsonProperty("port")
-    private Integer port;
-
-    @JsonProperty("tls_ca")
-    private String tlsca;
-
-    @JsonProperty("tls_security")
-    private @Nullable TLSSecurityMode tlsSecurity;
-
-    @JsonProperty("branch")
-    private @Nullable String branch;
-
-    @JsonIgnore
-    private @Nullable String secretKey;
-
-    @JsonIgnore
-    private @Nullable String cloudProfile;
-
-    public static class WaitTime {
-        public final @NotNull Long value;
-        public final @NotNull TimeUnit unit;
-        public WaitTime(@NotNull Long value, @NotNull TimeUnit unit) {
-            this.value = value;
-            this.unit = unit;
-        }
-
-        public @NotNull long valueInUnits(@NotNull TimeUnit unit) {
-            return unit.convert(this.value, this.unit);
-        }
-    }
-
-    private @Nullable WaitTime waitUntilAvailable;
-
-    /**
-     * Gets the current connections' username field.
-     *
-     * @return The username part of the connection.
-     */
-    public @NotNull String getUsername() {
-        return user == null ? "edgedb" : user;
-    }
-
-    /**
-     * Sets the current connections username field
-     *
-     * @param value The new username.
-     */
-    protected void setUsername(String value) {
-        user = value;
-    }
-
-    /**
-     * Gets the current connections' password field.
-     *
-     * @return The password part of the connection.
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * Sets the current connections password field.
-     *
-     * @param value The new password.
-     */
-    protected void setPassword(String value) {
-        password = value;
-    }
+    //#region Main connection args
 
     /**
      * Gets the current connections' hostname field.
@@ -178,7 +104,7 @@ public class EdgeDBConnection implements Cloneable {
      * @return The hostname part of the connection.
      */
     public @NotNull String getHostname() {
-        return hostname == null ? "localhost" : hostname;
+        return hostname == null ? _defaultHostname : hostname;
     }
 
     /**
@@ -199,13 +125,17 @@ public class EdgeDBConnection implements Cloneable {
         hostname = value;
     }
 
+    @JsonIgnore
+    private @Nullable String hostname;
+    private static final String _defaultHostname = "localhost";
+
     /**
      * Gets the current connections' port field.
      *
      * @return The port of the connection.
      */
     public int getPort() {
-        return port == null ? 5656 : port;
+        return port == null ? _defaultPort : port;
     }
 
     /**
@@ -216,6 +146,10 @@ public class EdgeDBConnection implements Cloneable {
     protected void setPort(int value) {
         port = value;
     }
+
+    @JsonProperty("port")
+    private @Nullable Integer port;
+    private static final int _defaultPort = 5656;
 
     /**
      * Gets the current connections' database field.
@@ -229,7 +163,7 @@ public class EdgeDBConnection implements Cloneable {
         if (branch != null)
             return branch;
 
-        return "edgedb";
+        return _defaultDatabase;
     }
 
     /**
@@ -240,6 +174,10 @@ public class EdgeDBConnection implements Cloneable {
     protected void setDatabase(String value) {
         database = value;
     }
+
+    @JsonProperty("database")
+    private @Nullable String database;
+    private static final String _defaultDatabase = "edgedb";
 
     /**
      * Gets the current connections' branch field.
@@ -253,7 +191,7 @@ public class EdgeDBConnection implements Cloneable {
         if (database != null)
             return database;
 
-        return "main";
+        return _defaultBranch;
     }
 
     /**
@@ -265,43 +203,52 @@ public class EdgeDBConnection implements Cloneable {
         branch = value;
     }
 
+    @JsonProperty("branch")
+    private @Nullable String branch;
+    private static final String _defaultBranch = "__default__";
+
     /**
-     * Gets the current connections' TLS certificate authority.
+     * Gets the current connections' username field.
      *
-     * @return The TLS certificate authority of the connection.
+     * @return The username part of the connection.
      */
-    public String getTLSCertificateAuthority() {
-        return tlsca;
+    public @NotNull String getUsername() {
+        return user == null ? _defaultUser : user;
     }
 
     /**
-     * Sets the current connections TLS certificate authority.
+     * Sets the current connections username field
      *
-     * @param value The new TLS certificate authority.
+     * @param value The new username.
      */
-    protected void setTLSCertificateAuthority(String value) {
-        tlsca = value;
+    protected void setUsername(String value) {
+        user = value;
+    }
+
+    @JsonProperty("user")
+    private @Nullable String user;
+    private static final String _defaultUser = "edgedb";
+
+    /**
+     * Gets the current connections' password field.
+     *
+     * @return The password part of the connection.
+     */
+    public @Nullable String getPassword() {
+        return password;
     }
 
     /**
-     * Gets the current connections' TLS security mode.
+     * Sets the current connections password field.
      *
-     * @return The TLS security mode of the connection.
-     * @see TLSSecurityMode
+     * @param value The new password.
      */
-    public @NotNull TLSSecurityMode getTLSSecurity() {
-        return tlsSecurity == null ? TLSSecurityMode.STRICT : this.tlsSecurity;
+    protected void setPassword(String value) {
+        password = value;
     }
 
-    /**
-     * Sets the current connections TLS security mode.
-     *
-     * @param value The new TLS security mode.
-     * @see TLSSecurityMode
-     */
-    protected void setTLSSecurity(TLSSecurityMode value) {
-        tlsSecurity = value;
-    }
+    @JsonProperty("password")
+    private @Nullable String password;
 
     /**
      * Gets the secret key used to authenticate with cloud instances.
@@ -321,6 +268,71 @@ public class EdgeDBConnection implements Cloneable {
         this.secretKey = secretKey;
     }
 
+    @JsonIgnore
+    private @Nullable String secretKey;
+
+    /**
+     * Gets the current connections' TLS certificate authority.
+     *
+     * @return The TLS certificate authority of the connection.
+     */
+    public @Nullable String getTLSCertificateAuthority() {
+        return tlsCertificateAuthority;
+    }
+
+    /**
+     * Sets the current connections TLS certificate authority.
+     *
+     * @param value The new TLS certificate authority.
+     */
+    protected void setTLSCertificateAuthority(String value) {
+        tlsCertificateAuthority = value;
+    }
+
+    @JsonProperty("tls_ca")
+    private @Nullable String tlsCertificateAuthority;
+
+    /**
+     * Gets the current connections' TLS security mode.
+     *
+     * @return The TLS security mode of the connection.
+     * @see TLSSecurityMode
+     */
+    public @NotNull TLSSecurityMode getTLSSecurity() {
+        return tlsSecurity == null
+            ? _defaultTlsSecurity
+            : tlsSecurity == TLSSecurityMode.DEFAULT
+            ? _defaultTlsSecurity
+            : this.tlsSecurity;
+    }
+
+    /**
+     * Sets the current connections TLS security mode.
+     *
+     * @param value The new TLS security mode.
+     * @see TLSSecurityMode
+     */
+    protected void setTLSSecurity(TLSSecurityMode value) {
+        tlsSecurity = value;
+    }
+
+    @JsonProperty("tls_security")
+    private @Nullable TLSSecurityMode tlsSecurity;
+    private static final TLSSecurityMode _defaultTlsSecurity = TLSSecurityMode.STRICT;
+
+    public static class WaitTime {
+        public final @NotNull Long value;
+        public final @NotNull TimeUnit unit;
+        public WaitTime(@NotNull Long value, @NotNull TimeUnit unit) {
+            this.value = value;
+            this.unit = unit;
+        }
+
+        public @NotNull long valueInUnits(@NotNull TimeUnit unit) {
+            return unit.convert(this.value, this.unit);
+        }
+    }
+
     /**
      * Gets the time a client will wait for a connection to be established with the server.
      *
@@ -329,7 +341,6 @@ public class EdgeDBConnection implements Cloneable {
     public @NotNull WaitTime getWaitUntilAvailable() {
         return waitUntilAvailable == null ? _defaultWaitUntilAvailable : waitUntilAvailable;
     }
-    private static final @NotNull WaitTime _defaultWaitUntilAvailable = new WaitTime(30l, TimeUnit.SECONDS);
 
     /**
      * Sets the time a client will wait for a connection to be established with the server.
@@ -339,6 +350,9 @@ public class EdgeDBConnection implements Cloneable {
     protected void setWaitUntilAvailable(WaitTime waitUntilAvailable) {
         this.waitUntilAvailable = waitUntilAvailable;
     }
+
+    private @Nullable WaitTime waitUntilAvailable;
+    private static final @NotNull WaitTime _defaultWaitUntilAvailable = new WaitTime(30l, TimeUnit.SECONDS);
 
     /**
      * Gets the name of the cloud profile to use to resolve the secret key.
@@ -357,6 +371,27 @@ public class EdgeDBConnection implements Cloneable {
     protected void setCloudProfile(@Nullable String cloudProfile) {
         this.cloudProfile = cloudProfile;
     }
+
+    @JsonIgnore
+    private @Nullable String cloudProfile;
+
+    /**
+     * Gets the TLS server name to be used
+     * 
+     * Overrides the value provided by Hostname.
+     *
+     * @return The TLS server name to be used if present; otherwise {@code null}.
+     */
+    public @Nullable String getTLSServerName() {
+        return tlsServerName;
+    }
+
+    @JsonIgnore
+    private @Nullable String tlsServerName;
+
+    private @NotNull Dictionary<String, String> serverSettings = new Hashtable<String,String>();
+
+    //#endregion
 
     /**
      * Creates a {@linkplain EdgeDBConnection} from a given DSN string.
@@ -992,8 +1027,8 @@ public class EdgeDBConnection implements Cloneable {
             other.password = this.password;
         }
 
-        if (other.tlsca == null) {
-            other.tlsca = this.tlsca;
+        if (other.tlsCertificateAuthority == null) {
+            other.tlsCertificateAuthority = this.tlsCertificateAuthority;
         }
 
         if (other.port == null) {
@@ -1068,7 +1103,7 @@ public class EdgeDBConnection implements Cloneable {
                     throw new FileNotFoundException("The specified tls_cert_file file was not found");
                 }
 
-                connection.tlsca = provider.fileReadAllText(path);
+                connection.tlsCertificateAuthority = provider.fileReadAllText(path);
                 break;
             case "tls_security":
                 var security = EnumsUtil.searchEnum(TLSSecurityMode.class, value);
