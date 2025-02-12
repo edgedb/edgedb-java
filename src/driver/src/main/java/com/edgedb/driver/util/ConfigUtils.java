@@ -1,5 +1,6 @@
 package com.edgedb.driver.util;
 
+import com.edgedb.driver.EdgeDBConnection.WaitTime;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.internal.DefaultSystemProvider;
@@ -14,6 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ConfigUtils {
     private static final SystemProvider DEFAULT_SYSTEM_PROVIDER = new DefaultSystemProvider();
@@ -179,4 +183,132 @@ public class ConfigUtils {
 
         return mapper.readValue(provider.fileReadAllText(profilePath), CloudProfile.class);
     }
+
+    //#region Parse Functions
+
+    private static final Pattern _isoUnitlessHours = Pattern.compile(
+        "^(-?\\d+|-?\\d+\\.\\d*|-?\\d*\\.\\d+)$"
+    );
+    private static final Pattern _isoTimeWithUnits = Pattern.compile(
+        "(?<Hours>(?<vh>-?\\d+|-?\\d+\\.\\d*|-?\\d*\\.\\d+)H)?"
+        + "(?<Minutes>(?<vm>-?\\d+|-?\\d+\\.\\d*|-?\\d*\\.\\d+)M)?"
+        + "(?<Seconds>(?<vs>-?\\d+|-?\\d+\\.\\d*|-?\\d*\\.\\d+)S)?"
+    );
+    private static final Pattern _humanHours = Pattern.compile(
+        "(?<time>(?:(?<=\\s|^)-\\s*)?\\d*\\.?\\d*)\\s*(?:h(?=\\s|\\d|\\.|$)|hours?(?:\\s|$))",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern _humanMinutes = Pattern.compile(
+        "(?<time>(?:(?<=\\s|^)-\\s*)?\\d*\\.?\\d*)\\s*(?:m(?=\\s|\\d|\\.|$)|minutes?(?:\\s|$))",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern _humanSeconds = Pattern.compile(
+        "(?<time>(?:(?<=\\s|^)-\\s*)?\\d*\\.?\\d*)\\s*(?:s(?=\\s|\\d|\\.|$)|seconds?(?:\\s|$))",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern _humanMilliseconds = Pattern.compile(
+        "(?<time>(?:(?<=\\s|^)-\\s*)?\\d*\\.?\\d*)\\s*(?:ms(?=\\s|\\d|\\.|$)|milliseconds?(?:\\s|$))",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern _humanMicroseconds = Pattern.compile(
+        "(?<time>(?:(?<=\\s|^)-\\s*)?\\d*\\.?\\d*)\\s*(?:us(\\s|\\d|\\.|$)|microseconds?(?:\\s|$))",
+        Pattern.CASE_INSENSITIVE
+    );
+
+    public static @NotNull WaitTime ParseWaitUntilAvailable(
+        @NotNull String text
+    ) throws ConfigurationException {
+
+        String originalText = text;
+
+        if (text.startsWith("PT")) {
+            // ISO duration
+            text = text.substring(2);
+            Matcher matcher = _isoUnitlessHours.matcher(text);
+            if (matcher.find()) {
+                double hours = Double.parseDouble(matcher.group(0));
+                return new WaitTime((long)(hours * 3600e6), TimeUnit.MICROSECONDS);
+            }
+
+            matcher = _isoTimeWithUnits.matcher(text);
+            if (matcher.find()) {
+                class IsoDurationReader {
+                    public WaitTime waitTime = new WaitTime(0l, TimeUnit.MICROSECONDS);
+
+                    public @NotNull String read(
+                        @NotNull Matcher matcher,
+                        @NotNull String groupName,
+                        @NotNull String valueName,
+                        double factor,
+                        @NotNull String text
+                    ) {
+                        String groupValue = matcher.group(valueName);
+                        if (groupValue == null || groupValue.isEmpty()) { return text; }
+
+                        long time = (long)(Double.parseDouble(groupValue) * factor);
+                        waitTime = new WaitTime(waitTime.value + time, TimeUnit.MICROSECONDS);
+
+                        return text.replace(matcher.group(groupName), "");
+                    }
+                }
+                IsoDurationReader reader = new IsoDurationReader();
+
+                text = reader.read(matcher, "Hours", "vh", 3600e6, text);
+                text = reader.read(matcher, "Minutes", "vm", 60e6, text);
+                text = reader.read(matcher, "Seconds", "vs", 1e6, text);
+                if (text.isEmpty()) {
+                    return reader.waitTime;
+                }
+            }
+        }
+        else {
+            // human duration
+            class HumanDurationReader {
+                public boolean found = false;
+                public WaitTime waitTime = new WaitTime(0l, TimeUnit.HOURS);
+
+                public @NotNull String read(
+                    @NotNull Pattern pattern,
+                    double factor,
+                    @NotNull String text
+                ) {
+                    Matcher matcher = pattern.matcher(text);
+                    if (!matcher.find()) {
+                        return text;
+                    }
+
+                    String timeText = matcher.group("time");
+                    if (timeText == null || timeText.isEmpty()) {
+                        return text;
+                    }
+    
+                    timeText = timeText.replaceAll("\\s+", "");
+                    if (timeText.isEmpty() || timeText.endsWith(".") || timeText.startsWith("-.")) {
+                        return text;
+                    }
+    
+                    found = true;
+
+                    long time = (long)(Double.parseDouble(timeText) * factor);
+                    waitTime = new WaitTime(waitTime.value + time, TimeUnit.MICROSECONDS);
+
+                    return text.replaceFirst(matcher.group(), "");
+                }
+            }
+            HumanDurationReader reader = new HumanDurationReader();
+
+            text = reader.read(_humanHours, 3600e6, text);
+            text = reader.read(_humanMinutes, 60e6, text);
+            text = reader.read(_humanSeconds, 1e6, text);
+            text = reader.read(_humanMilliseconds, 1e3, text);
+            text = reader.read(_humanMicroseconds, 1, text);
+            if (reader.found && text.trim().isEmpty()) {
+                return reader.waitTime;
+            }
+        }
+
+        throw new ConfigurationException(String.format("invalid duration %s", originalText));
+    }
+
+    //#endregion
 }

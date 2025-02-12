@@ -116,8 +116,8 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
                         return CompletableFuture.failedFuture(e);
                     })
                     .orTimeout(
-                        getConnectionArguments().getWaitUntilAvailableValue(),
-                        getConnectionArguments().getWaitUntilAvailableUnit()
+                        getConnectionArguments().getWaitUntilAvailable().value,
+                        getConnectionArguments().getWaitUntilAvailable().unit
                     );
         }
         catch (Exception err) {
