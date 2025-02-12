@@ -121,8 +121,20 @@ public class EdgeDBConnection implements Cloneable {
     @JsonIgnore
     private @Nullable String cloudProfile;
 
-    private @Nullable Long waitUntilAvailableValue;
-    private @Nullable TimeUnit waitUntilAvailableUnit;
+    public static class WaitTime {
+        public final @NotNull Long value;
+        public final @NotNull TimeUnit unit;
+        public WaitTime(@NotNull Long value, @NotNull TimeUnit unit) {
+            this.value = value;
+            this.unit = unit;
+        }
+
+        public @NotNull long valueInUnits(@NotNull TimeUnit unit) {
+            return unit.convert(this.value, this.unit);
+        }
+    }
+
+    private @Nullable WaitTime waitUntilAvailable;
 
     /**
      * Gets the current connections' username field.
@@ -314,29 +326,18 @@ public class EdgeDBConnection implements Cloneable {
      *
      * @return The time to wait.
      */
-    public @NotNull long getWaitUntilAvailableValue() {
-        return waitUntilAvailableValue == null ? _defaultWaitUntilAvailableTime : waitUntilAvailableValue;
+    public @NotNull WaitTime getWaitUntilAvailable() {
+        return waitUntilAvailable == null ? _defaultWaitUntilAvailable : waitUntilAvailable;
     }
-    private static final @NotNull long _defaultWaitUntilAvailableTime = 30;
-
-    /**
-     * Gets the time a client will wait for a connection to be established with the server.
-     *
-     * @return The time to wait.
-     */
-    public @NotNull TimeUnit getWaitUntilAvailableUnit() {
-        return waitUntilAvailableValue == null ? _defaultWaitUntilAvailableUnit : waitUntilAvailableUnit;
-    }
-    private static final @NotNull TimeUnit _defaultWaitUntilAvailableUnit = TimeUnit.SECONDS;
+    private static final @NotNull WaitTime _defaultWaitUntilAvailable = new WaitTime(30l, TimeUnit.SECONDS);
 
     /**
      * Sets the time a client will wait for a connection to be established with the server.
      *
      * @param value The time to wait.
      */
-    protected void setWaitUntilAvailable(long value, TimeUnit unit) {
-        waitUntilAvailableValue = value;
-        waitUntilAvailableUnit = unit;
+    protected void setWaitUntilAvailable(WaitTime waitUntilAvailable) {
+        this.waitUntilAvailable = waitUntilAvailable;
     }
 
     /**

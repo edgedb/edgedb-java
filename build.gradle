@@ -50,6 +50,7 @@ allprojects {
 
     dependencies {
         implementation platform("io.netty:netty-bom:$netty_version")
+        testImplementation "org.junit.jupiter:junit-jupiter:$junit_version"
     }
 
     repositories {
