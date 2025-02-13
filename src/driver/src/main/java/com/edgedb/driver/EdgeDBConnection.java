@@ -4,6 +4,8 @@ import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.exceptions.ConfigurationException;
 import com.edgedb.driver.util.*;
 import com.edgedb.driver.util.ConfigUtils.DatabaseOrBranch;
+import com.edgedb.driver.util.ConfigUtils.ResolvedField;
+import com.edgedb.driver.util.ConfigUtils.ResolvedFields;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,10 +18,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -397,11 +402,11 @@ public class EdgeDBConnection implements Cloneable {
     private static EdgeDBConnection _fromResolvedFields(
         ConfigUtils.ResolvedFields resolvedFields,
         SystemProvider platform
-    ) throws Exception {
+    ) throws ConfigurationException {
         EdgeDBConnection result = new EdgeDBConnection();
 
         result.hostname = ConfigUtils.checkAndGetFieldValue(
-            resolvedFields.getHost(),
+            resolvedFields.host,
             (String value) -> {
                 if (value == null) {
                     return;
@@ -429,7 +434,7 @@ public class EdgeDBConnection implements Cloneable {
         );
 
         result.port = ConfigUtils.checkAndGetFieldValue(
-            resolvedFields.getPort(),
+            resolvedFields.port,
             (Integer value) -> {
                 if (value == null) {
                     return;
@@ -445,19 +450,19 @@ public class EdgeDBConnection implements Cloneable {
         );
 
         @Nullable DatabaseOrBranch databaseOrBranch = ConfigUtils.checkAndGetFieldValue(
-            resolvedFields.getDatabaseOrBranch(),
+            resolvedFields.databaseOrBranch,
             (DatabaseOrBranch value) -> {
                 if (value == null) {
                     return;
                 }
 
-                if (value.getDatabase().equals("")) {
+                if (value.getDatabase() != null && value.getDatabase().equals("")) {
                     throw new ConfigurationException(String.format(
                         "Invalid database name: \"%s\"",
                         value.getDatabase()
                     ));
                 }
-                if (value.getBranch().equals("")) {
+                if (value.getBranch() != null && value.getBranch().equals("")) {
                     throw new ConfigurationException(String.format(
                         "Invalid branch name: \"%s\"",
                         value.getDatabase()
@@ -469,7 +474,7 @@ public class EdgeDBConnection implements Cloneable {
         result.branch = databaseOrBranch != null ? databaseOrBranch.getBranch() : null;
 
         result.user = ConfigUtils.checkAndGetFieldValue(
-            resolvedFields.getUser(),
+            resolvedFields.user,
             (String value) -> {
                 if (value == null) {
                     return;
@@ -484,16 +489,40 @@ public class EdgeDBConnection implements Cloneable {
             }
         );
 
-        result.password = ConfigUtils.checkAndGetFieldValue(resolvedFields.getPassword());
-        result.secretKey = ConfigUtils.checkAndGetFieldValue(resolvedFields.getSecretKey());
-        result.tlsCertificateAuthority = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSCertificateAuthority());
-        result.tlsSecurity = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSSecurity());
-        result.tlsServerName = ConfigUtils.checkAndGetFieldValue(resolvedFields.getTLSServerName());
-        result.waitUntilAvailable = ConfigUtils.checkAndGetFieldValue(resolvedFields.getWaitUntilAvailable());
-        result.serverSettings = ConfigUtils.checkAndGetServerSettings(resolvedFields.getServerSettings());
+        result.password = ConfigUtils.checkAndGetFieldValue(resolvedFields.password);
+        result.secretKey = ConfigUtils.checkAndGetFieldValue(resolvedFields.secretKey);
+        result.tlsCertificateAuthority = ConfigUtils.checkAndGetFieldValue(resolvedFields.tlsCertificateAuthority);
+        result.tlsSecurity = ConfigUtils.checkAndGetFieldValue(resolvedFields.tlsSecurity);
+        result.tlsServerName = ConfigUtils.checkAndGetFieldValue(resolvedFields.tlsServerName);
+        result.waitUntilAvailable = ConfigUtils.checkAndGetFieldValue(resolvedFields.waitUntilAvailable);
+        result.serverSettings = ConfigUtils.checkAndGetServerSettings(resolvedFields.serverSettings);
 
         return result;
     }
+
+    static private final Pattern _dsnRegex = Pattern.compile(
+        "^(?:(?:edgedb|gel|(?<invalidScheme>\\w+))://)"
+        + "(?:"
+            + "(?:"
+                + "(?<user>[^@/?:,]+)(?::(?<password>[^@/?:,]+))?@"
+                + "|(?<invalidUser>[^@/?]+)@"
+                + ")?"
+            + "(?:"
+                + "(?:(?<host0>[^@/?:]+)|\\[(?<host1>[^\\[\\]]+)\\])"
+                    + "(?::(?<port>[^@/?:,]+))?"
+                + "|(?<invalidHost>[^@/?]+)"
+                + ")"
+            + ")?"
+        + "(?:"
+            + "/(?<branch>[^@/?:,]*(?:/[^@/?:,]+)*)"
+            + "|/(?<invalidBranch>[^/?]+)"
+            + ")?"
+        + "(?:\\?(?<params>.*))?"
+        + "$"
+    );
+    private static final Pattern _dsnParamsRegex = Pattern.compile(
+        "^(?:[^=&]+(?:=[^=&]*)?)(?:&(?:[^=&]+(?:=[^=&]*)?))*$"
+    );
 
     /**
      * Creates a {@linkplain EdgeDBConnection} from a given DSN string.
@@ -507,136 +536,286 @@ public class EdgeDBConnection implements Cloneable {
         @NotNull String dsn
     ) throws ConfigurationException, IOException {
 
-        return _fromDSN(dsn, ConfigUtils.getDefaultSystemProvider());
+        return _fromResolvedFields(
+            _fromDSN(dsn, ConfigUtils.getDefaultSystemProvider()),
+            ConfigUtils.getDefaultSystemProvider()
+        );
     }
 
-    private static @NotNull EdgeDBConnection _fromDSN(
+    private static @NotNull ResolvedFields _fromDSN(
         @NotNull String dsn,
         @NotNull SystemProvider provider
-    ) throws ConfigurationException, IOException {
-
-        if (!dsn.startsWith("edgedb://")) {
-            throw new ConfigurationException(String.format("DSN schema 'edgedb' expected but got '%s'", dsn.split("://")[0]));
+    ) throws ConfigurationException {
+        Matcher dsnMatcher = _dsnRegex.matcher(URLDecoder.decode(dsn, StandardCharsets.UTF_8));
+        if (!dsnMatcher.find()) {
+            throw new ConfigurationException(String.format("Invalid DSN: \"%s\"", dsn));
+        }
+        if (dsnMatcher.group("invalidScheme") != null) {
+            String scheme = dsnMatcher.group("invalidScheme");
+            throw new ConfigurationException(String.format(
+                "Invalid DSN scheme. Expected \"gel\" but got \"%s\"",
+                scheme
+            ));
+        }
+        if (dsnMatcher.group("invalidUser") != null) {
+            throw new ConfigurationException("Invalid DSN: Could not parse user/password");
+        }
+        if (dsnMatcher.group("invalidHost") != null) {
+            throw new ConfigurationException("Invalid DSN: Could not parse host/port");
+        }
+        if (dsnMatcher.group("invalidBranch") != null) {
+            throw new ConfigurationException("Invalid DSN: Could not parse branch");
         }
 
-        String database = null, username = null, port = null, host = null, password = null;
-
-        Map<String, String> args = Collections.emptyMap();
-
-        var formattedDSN = DSN_FORMATTER.matcher(dsn).replaceAll("");
-
-        var queryParams = DSN_QUERY_PARAMETERS.matcher(dsn);
-
-        if (queryParams.find()) {
-            args = QueryParamUtils.splitQuery(queryParams.group(1).substring(1));
-
-            // remove args from formatted dsn
-            formattedDSN = formattedDSN.replace(queryParams.group(1), "");
+        @Nullable String username = dsnMatcher.group("user");
+        @Nullable String password = dsnMatcher.group("password");
+        @Nullable String port = dsnMatcher.group("port");
+        @Nullable String host = dsnMatcher.group("host0");
+        if (host == null) {
+            host = dsnMatcher.group("host1");
         }
+        @Nullable String branch = dsnMatcher.group("branch");
 
-        var partA = formattedDSN.split("/");
+        // Check that a param != used twice in the dsn
+        HashSet<String> usedParamNames = new HashSet<String>();
+        if (branch != null && branch != "") usedParamNames.add("branch");
+        if (host != null && host != "") usedParamNames.add("host");
+        if (username != null && username != "") usedParamNames.add("user");
+        if (password != null && password != "") usedParamNames.add("password");
+        if (port != null && port != "") usedParamNames.add("port");
 
-        if (partA.length == 2) {
-            database = partA[1];
-            formattedDSN = partA[0];
-        }
+        // Parse query params
+        HashMap<String, String> args = new HashMap<String, String>();
+        if (dsnMatcher.group("params") != null) {
 
-        var partB = formattedDSN.split("@");
-
-        if (partB.length == 2 && !partB[1].equals("")) {
-            if (partB[1].contains(","))
-                throw new ConfigurationException("DSN cannot contain more than one host");
-
-            var right = partB[1].split(":");
-
-            if (right.length == 2) {
-                host = right[0];
-                port = right[1];
-            } else {
-                host = right[0];
+            if (!_dsnParamsRegex.matcher(dsnMatcher.group("params")).find()) {
+                throw new ConfigurationException("Invalid DSN: could not parse query parameters");
             }
 
-            var left = partB[0].split(":");
+            String[] params = dsnMatcher.group("params").split("&");
+            for (String param : params) {
+                String[] entry = param.split("=");
+                if (entry.length == 2) {
+                    String paramName = entry[0].toLowerCase();
+                    if (args.containsKey(paramName)) {
+                        throw new ConfigurationException(String.format(
+                            "Invalid DSN: dupliate query parameter \"%s\"",
+                            entry[0]
+                        ));
+                    }
 
-            if (left.length == 2) {
-                username = left[0];
-                password = left[1];
-            } else {
-                username = left[0];
-            }
-        } else if (!formattedDSN.endsWith("@")) {
-            var sub = partB[0].split(":");
+                    if (paramName.endsWith("_env")) {
+                        paramName = paramName.substring(0, paramName.length() - "_env".length());
+                    }
+                    if (paramName.endsWith("_file")) {
+                        paramName = paramName.substring(0, paramName.length() - "_file".length());
+                    }
 
-            if (sub.length == 2) {
-                host = sub[0];
-                port = sub[1];
-            } else if (!StringsUtil.isNullOrEmpty(sub[0])) {
-                host = sub[0];
+                    if (usedParamNames.contains(paramName)) {
+                        throw new ConfigurationException(String.format(
+                            "Invalid DSN: more than one of "
+                            + "\"%s\", "
+                            + "\"?%s=\", \"?%s_env=\", \"?%s_file=\" "
+                            + "was specified.",
+                            paramName,
+                            paramName,
+                            paramName,
+                            paramName
+                        ));
+                    }
+
+                    args.put(paramName, entry[1]);
+                    usedParamNames.add(paramName);
+                }
+                else {
+                    if (entry[0].equals("tls_security")) {
+                        throw new ConfigurationException("Invalid TLS Security in dsn query parameters");
+                    }
+                    else {
+                        throw new ConfigurationException(String.format(
+                            "Invalid %s in dsn query parameters",
+                            entry[0]
+                        ));
+                    }
+                }
             }
         }
 
-        var connection = new EdgeDBConnection();
+        var resolvedFields = new ConfigUtils.ResolvedFields();
 
-        if (database != null)
-            connection.database = database;
-
-        if (host != null)
-            connection.setHostname(host);
-
-        if (username != null)
-            connection.user = username;
-
-        if (password != null)
-            connection.password = password;
-
+        if (host != null) {
+            resolvedFields.host = ResolvedField.valid(host);
+        }
         if (port != null) {
             try {
-                connection.port = Integer.parseInt(port);
-            } catch (NumberFormatException e) {
-                throw new ConfigurationException("port was not in the correct format", e);
+                resolvedFields.port = ResolvedField.valid(Integer.parseInt(port));
+            }
+            catch (NumberFormatException e) {
+                throw new ConfigurationException("Invalid DSN: port was not in the correct format");
+            }
+        }
+        if (branch != null && !branch.equals("")) {
+            resolvedFields.databaseOrBranch = ResolvedField.valid(DatabaseOrBranch.ofBranch(branch));
+        }
+        if (username != null) {
+            resolvedFields.user = ResolvedField.valid(username);
+        }
+        if (password != null) {
+            resolvedFields.password = ResolvedField.valid(password);
+        }
+
+        {
+            boolean hasBranchArg = false;
+            boolean hasDatabaseArg = false;
+            for (String key : args.keySet()) {
+                if (key.startsWith("branch")) {
+                    hasBranchArg = true;
+                }
+                else if (key.startsWith("database")) {
+                    hasDatabaseArg = true;
+                }
+            }
+            if (hasBranchArg && hasDatabaseArg) {
+                throw new ConfigurationException("Invalid DSN: branch and database are mutually exclusive");
             }
         }
 
+        // Resolve query arguments
+        for (Entry<String, String> arg : args.entrySet()) {
+            String key = arg.getKey();
+            ResolvedField<String> value = ResolvedField.valid(arg.getValue());
 
-        if (
-            args.entrySet().stream().anyMatch(x -> x.getKey().startsWith("branch")) &&
-            args.entrySet().stream().anyMatch(x -> x.getKey().startsWith("database"))) {
-            throw new IllegalArgumentException("branch conflicts with database");
-        }
+            if (key.endsWith("_env") && value.getValue() != null) {
+                String envName = value.getValue();
 
-        for (var entry : args.entrySet()) {
-            var fileMatch = DSN_FILE_ARG.matcher(entry.getKey());
-            var envMatch = DSN_ENV_ARG.matcher(entry.getKey());
-
-            String value;
-            String key;
-
-            if (fileMatch.matches()) {
-                key = fileMatch.group(1);
-
-                var file = Path.of(entry.getValue());
-
-                if (!provider.fileExists(file)) {
-                    throw new FileNotFoundException(String.format("The specified argument \"%s\"'s file was not found", key));
+                String oldKey = key;
+                key = key.substring(0, key.length() - "_env".length());
+                @Nullable String envVar = provider.getEnvVariable(value.getValue());
+                if (envVar != null) {
+                    value = ResolvedField.valid(envVar);
                 }
-
-                value = provider.fileReadAllText(file);
-            } else if (envMatch.matches()) {
-                key = entry.getKey();
-                value = provider.getEnvVariable(entry.getValue());
-
-                if (value == null) {
-                    throw new ConfigurationException(String.format("Environment variable \"%s\" couldn't be found", entry.getValue()));
+                else {
+                    value = ResolvedField.invalid(
+                        new ConfigurationException(String.format(
+                            "Invalid DSN query parameter: \"%s\", environment variable \"%s\" doesn\'t exist",
+                            oldKey,
+                            envName
+                        )
+                    ));
                 }
-            } else {
-                key = entry.getKey();
-                value = entry.getValue();
             }
 
-            setArgument(connection, key, value, provider);
+            if (key.endsWith("_file") && value.getValue() != null) {
+                Path fileName = Path.of(value.getValue());
+
+                String oldKey = key;
+                key = key.substring(0, key.length() - "_file".length());
+
+                String fileText = null;
+                try {
+                    if (provider.fileExists(fileName)) {
+                        fileText = provider.fileReadAllText(fileName);
+                    }
+                }
+                catch (IOException e) {}
+
+                if (fileText != null) {
+                    value = ResolvedField.valid(fileText);
+                }
+                else {
+                    value = ResolvedField.invalid(
+                        new ConfigurationException(String.format(
+                            "Invalid DSN query parameter: \"%s\" could not find file \"%s\"",
+                            oldKey,
+                            fileName
+                        ))
+                    );
+                }
+            }
+
+            if (value == null) { continue; }
+
+            switch (key) {
+                case "host":
+                    resolvedFields.host = value;
+                    break;
+                case "port":
+                    resolvedFields.port = value.convert(ConfigUtils::parsePort);
+                    break;
+                case "database":
+                    resolvedFields.databaseOrBranch = value.convert((v) -> {
+                        if (v.startsWith("/")) {
+                            v = v.substring(1);
+                        }
+                        if (!v.equals("")) {
+                            return ResolvedField.valid(DatabaseOrBranch.ofDatabase(v));
+                        }
+                        return null;
+                    });
+                    break;
+                case "branch":
+                    resolvedFields.databaseOrBranch = value.convert((v) -> {
+                        if (v.startsWith("/")) {
+                            v = v.substring(1);
+                        }
+                        if (!v.equals("")) {
+                            return ResolvedField.valid(DatabaseOrBranch.ofBranch(v));
+                        }
+                        return null;
+                    });
+                    break;
+                case "user":
+                    resolvedFields.user = value;
+                    break;
+                case "password":
+                    resolvedFields.password = value;
+                    break;
+                case "secret_key":
+                    resolvedFields.secretKey = value;
+                    break;
+                case "tls_cert_file":
+                    resolvedFields.tlsCertificateAuthority = value.convert((v) -> {
+                        Path fileName = Path.of(v);
+
+                        String fileText = null;
+                        try {
+                            if (provider.fileExists(fileName)) {
+                                fileText = provider.fileReadAllText(fileName);
+                            }
+                        }
+                        catch (IOException e) {}
+        
+                        if (fileText != null) {
+                            return ResolvedField.valid(fileText);
+                        }
+                        else {
+                            return ResolvedField.invalid(
+                                new ConfigurationException("The specified tls_cert_file file was not found")
+                            );
+                        }
+                    });
+                    break;
+                case "tls_server_name":
+                    resolvedFields.tlsServerName = value;
+                    break;
+                case "tls_security":
+                    resolvedFields.tlsSecurity = value.convert(ConfigUtils::parseTLSSecurityMode);
+                    break;
+                case "wait_until_available":
+                    resolvedFields.waitUntilAvailable = value.convert(ConfigUtils::parseWaitUntilAvailable);
+                    break;
+
+                default:
+                    resolvedFields.serverSettings = ConfigUtils.addServerSettingField(
+                        resolvedFields.serverSettings,
+                        key,
+                        value
+                    );
+                    break;
+            }
         }
 
-        return connection;
+        return resolvedFields;
     }
 
     /**
