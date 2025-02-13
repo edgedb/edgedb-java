@@ -1,5 +1,6 @@
 package com.edgedb.driver.util;
 
+import com.edgedb.driver.TLSSecurityMode;
 import com.edgedb.driver.EdgeDBConnection.WaitTime;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
@@ -15,7 +16,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -168,7 +173,7 @@ public class ConfigUtils {
         String profile,
         JsonMapper mapper,
         @NotNull SystemProvider provider
-        ) throws ConfigurationException, IOException {
+    ) throws ConfigurationException, IOException {
         var profilePath = provider.combinePaths(
             getEdgeDBConfigDir(provider),
             "cloud-credentials",
@@ -184,7 +189,234 @@ public class ConfigUtils {
         return mapper.readValue(provider.fileReadAllText(profilePath), CloudProfile.class);
     }
 
+    //#region ResolvedFields
+
+    public static class DatabaseOrBranch {
+        private final @Nullable String database;
+        private final @Nullable String branch;
+        private DatabaseOrBranch(@Nullable String database, @Nullable String branch) {
+            this.database = database;
+            this.branch = branch;
+        }
+
+        public static DatabaseOrBranch ofDatabase(@NotNull String value) {
+            return new DatabaseOrBranch(value, null);
+        }
+        public static DatabaseOrBranch ofBranch(@NotNull String value) {
+            return new DatabaseOrBranch(null, value);
+        }
+
+        public @Nullable String getDatabase() {
+            return database;
+        }
+
+        public @Nullable String getBranch() {
+            return branch;
+        }
+    }
+
+    public static class ResolvedField<T> {
+        private final @Nullable T value;
+        private final @Nullable ConfigurationException error;
+
+        private ResolvedField(@Nullable T value, @Nullable ConfigurationException error) {
+            this.value = value;
+            this.error = error;
+        }
+
+        public static @NotNull <T>ResolvedField<T> valid(@NotNull T value) {
+            return new ResolvedField<T>(value, null);
+        }
+        public static @NotNull <T>ResolvedField<T> invalid(@NotNull ConfigurationException error) {
+            return new ResolvedField<T>(null, error);
+        }
+
+        public final @Nullable T getValue() {
+            return value;
+        }
+
+        public @Nullable ConfigurationException getError() {
+            return error;
+        }
+
+        public <U> @NotNull ResolvedField<U> convert(Function<T, ResolvedField<U>> func) {
+            if (error != null) {
+                return ResolvedField.invalid(error);
+            }
+            else {
+                return func.apply(value);
+            }
+        }
+    }
+
+    public static @Nullable <T> T tryGetFieldValue(@Nullable ResolvedField<T> field) {
+        if (field == null) {
+            return null;
+        }
+
+        return field.getValue();
+    }
+
+    public static @Nullable <T> T checkAndGetFieldValue(
+        @Nullable ResolvedField<T> field
+    ) throws ConfigurationException {
+        return checkAndGetFieldValue(field, null);
+    }
+
+    @FunctionalInterface
+    public interface Checker<T> {
+        void accept(T t) throws ConfigurationException;
+    }
+
+    public static @Nullable <T> T checkAndGetFieldValue(
+        @Nullable ResolvedField<T> field,
+        @Nullable Checker<T> checker
+    ) throws ConfigurationException {
+        if (field == null) {
+            return null;
+        }
+
+        if (field.getValue() != null && checker != null) {
+            checker.accept(field.getValue());
+        }
+
+        if (field.getError() != null) {
+            throw field.getError();
+        }
+
+        return field.getValue();
+    }
+
+    public static <T> @Nullable ResolvedField<T> mergeField(
+        @Nullable ResolvedField<T> to,
+        @Nullable ResolvedField<T> from
+    ) {
+        if (to == null)
+        {
+            return from;
+        }
+        else if (from != null && from.getValue() != null)
+        {
+            return from;
+        }
+        else
+        {
+            return to;
+        }
+    }
+
+    public static HashMap<String, ResolvedField<String>> addServerSettingField(
+        HashMap<String, ResolvedField<String>> serverSettings,
+        String key,
+        ResolvedField<String> field
+    ) {
+        if (serverSettings.containsKey(key))
+        {
+            serverSettings.put(key, mergeField(serverSettings.get(key), field));
+        }
+        else
+        {
+            serverSettings.put(key, field);
+        }
+
+        return serverSettings;
+    }
+
+    public static HashMap<String, String> checkAndGetServerSettings(
+        HashMap<String, ResolvedField<String>> serverSettings
+    ) throws ConfigurationException {
+        HashMap<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<String, ResolvedField<String>> entry : serverSettings.entrySet())
+        {
+            result.put(entry.getKey(), checkAndGetFieldValue(entry.getValue()));
+        }
+
+        return result;
+    }
+
+    public static class ResolvedFields {
+        public @Nullable ResolvedField<String> host = null;
+        public @Nullable ResolvedField<Integer> port = null;
+        public @Nullable ResolvedField<DatabaseOrBranch> databaseOrBranch = null;
+        public @Nullable ResolvedField<String> user = null;
+        public @Nullable ResolvedField<String> password = null;
+        public @Nullable ResolvedField<String> secretKey = null;
+        public @Nullable ResolvedField<String> tlsCertificateAuthority = null;
+        public @Nullable ResolvedField<TLSSecurityMode> tlsSecurity = null;
+        public @Nullable ResolvedField<String> tlsServerName = null;
+        public @Nullable ResolvedField<WaitTime> waitUntilAvailable = null;
+        public HashMap<String, ResolvedField<String>> serverSettings = new HashMap<String, ResolvedField<String>>();
+
+        public void mergeFrom(ResolvedFields other) {
+            host = mergeField(host, other.host);
+            port = mergeField(port, other.port);
+            databaseOrBranch = mergeField(databaseOrBranch, other.databaseOrBranch);
+            user = mergeField(user, other.user);
+            password = mergeField(password, other.password);
+            secretKey = mergeField(secretKey, other.secretKey);
+            tlsCertificateAuthority = mergeField(tlsCertificateAuthority, other.tlsCertificateAuthority);
+            tlsSecurity = mergeField(tlsSecurity, other.tlsSecurity);
+            tlsServerName = mergeField(tlsServerName, other.tlsServerName);
+            waitUntilAvailable = mergeField(waitUntilAvailable, other.waitUntilAvailable);
+
+            for (Map.Entry<String, ResolvedField<String>> entry : other.serverSettings.entrySet()) {
+                serverSettings = addServerSettingField(serverSettings, entry.getKey(), entry.getValue());
+            }
+        }
+
+        public boolean isEmpty() {
+            return host == null
+                && port == null
+                && databaseOrBranch == null
+                && user == null
+                && password == null
+                && secretKey == null
+                && tlsCertificateAuthority == null
+                && tlsSecurity == null
+                && tlsServerName == null
+                && waitUntilAvailable == null
+                && serverSettings.size() == 0;
+        }
+    }
+
+    //#endregion
+
     //#region Parse Functions
+
+    public static @Nullable ResolvedField<Integer> parsePort(@NotNull String text) {
+        if (text.startsWith("tcp://")) {
+            return null;
+        }
+
+        try {
+            return ResolvedField.valid(Integer.parseInt(text));
+        }
+        catch (NumberFormatException e) {
+            return ResolvedField.invalid(
+                new ConfigurationException(String.format(
+                    "Invalid port: \"%s\", not an integer",
+                    text
+                ))
+            );
+        }
+    }
+
+    public static @Nullable ResolvedField<TLSSecurityMode> parseTLSSecurityMode(@NotNull String text) {
+        TLSSecurityMode result = TLSSecurityMode.fromString(text);
+        if (result != null) {
+            return ResolvedField.valid(result);
+        }
+        else
+        {
+            return ResolvedField.invalid(
+                new ConfigurationException(String.format(
+                    "Invalid TLS Security: \"%s\", "
+                    + "must be one of \"insecure\", \"no_host_verification\", \"strict\", or \"default\"",
+                    text
+                ))
+            );
+        }
+    }
 
     private static final Pattern _isoUnitlessHours = Pattern.compile(
         "^(-?\\d+|-?\\d+\\.\\d*|-?\\d*\\.\\d+)$"
@@ -215,9 +447,9 @@ public class ConfigUtils {
         Pattern.CASE_INSENSITIVE
     );
 
-    public static @NotNull WaitTime ParseWaitUntilAvailable(
+    public static @NotNull ResolvedField<WaitTime> parseWaitUntilAvailable(
         @NotNull String text
-    ) throws ConfigurationException {
+    ) {
 
         String originalText = text;
 
@@ -227,7 +459,7 @@ public class ConfigUtils {
             Matcher matcher = _isoUnitlessHours.matcher(text);
             if (matcher.find()) {
                 double hours = Double.parseDouble(matcher.group(0));
-                return new WaitTime((long)(hours * 3600e6), TimeUnit.MICROSECONDS);
+                return ResolvedField.valid(new WaitTime((long)(hours * 3600e6), TimeUnit.MICROSECONDS));
             }
 
             matcher = _isoTimeWithUnits.matcher(text);
@@ -257,7 +489,7 @@ public class ConfigUtils {
                 text = reader.read(matcher, "Minutes", "vm", 60e6, text);
                 text = reader.read(matcher, "Seconds", "vs", 1e6, text);
                 if (text.isEmpty()) {
-                    return reader.waitTime;
+                    return ResolvedField.valid(reader.waitTime);
                 }
             }
         }
@@ -303,11 +535,11 @@ public class ConfigUtils {
             text = reader.read(_humanMilliseconds, 1e3, text);
             text = reader.read(_humanMicroseconds, 1, text);
             if (reader.found && text.trim().isEmpty()) {
-                return reader.waitTime;
+                return ResolvedField.valid(reader.waitTime);
             }
         }
 
-        throw new ConfigurationException(String.format("invalid duration %s", originalText));
+        return ResolvedField.invalid(new ConfigurationException(String.format("invalid duration %s", originalText)));
     }
 
     //#endregion

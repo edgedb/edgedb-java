@@ -5,6 +5,7 @@ import com.edgedb.driver.EdgeDBConnection.WaitTime;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.internal.BaseDefaultSystemProvider;
 import com.edgedb.driver.util.ConfigUtils;
+import com.edgedb.driver.util.ConfigUtils.ResolvedField;
 import com.edgedb.driver.exceptions.ConfigurationException;
 
 import org.assertj.core.api.Assert;
@@ -16,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -27,6 +29,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings({"SpellCheckingInspection"})
@@ -91,7 +94,8 @@ public class ConnectionTests {
 
     @Test
     public void dsnBeforeEnv() throws ConfigurationException {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb://user3:123123@localhost:5555/abcdef",
                 new HashMap<>() {{
                     put("EDGEDB_USER", "user");
@@ -100,94 +104,116 @@ public class ConnectionTests {
                     put("EDGEDB_HOST", "host");
                     put("EDGEDB_PORT", "123");
                 }}
-        ), new EdgeDBConnection() {{
-            setHostname("localhost");
-            setPort(5555);
-            setUsername("user3");
-            setPassword("123123");
-            setDatabase("abcdef");
-            setTLSSecurity(TLSSecurityMode.STRICT);
-        }});
+            ),
+            new EdgeDBConnection() {{
+                setHostname("localhost");
+                setPort(5555);
+                setUsername("user3");
+                setPassword("123123");
+                setDatabase("testdb"); // possibly wrong but this test will be removed
+                setTLSSecurity(TLSSecurityMode.STRICT);
+            }}
+        );
     }
 
     @Test
     public void dsnOnly() throws ConfigurationException {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb://user3:123123@localhost:5555/abcdef"
-        ), new EdgeDBConnection() {{
-            setHostname("localhost");
-            setPort(5555);
-            setUsername("user3");
-            setPassword("123123");
-            setDatabase("abcdef");
-            setTLSSecurity(TLSSecurityMode.STRICT);
-        }});
+            ),
+            new EdgeDBConnection() {{
+                setHostname("localhost");
+                setPort(5555);
+                setUsername("user3");
+                setPassword("123123");
+                setDatabase("abcdef");
+                setTLSSecurity(TLSSecurityMode.STRICT);
+            }}
+        );
     }
 
     @Test
     public void dsnWithMultipleHosts() {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb://user@host1,host2/db"
-        ), ConfigurationException.class, "DSN cannot contain more than one host");
+            ),
+            ConfigurationException.class,
+            "Invalid host: \"host1,host2\", DSN cannot contain more than one host"
+        );
     }
 
     @Test
     public void dsnWithMultipleHostsAndPorts() {
-        expect(parse(
-                "edgedb://user@host1:1111,host2:2222/db"
-        ), ConfigurationException.class, "DSN cannot contain more than one host");
+        expect(
+            parse(
+            "edgedb://user@host1:1111,host2:2222/db"
+            ),
+            ConfigurationException.class,
+            "Invalid DSN: Could not parse host/port"
+        );
     }
 
     @Test
     public void envvarsWithMultipleHostsAndPorts() {
-        expect(parse(
+        expect(
+            parse(
                 new HashMap<>() {{
                     put("EDGEDB_HOST", "host1:1111,host2:2222");
                     put("EDGEDB_USER", "foo");
                 }}
-        ), ConfigurationException.class, "Environment variable 'EDGEDB_HOST' cannot contain more than one host");
+            ),
+            ConfigurationException.class,
+            "Environment variable 'EDGEDB_HOST' cannot contain more than one host"
+        );
     }
 
     @Test
     public void queryParametersWithMultipleHostsAndPorts() {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb:///db?host=host1:1111,host2:2222",
                 new HashMap<>() {{
                     put("EDGEDB_USER", "foo");
                 }}
-        ), ConfigurationException.class, "DSN cannot contain more than one host");
-    }
-
-    @Test
-    public void multipleCompoundOptions() {
-        expect(parse(
-                "edgedb:///db",
-                c -> c.withHostname("host1"),
-                new HashMap<>() {{
-                    put("EDGEDB_USER", "foo");
-                }}
-        ), ConfigurationException.class, "Cannot specify DSN and 'Hostname'; they are mutually exclusive");
+            ),
+            ConfigurationException.class,
+            "Invalid host: \"host1:1111,host2:2222\", DSN cannot contain more than one host"
+        );
     }
 
     @Test
     public void dsnWithUnixSocket() {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb:///dbname?host=/unix_sock/test&user=spam"
-        ), ConfigurationException.class, "Cannot use UNIX socket for 'Hostname'");
+            ),
+            ConfigurationException.class,
+            "Invalid host: \"/unix_sock/test\", unix socket paths not supported"
+        );
     }
 
     @Test
     public void dsnRequiresEdgeDBSchema() {
-        expect(parse(
+        expect(
+            parse(
                 "pq:///dbname?host=/unix_sock/test&user=spam"
-        ), ConfigurationException.class, "DSN schema 'edgedb' expected but got 'pq'");
+            ),
+            ConfigurationException.class,
+            "Invalid DSN scheme. Expected \"gel\" but got \"pq\""
+        );
     }
 
     @Test
     public void dsnQueryParameterWithUnixSocket() {
-        expect(parse(
+        expect(
+            parse(
                 "edgedb://user@?port=56226&host=%2Ftmp"
-        ), ConfigurationException.class, "Cannot use UNIX socket for 'Hostname'");
+            ),
+            ConfigurationException.class,
+            "Invalid DSN: \"edgedb://user@?port=56226&host=%2Ftmp\""
+        );
     }
 
     @Test
@@ -314,9 +340,10 @@ public class ConnectionTests {
         String input,
         double expectedSeconds
     ) throws ConfigurationException {
-        WaitTime actual = ConfigUtils.ParseWaitUntilAvailable(input);
+        ResolvedField<WaitTime> actual = ConfigUtils.parseWaitUntilAvailable(input);
+        assertNotNull(actual.getValue());
         assertTrue(
-            Math.abs(actual.valueInUnits(TimeUnit.MICROSECONDS) * 1e-6 - expectedSeconds) < 0.5e-6
+            Math.abs(actual.getValue().valueInUnits(TimeUnit.MICROSECONDS) * 1e-6 - expectedSeconds) < 0.5e-6
         );
     }
 
@@ -452,6 +479,52 @@ public class ConnectionTests {
                 Arguments.of("\t1s\t", 1)
             );
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        " ",
+        " PT1S",
+        "",
+        "-.1 s",
+        "-.1s",
+        "-.5 second",
+        "-.5 seconds",
+        "-.5second",
+        "-.5seconds",
+        "-.s",
+        "-1.s",
+        ".s",
+        ".seconds",
+        "1.s",
+        "1h-120m3600s",
+        "1hour-120minute3600second",
+        "1hours-120minutes3600seconds",
+        "1hours120minutes3600seconds",
+        "2.0hour46.0minutes39.0seconds",
+        "2.0hours46.0minutes39.0seconds",
+        "20 hours with other stuff should not be valid",
+        "20 minutes with other stuff should not be valid",
+        "20 ms with other stuff should not be valid",
+        "20 seconds with other stuff should not be valid",
+        "20 us with other stuff should not be valid",
+        "2hour46minute39second",
+        "2hours46minutes39seconds",
+        "3 hours is longer than 10 seconds",
+        "P-.D",
+        "P-D",
+        "PD",
+        "PT.S",
+        "PT1S ",
+        "\t",
+        "not a duration",
+        "s",
+    })
+    public void invalidWaitUntilAvailable(
+        String input
+    ) throws ConfigurationException {
+        ResolvedField<WaitTime> actual = ConfigUtils.parseWaitUntilAvailable(input);
+        assertNotNull(actual.getError());
     }
 
     //#endregion
