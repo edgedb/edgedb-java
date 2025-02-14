@@ -95,7 +95,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public EdgeDBClient(@NotNull EdgeDBClientConfig config) throws IOException, ConfigurationException {
-        this(EdgeDBConnection.resolveEdgeDBTOML(), config);
+        this(EdgeDBConnection.builder().build(), config);
     }
 
     /**
@@ -104,7 +104,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public EdgeDBClient() throws IOException, EdgeDBException {
-        this(EdgeDBConnection.resolveEdgeDBTOML(), EdgeDBClientConfig.DEFAULT);
+        this(EdgeDBConnection.builder().build(), EdgeDBClientConfig.DEFAULT);
     }
 
     private EdgeDBClient(@NotNull EdgeDBClient other, Session session) {
