@@ -5,8 +5,13 @@ import com.edgedb.driver.EdgeDBConnection.WaitTime;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.internal.DefaultSystemProvider;
+import com.edgedb.driver.util.JsonUtils.AsStringDeserializer;
 import com.edgedb.driver.datatypes.internal.CloudProfile;
 import com.edgedb.driver.exceptions.ConfigurationException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +24,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConfigUtils {
+public final class ConfigUtils {
     private static final SystemProvider DEFAULT_SYSTEM_PROVIDER = new DefaultSystemProvider();
     private static final String XDG_CONFIG_HOME = "XDG_CONFIG_HOME";
     private static final MessageDigest SHA1;
@@ -36,6 +40,10 @@ public class ConfigUtils {
             throw new RuntimeException(e);
         }
     }
+
+    private static final JsonMapper mapper = JsonMapper.builder()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .build();
 
     public static @NotNull SystemProvider getDefaultSystemProvider() {
         return DEFAULT_SYSTEM_PROVIDER;
@@ -124,7 +132,7 @@ public class ConfigUtils {
         return provider.fileReadAllText(databasePath);
     }
 
-    public static class CloudInstanceDetails {
+    public static final class CloudInstanceDetails {
         private final @Nullable String profile;
         private final @Nullable String linkedInstanceName;
         public CloudInstanceDetails(@Nullable String profile, @Nullable String linkedInstanceName) {
@@ -171,7 +179,6 @@ public class ConfigUtils {
 
     public static @NotNull CloudProfile readCloudProfile(
         String profile,
-        JsonMapper mapper,
         @NotNull SystemProvider provider
     ) throws ConfigurationException, IOException {
         var profilePath = provider.combinePaths(
@@ -191,7 +198,43 @@ public class ConfigUtils {
 
     //#region ResolvedFields
 
-    public static class DatabaseOrBranch {
+    /**
+     * A json readable representation of an EdgeDBConnection.
+     * When using Credentials to create an EdgeDBConnection, the data must conform to this type.
+     */
+    public static final class ConnectionCredentials {
+
+        @JsonProperty("host")
+        public @Nullable String host;
+
+        @JsonProperty("port")
+        @JsonDeserialize(using = AsStringDeserializer.class)
+        public @Nullable String port;
+
+        @JsonProperty("database")
+        public @Nullable String database;
+
+        @JsonProperty("branch")
+        public @Nullable String branch;
+
+        @JsonProperty("user")
+        public @Nullable String user;
+
+        @JsonProperty("password")
+        public @Nullable String password;
+
+        @JsonProperty("tls_ca")
+        public @Nullable String tlsCertificateAuthority;
+
+        @JsonProperty("tls_security")
+        public @Nullable String tlsSecurity;
+
+        public static ConnectionCredentials fromJson(String json) throws JsonProcessingException {
+            return mapper.readValue(json, ConnectionCredentials.class);
+        }
+    }
+
+    public static final class DatabaseOrBranch {
         private final @Nullable String database;
         private final @Nullable String branch;
         private DatabaseOrBranch(@Nullable String database, @Nullable String branch) {
@@ -215,7 +258,7 @@ public class ConfigUtils {
         }
     }
 
-    public static class ResolvedField<T> {
+    public static final class ResolvedField<T> {
         private final @Nullable T value;
         private final @Nullable ConfigurationException error;
 
@@ -334,7 +377,7 @@ public class ConfigUtils {
         return result;
     }
 
-    public static class ResolvedFields {
+    public static final class ResolvedFields {
         public @Nullable ResolvedField<String> host = null;
         public @Nullable ResolvedField<Integer> port = null;
         public @Nullable ResolvedField<DatabaseOrBranch> databaseOrBranch = null;
@@ -376,6 +419,37 @@ public class ConfigUtils {
                 && tlsServerName == null
                 && waitUntilAvailable == null
                 && serverSettings.size() == 0;
+        }
+
+        public static ResolvedFields fromCredentials(ConnectionCredentials credentials) {
+            ResolvedFields result = new ResolvedFields();
+    
+            if (credentials.host != null) {
+                result.host = ResolvedField.valid(credentials.host);
+            }
+            if (credentials.port != null) {
+                result.port = mergeField(result.port, parsePort(credentials.port));
+            }
+            if (credentials.database != null) {
+                result.databaseOrBranch = ResolvedField.valid(DatabaseOrBranch.ofDatabase(credentials.database));
+            }
+            if (credentials.branch != null) {
+                result.databaseOrBranch = ResolvedField.valid(DatabaseOrBranch.ofBranch(credentials.branch));
+            }
+            if (credentials.user != null) {
+                result.user = ResolvedField.valid(credentials.user);
+            }
+            if (credentials.password != null) {
+                result.password = ResolvedField.valid(credentials.password);
+            }
+            if (credentials.tlsCertificateAuthority != null) {
+                result.tlsCertificateAuthority = ResolvedField.valid(credentials.tlsCertificateAuthority);
+            }
+            if (credentials.tlsSecurity != null) {
+                result.tlsSecurity = parseTLSSecurityMode(credentials.tlsSecurity);
+            }
+    
+            return result;
         }
     }
 
