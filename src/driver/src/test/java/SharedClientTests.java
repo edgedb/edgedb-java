@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.assertj.core.api.Assert;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -103,134 +104,185 @@ public class SharedClientTests {
             else if (testCase.error != null) {
                 assertSameException(testCase.name, result, testCase.error);
             }
+
+            if (testCase.warnings != null) {
+                assertEquals(
+                    testCase.warnings.size(),
+                    result.warnings.size(),
+                    testCase.name
+                );
+                for (int warningIndex = 0; warningIndex < testCase.warnings.size(); ++warningIndex) {
+                    String expectedWarningType = testCase.warnings.get(warningIndex);
+                    ErrorMatch warningMatch = _errorMapping.get(expectedWarningType);
+
+                    String actualWarning = result.warnings.get(warningIndex);
+
+                    assertTrue(
+                        warningMatch.text.matcher(actualWarning).find(),
+                        String.format(
+                            "%s: Warning message \"%s\" does not match pattern \"%s\"\n",
+                            testCase.name,
+                            actualWarning,
+                            warningMatch.text.toString()
+                        )
+                    );
+                }
+            }
+            else {
+                assertEquals(
+                    0,
+                    result.warnings.size(),
+                    testCase.name
+                );
+            }
         }
     }
 
     private static class TestResult {
         public @Nullable EdgeDBConnection connection;
         public @Nullable Exception error;
+        public @NotNull List<String> warnings;
 
-        public static TestResult valid(EdgeDBConnection connection) {
+        public static TestResult valid(
+            @NotNull EdgeDBConnection connection,
+            @NotNull List<String> warnings
+        ) {
             TestResult result = new TestResult();
             result.connection = connection;
+            result.warnings = warnings;
             return result;
         }
 
-        public static TestResult invalid(Exception error) {
+        public static TestResult invalid(
+            @NotNull Exception error,
+            @NotNull List<String> warnings
+        ) {
             TestResult result = new TestResult();
             result.error = error;
+            result.warnings = warnings;
             return result;
         }
     }
 
     private static TestResult ParseConnection(TestCase testCase) {
         try {
-            EdgeDBConnection.Builder builder = new EdgeDBConnection.Builder();
-
-            if (testCase.options != null) {
-                TestCase.OptionsData options = testCase.options;
-
-                if (options.instance != null) {
-                    builder = builder.withInstance(options.instance);
-                }
-                if (options.dsn != null) {
-                    builder = builder.withDsn(options.dsn);
-                }
-                if (options.credentials != null) {
-                    builder = builder.withCredentials(options.credentials);
-                }
-                if (options.credentialsFile != null) {
-                    builder = builder.withCredentialsFile(Path.of(options.credentialsFile));
-                }
-                if (options.host != null) {
-                    builder = builder.withHost(options.host);
-                }
-                if (options.port != null) {
-                    try {
-                        Integer port = Integer.parseInt(options.port);
-                        builder = builder.withPort(port);
-                    }
-                    catch (NumberFormatException e) {
-                        return TestResult.invalid(
-                            new ConfigurationException(String.format(
-                                "Invalid port: \"%s\", not an integer",
-                                options.port
-                            ))
-                        );
-                    }
-                }
-                if (options.database != null) {
-                    builder = builder.withDatabase(options.database);
-                }
-                if (options.branch != null) {
-                    builder = builder.withBranch(options.branch);
-                }
-                if (options.user != null) {
-                    builder = builder.withUser(options.user);
-                }
-                if (options.password != null) {
-                    builder = builder.withPassword(options.password);
-                }
-                if (options.secretKey != null) {
-                    builder = builder.withSecretKey(options.secretKey);
-                }
-                if (options.tlsCA != null) {
-                    builder = builder.withTLSCertificateAuthority(options.tlsCA);
-                }
-                if (options.tlsCAFile != null) {
-                    builder = builder.withTLSCertificateAuthorityFile(Path.of(options.tlsCAFile));
-                }
-                if (options.tlsSecurity != null) {
-                    ResolvedField<TLSSecurityMode> tlsSecurity = ConfigUtils.parseTLSSecurityMode(
-                        options.tlsSecurity
-                    );
-                    if (tlsSecurity.getValue() != null) {
-                        builder = builder.withTLSSecurity(tlsSecurity.getValue());
-                    }
-                    else {
-                        throw tlsSecurity.getError();
-                    }
-                }
-                if (options.tlsServerName != null) {
-                    builder = builder.withTLSServerName(options.tlsServerName);
-                }
-                if (options.waitUntilAvailable != null) {
-                    builder = builder.withWaitUntilAvailable(options.waitUntilAvailable);
-                }
-                if (options.serverSettings != null) {
-                    builder = builder.withServerSettings(options.serverSettings);
-                }
-            }
-
-            // Use reflection to access private build method
-            Method method = EdgeDBConnection.class.getDeclaredMethod(
-                "fromBuilder",
-                EdgeDBConnection.Builder.class,
-                SystemProvider.class
-            );
-            method.setAccessible(true);
+            MockProvider mockProvider = new MockProvider(testCase);
 
             try {
-                EdgeDBConnection connection = (EdgeDBConnection)method.invoke(
-                    null,
-                    builder,
-                    new MockProvider(testCase)
-                );
+                EdgeDBConnection.Builder builder = new EdgeDBConnection.Builder();
 
-                return TestResult.valid(connection);
+                if (testCase.options != null) {
+                    TestCase.OptionsData options = testCase.options;
+
+                    if (options.instance != null) {
+                        builder = builder.withInstance(options.instance);
+                    }
+                    if (options.dsn != null) {
+                        builder = builder.withDsn(options.dsn);
+                    }
+                    if (options.credentials != null) {
+                        builder = builder.withCredentials(options.credentials);
+                    }
+                    if (options.credentialsFile != null) {
+                        builder = builder.withCredentialsFile(Path.of(options.credentialsFile));
+                    }
+                    if (options.host != null) {
+                        builder = builder.withHost(options.host);
+                    }
+                    if (options.port != null) {
+                        try {
+                            Integer port = Integer.parseInt(options.port);
+                            builder = builder.withPort(port);
+                        }
+                        catch (NumberFormatException e) {
+                            return TestResult.invalid(
+                                new ConfigurationException(String.format(
+                                    "Invalid port: \"%s\", not an integer",
+                                    options.port
+                                )),
+                                mockProvider.warnings
+                            );
+                        }
+                    }
+                    if (options.database != null) {
+                        builder = builder.withDatabase(options.database);
+                    }
+                    if (options.branch != null) {
+                        builder = builder.withBranch(options.branch);
+                    }
+                    if (options.user != null) {
+                        builder = builder.withUser(options.user);
+                    }
+                    if (options.password != null) {
+                        builder = builder.withPassword(options.password);
+                    }
+                    if (options.secretKey != null) {
+                        builder = builder.withSecretKey(options.secretKey);
+                    }
+                    if (options.tlsCA != null) {
+                        builder = builder.withTLSCertificateAuthority(options.tlsCA);
+                    }
+                    if (options.tlsCAFile != null) {
+                        builder = builder.withTLSCertificateAuthorityFile(Path.of(options.tlsCAFile));
+                    }
+                    if (options.tlsSecurity != null) {
+                        ResolvedField<TLSSecurityMode> tlsSecurity = ConfigUtils.parseTLSSecurityMode(
+                            options.tlsSecurity
+                        );
+                        if (tlsSecurity.getValue() != null) {
+                            builder = builder.withTLSSecurity(tlsSecurity.getValue());
+                        }
+                        else {
+                            throw tlsSecurity.getError();
+                        }
+                    }
+                    if (options.tlsServerName != null) {
+                        builder = builder.withTLSServerName(options.tlsServerName);
+                    }
+                    if (options.waitUntilAvailable != null) {
+                        builder = builder.withWaitUntilAvailable(options.waitUntilAvailable);
+                    }
+                    if (options.serverSettings != null) {
+                        builder = builder.withServerSettings(options.serverSettings);
+                    }
+                }
+
+                // Use reflection to access private build method
+                Method method = EdgeDBConnection.class.getDeclaredMethod(
+                    "fromBuilder",
+                    EdgeDBConnection.Builder.class,
+                    SystemProvider.class
+                );
+                method.setAccessible(true);
+
+                try {
+                    EdgeDBConnection connection = (EdgeDBConnection)method.invoke(
+                        null,
+                        builder,
+                        mockProvider
+                    );
+
+                    return TestResult.valid(connection, mockProvider.warnings);
+                }
+                catch (InvocationTargetException e) {
+                    return TestResult.invalid(
+                        (Exception)e.getTargetException(),
+                        mockProvider.warnings
+                    );
+                }
             }
-            catch (InvocationTargetException e) {
-                return TestResult.invalid((Exception)e.getTargetException());
+            catch (ConfigurationException e) {
+                return TestResult.invalid(e, mockProvider.warnings);
             }
-        }
-        catch (ConfigurationException e) {
-            return TestResult.invalid(e);
         }
         catch (Exception e) {
-            return TestResult.invalid(new Exception(String.format(
-                "Something went really wrong: %s",
-                prettyError(e)
-            )));
+            return TestResult.invalid(
+                new Exception(String.format(
+                    "Something went really wrong: %s",
+                    prettyError(e)
+                )),
+                new ArrayList<String>()
+            );
         }
     }
 

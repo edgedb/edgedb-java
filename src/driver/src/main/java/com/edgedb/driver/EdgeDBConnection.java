@@ -905,6 +905,13 @@ public class EdgeDBConnection implements Cloneable {
 
                 GelEnvVar portEnvVar = SystemProvider.getGelEnvVariable(provider, PORT_ENV_NAME);
                 if (portEnvVar != null) {
+                    if (portEnvVar.value.startsWith("tcp://"))
+                    {
+                        provider.writeWarning(String.format(
+                            "%s in \"tcp://host:port\" format, so will be ignored",
+                            portEnvVar.name
+                        ));
+                    }
                     ResolvedField<Integer> port = ConfigUtils.parsePort(portEnvVar.value);
                     if (port != null) {
                         if (hasPrimaryEnv) { throw primaryError; }
