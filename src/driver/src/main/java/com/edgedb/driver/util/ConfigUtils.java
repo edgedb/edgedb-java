@@ -475,7 +475,7 @@ public final class ConfigUtils {
         }
     }
 
-    public static @Nullable ResolvedField<TLSSecurityMode> parseTLSSecurityMode(@NotNull String text) {
+    public static @NotNull ResolvedField<TLSSecurityMode> parseTLSSecurityMode(@NotNull String text) {
         TLSSecurityMode result = TLSSecurityMode.fromString(text);
         if (result != null) {
             return ResolvedField.valid(result);
