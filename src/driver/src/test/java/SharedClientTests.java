@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Convert;
 
 import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.EdgeDBConnection.ConfigureFunction;
 import com.edgedb.driver.EdgeDBConnection.WaitTime;
 import com.edgedb.driver.TLSSecurityMode;
 import com.edgedb.driver.abstractions.OSType;
@@ -126,7 +125,7 @@ public class SharedClientTests {
 
     private static TestResult ParseConnection(TestCase testCase) {
         try {
-            EdgeDBConnection.Builder2 builder = new EdgeDBConnection.Builder2();
+            EdgeDBConnection.Builder builder = new EdgeDBConnection.Builder();
 
             if (testCase.options != null) {
                 TestCase.OptionsData options = testCase.options;
@@ -206,7 +205,7 @@ public class SharedClientTests {
             // Use reflection to access private build method
             Method method = EdgeDBConnection.class.getDeclaredMethod(
                 "fromBuilder",
-                EdgeDBConnection.Builder2.class,
+                EdgeDBConnection.Builder.class,
                 SystemProvider.class
             );
             method.setAccessible(true);
