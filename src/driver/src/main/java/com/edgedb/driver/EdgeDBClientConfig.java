@@ -1,10 +1,13 @@
 package com.edgedb.driver;
 
+import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class EdgeDBClientConfig {
@@ -26,6 +29,15 @@ public class EdgeDBClientConfig {
     private ClientType clientType = ClientType.TCP;
     private int clientAvailability = 10;
     private Duration clientMaxAge = Duration.of(10, ChronoUnit.MINUTES);
+    private @Nullable ProtocolVersion forcedProtocolVersion;
+
+    /**
+     * Gets the forced protocol version to use with the client.
+     * @return an @{@linkplain Optional} wrapping a {@linkplain ProtocolVersion} if one is specified.
+     */
+    public Optional<ProtocolVersion> getForcedProtocolVersion() {
+        return Optional.ofNullable(this.forcedProtocolVersion);
+    }
 
     /**
      * Gets the number of attempts to try to connect.
@@ -161,6 +173,29 @@ public class EdgeDBClientConfig {
         private ClientType clientType = DEFAULT.clientType;
         private int clientAvailability = DEFAULT.clientAvailability;
         private Duration clientMaxAge = DEFAULT.clientMaxAge;
+        private @Nullable ProtocolVersion forcedProtocolVersion = DEFAULT.forcedProtocolVersion;
+
+        /**
+         *  Sets the forced protocol version of the current builder.
+         * @param version The version to set.
+         * @return The current builder.
+         * @throws IllegalArgumentException The provided version has no implementation.
+         */
+        public @NotNull Builder withForcedProtocolVersion(@Nullable ProtocolVersion version)
+                throws IllegalArgumentException {
+            if(version != null && !ProtocolProvider.supports(version)) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "The provided protocol version '%s' has no implementation",
+                                version
+                        )
+                );
+            }
+
+            this.forcedProtocolVersion = version;
+
+            return this;
+        }
 
         /**
          * Sets the pool size of the current builder.
@@ -322,6 +357,7 @@ public class EdgeDBClientConfig {
             edgeDBClientConfig.implicitTypeIds = this.implicitTypeIds;
             edgeDBClientConfig.retryMode = this.retryMode;
             edgeDBClientConfig.messageTimeout = this.messageTimeout;
+            edgeDBClientConfig.forcedProtocolVersion = this.forcedProtocolVersion;
             return edgeDBClientConfig;
         }
     }
