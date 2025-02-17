@@ -143,25 +143,27 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     @Override
     public final void serialize(@NotNull PacketWriter writer, @Nullable Object rawValue, @NotNull CodecContext context) throws OperationNotSupportedException, EdgeDBException {
         if(rawValue == null) {
-            throw new IllegalArgumentException("Serializable object value cannot be null");
-        }
-
-        if(!(rawValue instanceof Map)) {
+            rawValue = Map.of();
+        } else if(!(rawValue instanceof Map)) {
             throw new EdgeDBException("Expected map type for object serialization");
         }
 
         var value = (Map<String, ?>)rawValue;
 
-        writer.write(value.size());
+        writer.write(this.elements.length);
 
         var visitor = context.getTypeVisitor();
 
-        for(int i = 0; i != value.size(); i++) {
+        for(int i = 0; i != this.elements.length; i++) {
             var element = this.elements[i];
 
             writer.write(0); // reserved
 
             if(!value.containsKey(element.name)) {
+                if (element.cardinality != Cardinality.AT_MOST_ONE) {
+                    throw new EdgeDBException(String.format("Missing required argument '%s'", element.name));
+                }
+
                 writer.write(-1);
                 continue;
             }
