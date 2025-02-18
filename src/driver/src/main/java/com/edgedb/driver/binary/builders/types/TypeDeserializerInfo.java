@@ -141,7 +141,7 @@ public class TypeDeserializerInfo<T> {
 
         if(!children.isEmpty()) {
             for (var child : children) {
-                if(child.getAnnotation(EdgeDBIgnore.class) != null) {
+                if(child.getAnnotation(GelIgnore.class) != null) {
                     continue;
                 }
 
@@ -175,7 +175,7 @@ public class TypeDeserializerInfo<T> {
     }
 
     private boolean isValidField(@NotNull Field field) {
-        return field.getAnnotation(EdgeDBIgnore.class) == null;
+        return field.getAnnotation(GelIgnore.class) == null;
     }
 
     @SuppressWarnings("unchecked")
