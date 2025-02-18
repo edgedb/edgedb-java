@@ -2,7 +2,7 @@ package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
 import com.edgedb.driver.annotations.GelDeserializer
-import com.edgedb.driver.annotations.EdgeDBName
+import com.edgedb.driver.annotations.GelName
 import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
@@ -16,9 +16,9 @@ class CustomDeserializer : Example {
     data class Person
     @GelDeserializer
     constructor (
-            @EdgeDBName("name")
+            @GelName("name")
             val name: String,
-            @EdgeDBName("age")
+            @GelName("age")
             val age: Long
     ) {
         init {

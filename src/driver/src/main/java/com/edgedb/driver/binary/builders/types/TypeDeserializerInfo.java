@@ -320,7 +320,7 @@ public class TypeDeserializerInfo<T> {
     }
 
     private <U extends AnnotatedElement> String getNameOrAnnotated(@NotNull U value, @NotNull Function<U, String> getName) {
-        var anno = value.getAnnotation(EdgeDBName.class);
+        var anno = value.getAnnotation(GelName.class);
         if(anno != null && anno.value() != null) {
             return anno.value();
         }
@@ -329,7 +329,7 @@ public class TypeDeserializerInfo<T> {
     }
 
     public static class FieldInfo {
-        public final EdgeDBName edgedbNameAnno;
+        public final GelName edgedbNameAnno;
         public final @NotNull Class<?> fieldType;
         public final @NotNull Field field;
         private final @Nullable Method setMethod;
@@ -340,7 +340,7 @@ public class TypeDeserializerInfo<T> {
             this.field = field;
             this.fieldType = field.getType();
 
-            this.edgedbNameAnno = field.getAnnotation(EdgeDBName.class);
+            this.edgedbNameAnno = field.getAnnotation(GelName.class);
 
             // if there's a set method that isn't ignored, with the same type, use it.
             var setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));

@@ -261,7 +261,7 @@ Value consumers
 ^^^^^^^^^^^^^^^
 
 Value consumers take in the fields' values in the constructor, mapped by a 
-``@EdgeDBName`` annotation:
+``@GelName`` annotation:
 
 .. tabs::
 
@@ -275,8 +275,8 @@ Value consumers take in the fields' values in the constructor, mapped by a
 
             @GelDeserializer
             public Person(
-                @EdgeDBName("name") String name,
-                @EdgeDBName("age") int age
+                @GelName("name") String name,
+                @GelName("age") int age
             ) {
                 this.name = name;
                 this.age = age;

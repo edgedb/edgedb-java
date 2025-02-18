@@ -1,6 +1,6 @@
 package com.edgedb.examples
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.{GelDeserializer, EdgeDBName, GelType}
+import com.edgedb.driver.annotations.{GelDeserializer, GelName, GelType}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,9 +12,9 @@ object CustomDeserializer:
   @GelType
   class Person @GelDeserializer()
   (
-    @EdgeDBName("name")
+    @GelName("name")
     val name: String,
-    @EdgeDBName("age")
+    @GelName("age")
     val age: Long
   ) {
     logger.info("Custom deserializer called")
