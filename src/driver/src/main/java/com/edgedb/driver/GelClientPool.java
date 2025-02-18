@@ -123,7 +123,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
 
     private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
         if(config.getClientType() == ClientType.TCP) {
-            return EdgeDBTCPClient::new;
+            return GelTcpClient::new;
         } else if (config.getClientType() == ClientType.HTTP) {
             return GelHttpClient::new;
         }
