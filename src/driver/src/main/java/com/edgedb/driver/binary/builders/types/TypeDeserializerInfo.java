@@ -183,7 +183,7 @@ public class TypeDeserializerInfo<T> {
         // check for constructor deserializer
         var constructors = this.type.getDeclaredConstructors();
 
-        var ctorDeserializer = Arrays.stream(constructors).filter(x -> x.getAnnotation(EdgeDBDeserializer.class) != null).findFirst();
+        var ctorDeserializer = Arrays.stream(constructors).filter(x -> x.getAnnotation(GelDeserializer.class) != null).findFirst();
 
         if(ctorDeserializer.isPresent()) {
             var ctor = ctorDeserializer.get();

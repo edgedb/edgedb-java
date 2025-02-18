@@ -1,6 +1,6 @@
 package com.edgedb.driver.datatypes.internal;
 
-import com.edgedb.driver.annotations.EdgeDBDeserializer;
+import com.edgedb.driver.annotations.GelDeserializer;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.datatypes.Tuple;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public final class TupleImpl implements Tuple {
     private final @NotNull List<Element> elements;
 
-    @EdgeDBDeserializer
+    @GelDeserializer
     public TupleImpl(@NotNull ObjectEnumerator enumerator) throws GelException, OperationNotSupportedException {
         elements = new ArrayList<>();
 

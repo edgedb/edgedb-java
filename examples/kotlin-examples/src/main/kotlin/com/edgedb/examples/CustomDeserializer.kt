@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.EdgeDBDeserializer
+import com.edgedb.driver.annotations.GelDeserializer
 import com.edgedb.driver.annotations.EdgeDBName
 import com.edgedb.driver.annotations.EdgeDBType
 import kotlinx.coroutines.future.await
@@ -14,7 +14,7 @@ class CustomDeserializer : Example {
 
     @EdgeDBType
     data class Person
-    @EdgeDBDeserializer
+    @GelDeserializer
     constructor (
             @EdgeDBName("name")
             val name: String,

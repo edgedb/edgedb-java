@@ -192,7 +192,7 @@ Custom deserializers
 --------------------
 
 You can specify a constructor as a target for deserialization with the
-``@EdgeDBDeserializer`` annotation. A deserializer has 2 valid modes of 
+``@GelDeserializer`` annotation. A deserializer has 2 valid modes of 
 operation: enumeration consumers or value consumers.
 
 Enumerator consumer
@@ -240,7 +240,7 @@ for other data type representations, like tuples:
 
 .. code-block:: java
 
-        @EdgeDBDeserializer
+        @GelDeserializer
         public SimpleTuple(ObjectEnumerator enumerator) 
         throws GelException, OperationNotSupportedException {
             elements = new ArrayList<>();
@@ -273,7 +273,7 @@ Value consumers take in the fields' values in the constructor, mapped by a
             private final String name;
             private final int age;
 
-            @EdgeDBDeserializer
+            @GelDeserializer
             public Person(
                 @EdgeDBName("name") String name,
                 @EdgeDBName("age") int age

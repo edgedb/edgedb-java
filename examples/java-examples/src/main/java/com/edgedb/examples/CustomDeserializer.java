@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBDeserializer;
+import com.edgedb.driver.annotations.GelDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
 import com.edgedb.driver.annotations.EdgeDBType;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ public final class CustomDeserializer implements Example {
         private final String name;
         private final Long age;
 
-        @EdgeDBDeserializer
+        @GelDeserializer
         public Person(
                 @EdgeDBName("name") String name,
                 @EdgeDBName("age") Long age
