@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.binary.protocol.common.descriptors.TypeOperation;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -35,7 +35,7 @@ public class CompoundCodec extends CodecBase<Object> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public void serialize(PacketWriter writer, @Nullable Object value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(PacketWriter writer, @Nullable Object value, CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null) {
             writer.write(-1);
             return;
@@ -72,11 +72,11 @@ public class CompoundCodec extends CodecBase<Object> {
 
     @Nullable
     @Override
-    public Object deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public Object deserialize(PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(numElements != this.innerCodecs.length) {
-            throw new EdgeDBException("Expected " + this.innerCodecs.length + " elements, but got " + numElements);
+            throw new GelException("Expected " + this.innerCodecs.length + " elements, but got " + numElements);
         }
 
         var elements = new Object[numElements];

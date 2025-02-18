@@ -6,7 +6,7 @@ import com.edgedb.driver.TransactionState;
 import com.edgedb.driver.binary.duplexers.Duplexer;
 import com.edgedb.driver.binary.duplexers.HttpDuplexer;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.ScramException;
 import com.edgedb.driver.util.Scram;
 import com.edgedb.driver.util.SslUtils;
@@ -45,7 +45,7 @@ public final class GelHttpClient extends GelBinaryClient {
     private @Nullable URI authUri;
     private @Nullable URI execUri;
 
-    public GelHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
+    public GelHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws GelException {
         super(connection, config, poolHandle);
         this.duplexer = new HttpDuplexer(this);
         SSLContext context;
@@ -54,7 +54,7 @@ public final class GelHttpClient extends GelBinaryClient {
             SslUtils.initContextWithConnectionDetails(context, getConnectionArguments());
         } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException | IOException |
                  KeyManagementException e) {
-            throw new EdgeDBException("Failed to initialize SSL context", e);
+            throw new GelException("Failed to initialize SSL context", e);
         }
 
         this.httpClient = HttpClient.newBuilder()

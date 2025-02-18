@@ -5,7 +5,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.MultiRange;
 import com.edgedb.driver.datatypes.Range;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -21,7 +21,7 @@ public final class MultiRangeCodec<T> extends CodecBase<MultiRange<T>> {
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable MultiRange<T> value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(PacketWriter writer, @Nullable MultiRange<T> value, CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null) {
             return;
         }
@@ -36,7 +36,7 @@ public final class MultiRangeCodec<T> extends CodecBase<MultiRange<T>> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @Nullable MultiRange<T> deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @Nullable MultiRange<T> deserialize(PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var length = reader.readInt32();
 
         if(length == 0) {

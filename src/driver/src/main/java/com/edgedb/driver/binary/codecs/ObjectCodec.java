@@ -7,7 +7,7 @@ import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         private final Class<?> target;
         private final @NotNull ObjectCodec parent;
 
-        public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws EdgeDBException {
+        public TypeInitializedObjectCodec(@NotNull Class<?> target, @NotNull ObjectCodec parent) throws GelException {
             super(parent);
 
             this.parent = parent;
@@ -50,7 +50,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         }
 
         @Override
-        public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException {
+        public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException {
             assert deserializer != null;
 
             var enumerator = new ObjectEnumeratorImpl(reader, this, context);
@@ -58,7 +58,7 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
             try {
                 return deserializer.factory.deserialize(enumerator);
             } catch (Exception x) {
-                throw new EdgeDBException("Failed to deserialize " + target.getName(), x);
+                throw new GelException("Failed to deserialize " + target.getName(), x);
             }
         }
 
@@ -104,30 +104,30 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
         this.typeCodecs = other.typeCodecs;
     }
 
-    public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws EdgeDBException {
+    public TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls) throws GelException {
         return getOrCreateTypeCodec(cls, t -> new TypeInitializedObjectCodec(t, this));
     }
-    public TypeInitializedObjectCodec getOrCreateTypeCodec(@NotNull TypeDeserializerInfo<?> info) throws EdgeDBException {
+    public TypeInitializedObjectCodec getOrCreateTypeCodec(@NotNull TypeDeserializerInfo<?> info) throws GelException {
         return getOrCreateTypeCodec(info.getType(), t -> new TypeInitializedObjectCodec(info, this));
     }
 
     @FunctionalInterface
     private interface TypeInitializedCodecFactory {
-        TypeInitializedObjectCodec construct(Class<?> cls) throws EdgeDBException;
+        TypeInitializedObjectCodec construct(Class<?> cls) throws GelException;
     }
-    private TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls, @NotNull TypeInitializedCodecFactory factory) throws EdgeDBException {
+    private TypeInitializedObjectCodec getOrCreateTypeCodec(Class<?> cls, @NotNull TypeInitializedCodecFactory factory) throws GelException {
         try {
             return typeCodecs.computeIfAbsent(cls, t -> {
                 try {
                     return factory.construct(t);
-                } catch (EdgeDBException e) {
+                } catch (GelException e) {
                     throw new RuntimeException(e);
                 }
             });
         }
         catch (RuntimeException e) {
-            if(e.getCause() instanceof EdgeDBException) {
-                throw (EdgeDBException)e.getCause();
+            if(e.getCause() instanceof GelException) {
+                throw (GelException)e.getCause();
             }
 
             throw e;
@@ -135,19 +135,19 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     }
 
     @Override
-    public final void serializeArguments(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public final void serializeArguments(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws GelException, OperationNotSupportedException {
         this.serialize(writer, value, context);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void serialize(@NotNull PacketWriter writer, @Nullable Object rawValue, @NotNull CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public final void serialize(@NotNull PacketWriter writer, @Nullable Object rawValue, @NotNull CodecContext context) throws OperationNotSupportedException, GelException {
         if(rawValue == null) {
             throw new IllegalArgumentException("Serializable object value cannot be null");
         }
 
         if(!(rawValue instanceof Map)) {
-            throw new EdgeDBException("Expected map type for object serialization");
+            throw new GelException("Expected map type for object serialization");
         }
 
         var value = (Map<String, ?>)rawValue;
@@ -182,13 +182,13 @@ public class ObjectCodec extends CodecBase<Object> implements ArgumentCodec<Obje
     }
 
     @Override
-    public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException {
+    public @Nullable Object deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException {
         var enumerator = new ObjectEnumeratorImpl(reader, this, context);
 
         try {
             return enumerator.flatten();
         } catch (Exception x) {
-            throw new EdgeDBException("Failed to deserialize object to " + getConvertingClass().getName(), x);
+            throw new GelException("Failed to deserialize object to " + getConvertingClass().getName(), x);
         }
     }
 }

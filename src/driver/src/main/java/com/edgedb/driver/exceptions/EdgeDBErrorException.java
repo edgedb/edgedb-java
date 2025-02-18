@@ -12,7 +12,7 @@ import java.util.function.Function;
 /**
  * Represents an exception that was caused by an error from EdgeDB.
  */
-public class EdgeDBErrorException extends EdgeDBException {
+public class EdgeDBErrorException extends GelException {
     private static final short DETAILS_ATTRIBUTE = 0x0002;
     private static final short TRACEBACK_ATTRIBUTE = 0x0101;
     private static final short HINT_ATTRIBUTE = 0x0001;

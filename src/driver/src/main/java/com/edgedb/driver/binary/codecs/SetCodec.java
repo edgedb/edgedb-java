@@ -3,7 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     }
 
     @Override
-    public @NotNull Collection<T> deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Collection<T> deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         return deserializeSet(
                 reader,
                 context,
@@ -43,7 +43,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
     }
 
     @SuppressWarnings("unchecked")
-    private @NotNull Collection<T> deserializeSet(@NotNull PacketReader reader, CodecContext context, @NotNull SetElementDeserializer<T> elementDeserializer) throws EdgeDBException, OperationNotSupportedException {
+    private @NotNull Collection<T> deserializeSet(@NotNull PacketReader reader, CodecContext context, @NotNull SetElementDeserializer<T> elementDeserializer) throws GelException, OperationNotSupportedException {
         var dimensions = reader.readInt32();
 
         reader.skip(LONG_SIZE); // flags & reserved
@@ -53,7 +53,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
         }
 
         if(dimensions != 1) {
-            throw new EdgeDBException("Only dimensions of 1 are supported for sets");
+            throw new GelException("Only dimensions of 1 are supported for sets");
         }
 
         var upper = reader.readInt32();
@@ -70,12 +70,12 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
         return Arrays.asList(result);
     }
 
-    private @Nullable T deserializeEnvelopeElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    private @Nullable T deserializeEnvelopeElement(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         try(var elementReader = reader.scopedSlice()) {
             var envelopeElements = elementReader.readInt32();
 
             if(envelopeElements != 1) {
-                throw new EdgeDBException(String.format("Envelope should contain only one element, but this envelope contains %d", envelopeElements));
+                throw new GelException(String.format("Envelope should contain only one element, but this envelope contains %d", envelopeElements));
             }
 
             elementReader.skip(INT_SIZE);
@@ -84,7 +84,7 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
         }
     }
 
-    private @Nullable T deserializeSetElement(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    private @Nullable T deserializeSetElement(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         try(var elementReader = reader.scopedSlice()) {
             if(elementReader.isNoData) {
                 return null;
@@ -96,6 +96,6 @@ public final class SetCodec<T> extends CodecBase<Collection<T>> {
 
     @FunctionalInterface
     private interface SetElementDeserializer<T> {
-        @Nullable T deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException;
+        @Nullable T deserialize(PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException;
     }
 }

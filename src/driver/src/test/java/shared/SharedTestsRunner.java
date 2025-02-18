@@ -10,7 +10,7 @@ import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.clients.BaseGelClient;
 import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -58,7 +58,7 @@ public class SharedTestsRunner {
                     .withExplicitObjectIds(true)
                     .build()
             );
-        } catch (IOException | EdgeDBException e) {
+        } catch (IOException | GelException e) {
             throw new RuntimeException(e);
         }
     }
@@ -127,7 +127,7 @@ public class SharedTestsRunner {
                     IntStream.range(0, executionResult.data.size())
                             .mapToObj(k -> Map.entry(executionResult.data.get(k), readerIndexes[k]))
                             .forEach(v -> v.getKey().readerIndex(v.getValue()));
-                } catch (EdgeDBException | OperationNotSupportedException e) {
+                } catch (GelException | OperationNotSupportedException e) {
                     throw new RuntimeException(e);
                 }
 
@@ -142,7 +142,7 @@ public class SharedTestsRunner {
         }
     }
 
-    private static Object buildResult(GelBinaryClient client, Class<?> type, BinaryResult result) throws EdgeDBException, OperationNotSupportedException {
+    private static Object buildResult(GelBinaryClient client, Class<?> type, BinaryResult result) throws GelException, OperationNotSupportedException {
         switch (result.cardinality) {
             case MANY:
                 var arr = (Object[])Array.newInstance(type, result.data.size());

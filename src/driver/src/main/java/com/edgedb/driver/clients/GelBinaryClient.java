@@ -13,7 +13,7 @@ import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBErrorException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.ResultCardinalityMismatchException;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
@@ -129,15 +129,15 @@ public abstract class GelBinaryClient extends BaseGelClient {
                 e -> {
                     logger.debug("got exception in execute step", e);
 
-                    if(e instanceof EdgeDBErrorException && !((EdgeDBException)e).shouldReconnect && !((EdgeDBException)e).shouldRetry) {
+                    if(e instanceof EdgeDBErrorException && !((GelException)e).shouldReconnect && !((GelException)e).shouldRetry) {
                         return CompletableFuture.failedFuture(e);
                     }
 
-                    if(e instanceof EdgeDBException) {
-                        var edbException = (EdgeDBException) e;
+                    if(e instanceof GelException) {
+                        var edbException = (GelException) e;
                         if(state.attempts > getConfig().getMaxConnectionRetries()) {
                             return CompletableFuture.failedFuture(
-                                    new EdgeDBException(
+                                    new GelException(
                                             String.format(
                                                     "Failed to execute query after %d attempts",
                                                     state.attempts
@@ -163,7 +163,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                         }
                     }
 
-                    return CompletableFuture.failedFuture(new EdgeDBException("Failed to execute query", e));
+                    return CompletableFuture.failedFuture(new GelException("Failed to execute query", e));
                 }
         );
     }
@@ -212,7 +212,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                                     cls
                             )
                     );
-                } catch (EdgeDBException | OperationNotSupportedException e) {
+                } catch (GelException | OperationNotSupportedException e) {
                     return CompletableFuture.failedFuture(e);
                 } finally {
                     // free the buffer
@@ -260,7 +260,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                         result.data.get(0),
                         cls
                 );
-            } catch (EdgeDBException | OperationNotSupportedException e) {
+            } catch (GelException | OperationNotSupportedException e) {
                 throw new CompletionException(e);
             }
             finally {
@@ -303,7 +303,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                         result.data.get(0),
                         cls
                 );
-            } catch (EdgeDBException | OperationNotSupportedException e) {
+            } catch (GelException | OperationNotSupportedException e) {
                 throw new CompletionException(e);
             }
             finally {
@@ -348,7 +348,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                                 this.codecContext
                         ))
                 );
-            } catch (EdgeDBException | OperationNotSupportedException e) {
+            } catch (GelException | OperationNotSupportedException e) {
                 throw new CompletionException(e);
             }
             finally {
@@ -379,7 +379,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                                         this.codecContext
                                 ))
                         );
-                    } catch (EdgeDBException | OperationNotSupportedException e) {
+                    } catch (GelException | OperationNotSupportedException e) {
                         throw new CompletionException(e);
                     }
                 }
@@ -395,7 +395,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
     }
 
     @Nullable
-    public ByteBuf serializeState() throws OperationNotSupportedException, EdgeDBException {
+    public ByteBuf serializeState() throws OperationNotSupportedException, GelException {
         if(this.stateCodec == null) {
             return null;
         }
@@ -467,7 +467,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                             return dispatchReady();
                         }),
                 error -> {
-                    if(error instanceof EdgeDBErrorException && ((EdgeDBException)error).shouldReconnect) {
+                    if(error instanceof EdgeDBErrorException && ((GelException)error).shouldReconnect) {
                         if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
                             return CompletableFuture.failedFuture(new ConnectionFailedException(error));
                         }
@@ -519,7 +519,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
         try {
             return exceptionallyCompose(this.openConnection(), err -> {
                 logger.debug("Connection attempt failed", err);
-                if(err instanceof EdgeDBException && ((EdgeDBException)err).shouldReconnect) {
+                if(err instanceof GelException && ((GelException)err).shouldReconnect) {
                     if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
                         return CompletableFuture.failedFuture(new ConnectionFailedException(err));
                     }

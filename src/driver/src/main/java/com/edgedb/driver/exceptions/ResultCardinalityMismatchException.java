@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents an exception that occurs when a queries cardinality isn't what the binding was expecting it to be.
  */
-public final class ResultCardinalityMismatchException extends EdgeDBException {
+public final class ResultCardinalityMismatchException extends GelException {
 
     /**
      * Constructs a new {@linkplain ResultCardinalityMismatchException}.

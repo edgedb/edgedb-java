@@ -227,7 +227,7 @@ the name, type, and value.
 
                     }
                 }
-            } catch(EdgeDBException err) { // deserialization error
+            } catch(GelException err) { // deserialization error
             
             } catch(OperationNotSupportedException err) { // read/IO error
 
@@ -242,7 +242,7 @@ for other data type representations, like tuples:
 
         @EdgeDBDeserializer
         public SimpleTuple(ObjectEnumerator enumerator) 
-        throws EdgeDBException, OperationNotSupportedException {
+        throws GelException, OperationNotSupportedException {
             elements = new ArrayList<>();
 
             while(enumerator.hasRemaining()) {

@@ -4,7 +4,7 @@ import com.edgedb.driver.abstractions.ClientQueryDelegate;
 import com.edgedb.driver.clients.*;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConfigurationException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
 import com.edgedb.driver.util.ClientPoolHolder;
@@ -84,7 +84,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
      * @param connection The connection parameters used to connect this client to EdgeDB.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool(GelConnection connection) throws EdgeDBException {
+    public GelClientPool(GelConnection connection) throws GelException {
         this(connection, GelClientConfig.DEFAULT);
     }
 
@@ -103,7 +103,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
      * @throws IOException The connection arguments couldn't be automatically resolved.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool() throws IOException, EdgeDBException {
+    public GelClientPool() throws IOException, GelException {
         this(GelConnection.builder().build(), GelClientConfig.DEFAULT);
     }
 
@@ -364,7 +364,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
                                 client.getClass().getSimpleName()
                         );
                         throw new CompletionException(
-                                new EdgeDBException("Cannot use transactions with " + client + " type")
+                                new GelException("Cannot use transactions with " + client + " type")
                         );
                     }
 
@@ -406,7 +406,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
                     BaseGelClient client;
                     try {
                         client = clientFactory.create(this.connection, this.config, contract);
-                    } catch (EdgeDBException e) {
+                    } catch (GelException e) {
                         throw new CompletionException(e);
                     }
                     contract.register(client, this::acceptClient);
@@ -420,6 +420,6 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
     @FunctionalInterface
     private interface ClientFactory {
         BaseGelClient create(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle)
-                throws EdgeDBException;
+                throws GelException;
     }
 }

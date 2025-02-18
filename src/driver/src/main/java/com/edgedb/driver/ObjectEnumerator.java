@@ -1,6 +1,6 @@
 package com.edgedb.driver;
 
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,18 +20,18 @@ public interface ObjectEnumerator {
     /**
      * Gets the next {@linkplain ObjectElement}, deserializing the value.
      * @return The next element.
-     * @throws EdgeDBException A deserialization error occurred.
+     * @throws GelException A deserialization error occurred.
      * @throws OperationNotSupportedException The read operation isn't allowed.
      */
-    @Nullable ObjectElement next() throws EdgeDBException, OperationNotSupportedException;
+    @Nullable ObjectElement next() throws GelException, OperationNotSupportedException;
 
     /**
      * Flattens this enumerator into a single map, consuming the remaining data.
      * @return A map of name-value pairs.
-     * @throws EdgeDBException A deserialization error occurred.
+     * @throws GelException A deserialization error occurred.
      * @throws OperationNotSupportedException The read operation isn't allowed.
      */
-    Map<String, Object> flatten() throws EdgeDBException, OperationNotSupportedException;
+    Map<String, Object> flatten() throws GelException, OperationNotSupportedException;
 
     /**
      * Represents an element read from a {@linkplain ObjectEnumerator}.

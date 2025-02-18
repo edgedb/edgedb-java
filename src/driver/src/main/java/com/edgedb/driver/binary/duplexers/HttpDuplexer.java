@@ -6,7 +6,7 @@ import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.clients.GelHttpClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import io.netty.buffer.ByteBufInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +81,7 @@ public class HttpDuplexer extends Duplexer {
         logger.debug("Preforming read, is authed?: {}", isConnected());
         if(!isConnected()) {
             return CompletableFuture.failedFuture(
-                    new EdgeDBException("Cannot perform read without authorization")
+                    new GelException("Cannot perform read without authorization")
             );
         }
 
@@ -221,7 +221,7 @@ public class HttpDuplexer extends Duplexer {
                 .thenCompose((state) -> {
                     try {
                         return func.process(state);
-                    } catch (EdgeDBException | OperationNotSupportedException e) {
+                    } catch (GelException | OperationNotSupportedException e) {
                         return CompletableFuture.failedFuture(e);
                     }
                 })

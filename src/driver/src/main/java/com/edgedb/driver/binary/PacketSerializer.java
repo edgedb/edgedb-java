@@ -5,7 +5,7 @@ import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.HexUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -80,7 +80,7 @@ public class PacketSerializer {
 
                         if(packet == null) {
                             logger.error("Got null result for packet type {}", type);
-                            throw new EdgeDBException("Failed to read message type: malformed data");
+                            throw new GelException("Failed to read message type: malformed data");
                         }
 
                         logger.debug("S->C: T:{}", type);
@@ -318,7 +318,7 @@ public class PacketSerializer {
 
                     if(packet == null && completeBuffer.readableBytes() > 0) {
                         promise.completeExceptionally(
-                                new EdgeDBException("Failed to deserialize packet, buffer had " + completeBuffer.readableBytes() + " bytes remaining")
+                                new GelException("Failed to deserialize packet, buffer had " + completeBuffer.readableBytes() + " bytes remaining")
                         );
                         return;
                     }

@@ -6,7 +6,7 @@ import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.datatypes.internal.TupleImpl;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public final class TypeBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable T buildObject(@NotNull GelBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull ByteBuf data) throws OperationNotSupportedException, EdgeDBException {
+    public static <T> @Nullable T buildObject(@NotNull GelBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull ByteBuf data) throws OperationNotSupportedException, GelException {
         var info = getDeserializerInfo(type);
 
         if(info == null) {

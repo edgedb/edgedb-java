@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Tuple;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ public final class TupleCodec extends CodecBase<Tuple> {
     }
 
     @Override
-    public void serialize(@NotNull PacketWriter writer, @Nullable Tuple value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Tuple value, CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null || value.size() == 0) {
             writer.write(-1);
             return;
@@ -51,11 +51,11 @@ public final class TupleCodec extends CodecBase<Tuple> {
     }
 
     @Override
-    public @NotNull Tuple deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Tuple deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(innerCodecs.length != numElements) {
-            throw new EdgeDBException("Codec count does not match number of elements in tuple");
+            throw new GelException("Codec count does not match number of elements in tuple");
         }
 
         Tuple.Element[] elements = new Tuple.Element[numElements];

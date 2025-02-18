@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.*;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws IOException, EdgeDBException {
+    public static void main(String[] args) throws IOException, GelException {
         var clientPool = new GelClientPool(GelClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)

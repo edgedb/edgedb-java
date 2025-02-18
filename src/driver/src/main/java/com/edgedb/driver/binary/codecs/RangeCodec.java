@@ -5,7 +5,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.codecs.common.RangeFlags;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
 import com.edgedb.driver.datatypes.Range;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ public final class RangeCodec<T> extends CodecBase<Range<T>> {
     }
 
     @Override
-    public void serialize(@NotNull PacketWriter writer, @Nullable Range<T> value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Range<T> value, CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null) {
             return;
         }
@@ -64,7 +64,7 @@ public final class RangeCodec<T> extends CodecBase<Range<T>> {
     }
 
     @Override
-    public @Nullable Range<T> deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @Nullable Range<T> deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var flags = reader.readEnumSet(RangeFlags.class, Byte.TYPE);
 
         if(flags.contains(RangeFlags.EMPTY)) {

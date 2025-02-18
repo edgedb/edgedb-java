@@ -10,7 +10,7 @@ import com.edgedb.driver.binary.codecs.complex.ComplexCodecConverter;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodec;
 import com.edgedb.driver.binary.codecs.scalars.ScalarCodecBase;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -36,13 +36,13 @@ final class RuntimeScalarCodecImpl<T, U> extends ScalarCodecBase<U> implements R
     }
 
     @Override
-    public void serialize(PacketWriter writer, @Nullable U value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(PacketWriter writer, @Nullable U value, CodecContext context) throws OperationNotSupportedException, GelException {
         var converted = value == null ? null : converter.from.apply(value);
         this.parent.serialize(writer, converted, context);
     }
 
     @Override
-    public @Nullable U deserialize(PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @Nullable U deserialize(PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var value = parent.deserialize(reader, context);
         return value == null ? null : converter.to.apply(value);
     }

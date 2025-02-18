@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,14 +21,14 @@ public final class DateDurationCodec extends ScalarCodecBase<Period> {
 
     @Override
     public void serialize(@NotNull PacketWriter writer, @Nullable Period value, CodecContext context)
-    throws OperationNotSupportedException, EdgeDBException {
+    throws OperationNotSupportedException, GelException {
         if(value != null) {
             writer.write(0L);
             writer.write(value.getDays());
             try {
                 writer.write(Math.toIntExact(value.toTotalMonths()));
             } catch (ArithmeticException x) {
-                throw new EdgeDBException("Value of total months cannot be greater than " + Integer.MAX_VALUE, x);
+                throw new GelException("Value of total months cannot be greater than " + Integer.MAX_VALUE, x);
             }
         }
     }

@@ -1,5 +1,5 @@
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ public class ClientTests {
         GelClientPool clientPool;
         try {
             clientPool = new GelClientPool();
-        } catch (IOException | EdgeDBException e) {
+        } catch (IOException | GelException e) {
             throw new RuntimeException(e);
         }
 

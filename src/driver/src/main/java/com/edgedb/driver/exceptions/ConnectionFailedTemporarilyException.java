@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents a temporary connection failure exception.
  */
-public class ConnectionFailedTemporarilyException extends EdgeDBException {
+public class ConnectionFailedTemporarilyException extends GelException {
 
     /**
      * Constructs a new {@linkplain ConnectionFailedTemporarilyException}.

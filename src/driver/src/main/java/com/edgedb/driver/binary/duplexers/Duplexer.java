@@ -3,7 +3,7 @@ package com.edgedb.driver.binary.duplexers;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +52,7 @@ public abstract class Duplexer {
     @FunctionalInterface
     public interface DuplexCallback {
         CompletionStage<Void> process(DuplexResult result)
-        throws EdgeDBException, OperationNotSupportedException;
+        throws GelException, OperationNotSupportedException;
     }
 
     public static class DuplexResult {

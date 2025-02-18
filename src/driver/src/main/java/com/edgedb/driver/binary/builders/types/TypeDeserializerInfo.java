@@ -6,7 +6,7 @@ import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.builders.TypeDeserializerFactory;
 import com.edgedb.driver.binary.builders.internal.ObjectEnumeratorImpl;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import com.edgedb.driver.namingstrategies.NamingStrategy;
 import com.edgedb.driver.util.FastInverseIndexer;
@@ -238,7 +238,7 @@ public class TypeDeserializerInfo<T> {
         if(type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
             return (enumerator, parent) -> {
                 if(this.children.isEmpty()) {
-                    throw new EdgeDBException(
+                    throw new GelException(
                             "Cannot deserialize to type " + this.type + "; no sub-types found to " +
                             "deserialize to for this interface/abstract class"
                     );
@@ -252,12 +252,12 @@ public class TypeDeserializerInfo<T> {
                 var element = enumerator.next();
 
                 if(element == null) {
-                    throw new EdgeDBException("No data left in object enumerator for type building");
+                    throw new GelException("No data left in object enumerator for type building");
                 }
 
                 //noinspection SpellCheckingInspection
                 if(!element.getName().equals("__tname__")) {
-                    throw new EdgeDBException("Type introspection is required for deserializing abstract classes or interfaces");
+                    throw new GelException("Type introspection is required for deserializing abstract classes or interfaces");
                 }
 
                 var split = ((String)element.getValue()).split("::");
@@ -277,7 +277,7 @@ public class TypeDeserializerInfo<T> {
                     }
                 }
 
-                throw new EdgeDBException(String.format("No child found for abstract type %s matching the name \"%s::%s\"", this.type.getName(), split[0], split[1]));
+                throw new GelException(String.format("No child found for abstract type %s matching the name \"%s::%s\"", this.type.getName(), split[0], split[1]));
             };
         }
 
@@ -353,7 +353,7 @@ public class TypeDeserializerInfo<T> {
             this.linkType = field.getAnnotation(EdgeDBLinkType.class);
         }
 
-        public Class<?> getType(@Nullable Cardinality cardinality) throws EdgeDBException {
+        public Class<?> getType(@Nullable Cardinality cardinality) throws GelException {
             var isCollectionLike = cardinality == Cardinality.MANY ||  fieldType.isArray() || Collection.class.isAssignableFrom(fieldType);
 
             if(isCollectionLike) {
@@ -363,7 +363,7 @@ public class TypeDeserializerInfo<T> {
             return fieldType;
         }
 
-        private Class<?> extractCollectionInnerType(@NotNull Class<?> cls) throws EdgeDBException {
+        private Class<?> extractCollectionInnerType(@NotNull Class<?> cls) throws GelException {
             if(linkType != null) {
                 return linkType.value();
             }
@@ -376,13 +376,13 @@ public class TypeDeserializerInfo<T> {
                 var generic = field.getGenericType();
 
                 if (!(generic instanceof ParameterizedType)) {
-                    throw new EdgeDBException("Unable to resolve generic parameter in collection for " + field);
+                    throw new GelException("Unable to resolve generic parameter in collection for " + field);
                 }
 
                 var actualGenerics = ((ParameterizedType) generic).getActualTypeArguments();
 
                 if (actualGenerics.length != 1) {
-                    throw new EdgeDBException(
+                    throw new GelException(
                             "Unable to resolve generic parameter for " + field + ", expected 1 generic " +
                                     "type argument, but found " + actualGenerics.length
                     );
@@ -391,19 +391,19 @@ public class TypeDeserializerInfo<T> {
                 return (Class<?>) actualGenerics[0];
             }
 
-            throw new EdgeDBException("Cannot find element type of the collection " + cls.getName());
+            throw new GelException("Cannot find element type of the collection " + cls.getName());
         }
 
         public @NotNull String getFieldName() {
             return this.field.getName();
         }
 
-        public void convertAndSet(boolean useMethodSetter, Object instance, Object value) throws EdgeDBException, ReflectiveOperationException {
+        public void convertAndSet(boolean useMethodSetter, Object instance, Object value) throws GelException, ReflectiveOperationException {
             Object converted;
 
             try {
                 converted = convertToType(value);
-            } catch (EdgeDBException error) {
+            } catch (GelException error) {
                 var valueType = value == null ? "NULL" : value.getClass().getName();
                 throw new NoTypeConverterException(
                         String.format("The field '%s' with type '%s' cannot be implicitly assigned to the received data type '%s'", field.getName(), field.getType().getName(), valueType)
@@ -417,7 +417,7 @@ public class TypeDeserializerInfo<T> {
             }
         }
 
-        private @Nullable Object convertToType(@Nullable Object value) throws EdgeDBException {
+        private @Nullable Object convertToType(@Nullable Object value) throws GelException {
             // TODO: custom converters?
 
             if(value == null) {

@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents an exception caused by an unexpected message.
  */
-public class UnexpectedMessageException extends EdgeDBException {
+public class UnexpectedMessageException extends GelException {
     /**
      * Constructs a new {@linkplain UnexpectedMessageException}.
      * @param message The error message describing why this exception was thrown.

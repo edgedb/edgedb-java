@@ -1,6 +1,6 @@
 import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBType;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public class ProtocolTests {
      * returns either multiple data packets amounting up to >16k bytes, or a single data packet that is >16k bytes.
      */
     @Test
-    public void testPacketContract() throws EdgeDBException, IOException, ExecutionException, InterruptedException {
+    public void testPacketContract() throws GelException, IOException, ExecutionException, InterruptedException {
         var clientPool = new GelClientPool().withModule("tests");
 
         // insert 1k items

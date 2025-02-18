@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents an exception that occurs when the binding cannot find a way to deserialize a given type.
  */
-public class NoTypeConverterException extends EdgeDBException {
+public class NoTypeConverterException extends GelException {
 
     /**
      * Constructs a new {@linkplain NoTypeConverterException}.
