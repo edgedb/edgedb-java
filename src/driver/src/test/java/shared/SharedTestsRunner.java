@@ -7,7 +7,7 @@ import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.QueryParameters;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
-import com.edgedb.driver.clients.BaseEdgeDBClient;
+import com.edgedb.driver.clients.BaseGelClient;
 import com.edgedb.driver.clients.EdgeDBBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
 import com.edgedb.driver.exceptions.EdgeDBException;
@@ -172,7 +172,7 @@ public class SharedTestsRunner {
     }
 
     private static Method getClientMethod;
-    private static CompletionStage<BaseEdgeDBClient> getClientHandle() throws InvocationTargetException, IllegalAccessException {
+    private static CompletionStage<BaseGelClient> getClientHandle() throws InvocationTargetException, IllegalAccessException {
         if(getClientMethod == null) {
             try {
                 getClientMethod = GelClientPool.class.getDeclaredMethod("getClient");
@@ -183,7 +183,7 @@ public class SharedTestsRunner {
         }
 
         //noinspection unchecked
-        return (CompletionStage<BaseEdgeDBClient>) getClientMethod.invoke(CLIENT_POOL);
+        return (CompletionStage<BaseGelClient>) getClientMethod.invoke(CLIENT_POOL);
     }
 
     private static final class BinaryResult {

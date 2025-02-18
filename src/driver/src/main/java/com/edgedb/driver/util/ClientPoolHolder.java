@@ -1,6 +1,6 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.clients.BaseEdgeDBClient;
+import com.edgedb.driver.clients.BaseGelClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -77,14 +77,14 @@ public final class ClientPoolHolder {
 
     public static class PoolContract implements AutoCloseable {
         private final Consumer<PoolContract> completer;
-        private @Nullable BaseEdgeDBClient client;
-        private @Nullable Consumer<BaseEdgeDBClient> onComplete;
+        private @Nullable BaseGelClient client;
+        private @Nullable Consumer<BaseGelClient> onComplete;
 
         private PoolContract(Consumer<PoolContract> completer) {
             this.completer = completer;
         }
 
-        public void register(BaseEdgeDBClient client, Consumer<BaseEdgeDBClient> onComplete) {
+        public void register(BaseGelClient client, Consumer<BaseGelClient> onComplete) {
             this.client = client;
             this.onComplete = onComplete;
         }

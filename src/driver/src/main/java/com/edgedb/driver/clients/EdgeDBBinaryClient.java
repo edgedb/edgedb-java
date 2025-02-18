@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
-public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
+public abstract class EdgeDBBinaryClient extends BaseGelClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
     @SuppressWarnings("rawtypes")
     private @Nullable Codec<Map> stateCodec;

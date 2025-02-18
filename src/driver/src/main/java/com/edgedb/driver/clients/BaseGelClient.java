@@ -16,16 +16,16 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class BaseEdgeDBClient implements StatefulClient, GelQueryable, AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(BaseEdgeDBClient.class);
-    private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
+public abstract class BaseGelClient implements StatefulClient, GelQueryable, AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(BaseGelClient.class);
+    private final @NotNull AsyncEvent<BaseGelClient> onReady;
     private final GelConnection connection;
     private final GelClientConfig config;
     private final AutoCloseable poolHandle;
 
     protected Session session;
 
-    public BaseEdgeDBClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
+    public BaseGelClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         this.connection = connection;
         this.config = config;
         this.session = new Session();
@@ -33,7 +33,7 @@ public abstract class BaseEdgeDBClient implements StatefulClient, GelQueryable, 
         this.onReady = new AsyncEvent<>();
     }
 
-    public void onReady(Function<BaseEdgeDBClient, CompletionStage<?>> handler) {
+    public void onReady(Function<BaseGelClient, CompletionStage<?>> handler) {
         this.onReady.add(handler);
     }
 
@@ -53,37 +53,37 @@ public abstract class BaseEdgeDBClient implements StatefulClient, GelQueryable, 
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withSession(@NotNull Session session) {
+    public @NotNull BaseGelClient withSession(@NotNull Session session) {
         this.session = session;
         return this;
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
+    public @NotNull BaseGelClient withModuleAliases(@NotNull Map<String, String> aliases) {
         this.session = this.session.withModuleAliases(aliases);
         return this;
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withConfig(@NotNull Config config) {
+    public @NotNull BaseGelClient withConfig(@NotNull Config config) {
         this.session = this.session.withConfig(config);
         return this;
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
+    public @NotNull BaseGelClient withConfig(@NotNull Consumer<Config.Builder> func) {
         this.session = this.session.withConfig(func);
         return this;
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
+    public @NotNull BaseGelClient withGlobals(@NotNull Map<String, Object> globals) {
         this.session = this.session.withGlobals(globals);
         return this;
     }
 
     @Override
-    public @NotNull BaseEdgeDBClient withModule(@NotNull String module) {
+    public @NotNull BaseGelClient withModule(@NotNull String module) {
         this.session = this.session.withModule(module);
         return this;
     }

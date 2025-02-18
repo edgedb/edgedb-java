@@ -37,10 +37,10 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
     private static final Logger logger = LoggerFactory.getLogger(GelClientPool.class);
 
     private static final class PooledClient {
-        public final BaseEdgeDBClient client;
+        public final BaseGelClient client;
         public Instant lastUsed;
 
-        public PooledClient(BaseEdgeDBClient client) {
+        public PooledClient(BaseGelClient client) {
             this.client = client;
             lastUsed = Instant.now();
         }
@@ -248,10 +248,10 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
 
     // added because Map.entry cannot contain nulls
     private static final class ExecutePair<U> {
-        private final BaseEdgeDBClient client;
+        private final BaseGelClient client;
         private final @Nullable U result;
 
-        private ExecutePair(BaseEdgeDBClient client, @Nullable U result) {
+        private ExecutePair(BaseGelClient client, @Nullable U result) {
             this.client = client;
             this.result = result;
         }
@@ -260,7 +260,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
             return result;
         }
 
-        public BaseEdgeDBClient getClient() {
+        public BaseGelClient getClient() {
             return client;
         }
     }
@@ -336,7 +336,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
         }
     }
 
-    private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
+    private synchronized CompletionStage<BaseGelClient> getClient() {
         logger.trace("polling cached clients...");
         var cachedClient = clients.poll();
 
@@ -379,7 +379,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
         );
     }
 
-    private synchronized void acceptClient(BaseEdgeDBClient client) {
+    private synchronized void acceptClient(BaseGelClient client) {
         this.clients.add(new PooledClient(client));
         var count = this.clientCount.incrementAndGet();
 
@@ -391,7 +391,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
         }
     }
 
-    private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseEdgeDBClient client) {
+    private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseGelClient client) {
         var suggestedConcurrency = client.getSuggestedPoolConcurrency();
 
         suggestedConcurrency.ifPresent(this.poolHolder::resize);
@@ -399,11 +399,11 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
         return CompletableFuture.completedFuture(null);
     }
 
-    private CompletionStage<BaseEdgeDBClient> createClient() {
+    private CompletionStage<BaseGelClient> createClient() {
         return this.poolHolder.acquireContract()
                 .thenApply(contract -> {
                     logger.trace("Contract acquired, remaining handles: {}", this.poolHolder.remaining());
-                    BaseEdgeDBClient client;
+                    BaseGelClient client;
                     try {
                         client = clientFactory.create(this.connection, this.config, contract);
                     } catch (EdgeDBException e) {
@@ -419,7 +419,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
 
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle)
+        BaseGelClient create(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle)
                 throws EdgeDBException;
     }
 }
