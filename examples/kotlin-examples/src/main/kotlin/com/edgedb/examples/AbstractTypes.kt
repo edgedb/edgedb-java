@@ -26,7 +26,7 @@ class AbstractTypes : Example {
     }
 
     override suspend fun runAsync(clientPool: GelClientPool) {
-        client.execute(
+        clientPool.execute(
                 """insert Movie { 
                    title := "The Matrix", 
                    release_year := 1999 
@@ -37,7 +37,7 @@ class AbstractTypes : Example {
                } unless conflict on .title"""
         ).await()
 
-        val results = client.query(
+        val results = clientPool.query(
                 Media::class.java,
                 """select Media { 
                    title, 

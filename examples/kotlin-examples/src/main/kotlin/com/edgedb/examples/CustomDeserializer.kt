@@ -27,7 +27,7 @@ class CustomDeserializer : Example {
     }
 
     override suspend fun runAsync(clientPool: GelClientPool) {
-        val person = client.queryRequiredSingle(
+        val person = clientPool.queryRequiredSingle(
                 Person::class.java,
                 """
                     insert Person { name := 'Example', age := 123 } unless conflict on .name;

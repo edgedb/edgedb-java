@@ -14,7 +14,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, EdgeDBException {
-        var clientPool = new GelClientPool(EdgeDBClientConfig.builder()
+        var clientPool = new GelClientPool(GelClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
                 .build()

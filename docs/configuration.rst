@@ -4,14 +4,14 @@
 Configuration
 =============
 
-The driver can be configured by passing an ``EdgeDBClientConfig`` object 
+The driver can be configured by passing an ``GelClientConfig`` object 
 into the ``GelClientPool`` constructor. The client config contains immutable 
-settings for client behavior. You can construct a new ``EdgeDBClientConfig``
+settings for client behavior. You can construct a new ``GelClientConfig``
 with the builder subclass like so:
 
 .. code-block:: java
 
-    var builder = EdgeDBClientConfig.builder();
+    var builder = GelClientConfig.builder();
 
     ..
 

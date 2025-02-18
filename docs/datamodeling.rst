@@ -69,7 +69,7 @@ under the interface, for example:
 
 .. code-block:: java
     
-    var config = EdgeDBClientConfig.builder()
+    var config = GelClientConfig.builder()
         .withNamingStrategy(NamingStrategy.snakeCase())
         .build();
         

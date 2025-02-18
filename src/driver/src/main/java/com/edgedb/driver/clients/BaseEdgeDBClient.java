@@ -1,6 +1,6 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.GelClientConfig;
 import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.driver.async.AsyncEvent;
@@ -20,12 +20,12 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     private static final Logger logger = LoggerFactory.getLogger(BaseEdgeDBClient.class);
     private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
     private final GelConnection connection;
-    private final EdgeDBClientConfig config;
+    private final GelClientConfig config;
     private final AutoCloseable poolHandle;
 
     protected Session session;
 
-    public BaseEdgeDBClient(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public BaseEdgeDBClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         this.connection = connection;
         this.config = config;
         this.session = new Session();
@@ -48,7 +48,7 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
     public GelConnection getConnectionArguments() {
         return this.connection;
     }
-    public EdgeDBClientConfig getConfig() {
+    public GelClientConfig getConfig() {
         return this.config;
     }
 

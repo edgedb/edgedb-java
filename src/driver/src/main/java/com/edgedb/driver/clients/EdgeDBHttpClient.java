@@ -1,6 +1,6 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.GelClientConfig;
 import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.TransactionState;
 import com.edgedb.driver.binary.duplexers.Duplexer;
@@ -45,7 +45,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
     private @Nullable URI authUri;
     private @Nullable URI execUri;
 
-    public EdgeDBHttpClient(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
+    public EdgeDBHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
         super(connection, config, poolHandle);
         this.duplexer = new HttpDuplexer(this);
         SSLContext context;

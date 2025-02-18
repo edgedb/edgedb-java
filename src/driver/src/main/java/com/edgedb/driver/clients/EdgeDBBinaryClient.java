@@ -46,7 +46,7 @@ public abstract class EdgeDBBinaryClient extends BaseEdgeDBClient {
     private @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
-    public EdgeDBBinaryClient(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public EdgeDBBinaryClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
         this.connectionSemaphore = new Semaphore(1);
         this.querySemaphore = new Semaphore(1);

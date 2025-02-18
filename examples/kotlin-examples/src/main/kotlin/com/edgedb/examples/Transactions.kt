@@ -11,12 +11,12 @@ class Transactions : Example {
 
     override suspend fun runAsync(clientPool: GelClientPool) {
         // verify we can run transactions
-        if (!client.supportsTransactions()) {
-            logger.info("Skipping transactions, client type {} doesn't support it", client.clientType)
+        if (!clientPool.supportsTransactions()) {
+            logger.info("Skipping transactions, client type {} doesn't support it", clientPool.clientType)
             return
         }
 
-        val transactionResult = client.transaction { tx ->
+        val transactionResult = clientPool.transaction { tx ->
             tx.queryRequiredSingle(String::class.java, "SELECT 'Hello from transaction!'")
         }.await()
 

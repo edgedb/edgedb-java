@@ -57,7 +57,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
     private final AtomicInteger clientCount = new AtomicInteger();
     private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
     private final GelConnection connection;
-    private final EdgeDBClientConfig config;
+    private final GelClientConfig config;
     private final ClientPoolHolder poolHolder;
     private final ClientFactory clientFactory;
     private final Session session;
@@ -69,7 +69,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool(GelConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
+    public GelClientPool(GelConnection connection, @NotNull GelClientConfig config) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -85,7 +85,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public GelClientPool(GelConnection connection) throws EdgeDBException {
-        this(connection, EdgeDBClientConfig.DEFAULT);
+        this(connection, GelClientConfig.DEFAULT);
     }
 
     /**
@@ -94,7 +94,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
      * @throws IOException The connection arguments couldn't be automatically resolved.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool(@NotNull EdgeDBClientConfig config) throws IOException, ConfigurationException {
+    public GelClientPool(@NotNull GelClientConfig config) throws IOException, ConfigurationException {
         this(GelConnection.builder().build(), config);
     }
 
@@ -104,7 +104,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public GelClientPool() throws IOException, EdgeDBException {
-        this(GelConnection.builder().build(), EdgeDBClientConfig.DEFAULT);
+        this(GelConnection.builder().build(), GelClientConfig.DEFAULT);
     }
 
     private GelClientPool(@NotNull GelClientPool other, Session session) {
@@ -419,7 +419,7 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
 
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
+        BaseEdgeDBClient create(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle)
                 throws EdgeDBException;
     }
 }

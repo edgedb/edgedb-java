@@ -38,9 +38,9 @@ class LinkProperties : Example {
     }
 
     override suspend fun runAsync(clientPool: GelClientPool) {
-        client.execute(INSERT_QUERY).await()
+        clientPool.execute(INSERT_QUERY).await()
 
-        val result = client.queryRequiredSingle(
+        val result = clientPool.queryRequiredSingle(
                 Person::class.java,
                 """
                     select Person { 

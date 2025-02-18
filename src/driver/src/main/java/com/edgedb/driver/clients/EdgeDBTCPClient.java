@@ -38,7 +38,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     private final Bootstrap bootstrap;
     private TransactionState transactionState;
 
-    public EdgeDBTCPClient(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public EdgeDBTCPClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
         this.duplexer = new ChannelDuplexer(this);
 

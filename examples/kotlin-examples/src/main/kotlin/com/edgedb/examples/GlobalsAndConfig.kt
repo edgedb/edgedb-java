@@ -12,7 +12,7 @@ class GlobalsAndConfig : Example {
     }
 
     override suspend fun runAsync(clientPool: GelClientPool) {
-        val configuredClient = client
+        val configuredClient = clientPool
                 .withConfig { config -> config
                         .withIdleTransactionTimeout(Duration.ZERO)
                         .applyAccessPolicies(true)

@@ -1,7 +1,7 @@
 package shared;
 
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.GelClientConfig;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.QueryParameters;
@@ -53,7 +53,7 @@ public class SharedTestsRunner {
 
     static {
         try {
-            CLIENT_POOL = new GelClientPool(EdgeDBClientConfig.builder()
+            CLIENT_POOL = new GelClientPool(GelClientConfig.builder()
                     .withMessageTimeout(1, TimeUnit.HOURS)
                     .withExplicitObjectIds(true)
                     .build()

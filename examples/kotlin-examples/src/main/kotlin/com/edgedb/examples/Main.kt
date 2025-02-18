@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.EdgeDBClientConfig
+import com.edgedb.driver.GelClientConfig
 import com.edgedb.driver.GelConnection
 import com.edgedb.driver.namingstrategies.NamingStrategy
 import kotlinx.coroutines.runBlocking
@@ -13,7 +13,7 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val clientPool = GelClientPool(EdgeDBClientConfig.builder()
+        val clientPool = GelClientPool(GelClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
                 .build()
@@ -32,7 +32,7 @@ object Main {
             for (example in examples) {
                 logger.info("Running Kotlin example {}...", example)
                 try {
-                    example.runAsync(cclientPoollient)
+                    example.runAsync(clientPool)
                     logger.info("Kotlin example {} complete!", example)
                 } catch (x: Exception) {
                     logger.error("Failed to run Kotlin example {}", example, x)
