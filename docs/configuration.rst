@@ -5,7 +5,7 @@ Configuration
 =============
 
 The driver can be configured by passing an ``EdgeDBClientConfig`` object 
-into the ``EdgeDBClient`` constructor. The client config contains immutable 
+into the ``GelClientPool`` constructor. The client config contains immutable 
 settings for client behavior. You can construct a new ``EdgeDBClientConfig``
 with the builder subclass like so:
 
@@ -50,7 +50,7 @@ These are the following methods exposed on the configuration builder:
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 
 This configuration object can then be passed into the constructor of 
-a ``EdgeDBClient``.
+a ``GelClientPool``.
 
 In addition to client-level configuration, the driver offers session-level
 configuration. This type of configuration is controlled using methods prefixed
@@ -59,8 +59,8 @@ connection, pool, and client configuration.
 
 .. code-block:: java
 
-    var client = new EdgeDBClient();
+    var clientPool = new GelClientPool();
 
-    var appliedGlobalClient = client.withGlobals(new HashMap<>(){{
+    var appliedGlobalClient = clientPool.withGlobals(new HashMap<>(){{
         put("current_user_id", ...);
     }});

@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import com.edgedb.driver.annotations.EdgeDBDeserializer
 import com.edgedb.driver.annotations.EdgeDBName
 import com.edgedb.driver.annotations.EdgeDBType
@@ -26,7 +26,7 @@ class CustomDeserializer : Example {
         }
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
+    override suspend fun runAsync(clientPool: GelClientPool) {
         val person = client.queryRequiredSingle(
                 Person::class.java,
                 """

@@ -1,6 +1,6 @@
 package shared;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.EdgeDBClientConfig;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
@@ -49,11 +49,11 @@ public class SharedTestsRunner {
                 addDeserializer(Duration.class, new CDurationDeserializer());
             }});
 
-    private static final EdgeDBClient CLIENT;
+    private static final GelClientPool CLIENT_POOL;
 
     static {
         try {
-            CLIENT = new EdgeDBClient(EdgeDBClientConfig.builder()
+            CLIENT_POOL = new GelClientPool(EdgeDBClientConfig.builder()
                     .withMessageTimeout(1, TimeUnit.HOURS)
                     .withExplicitObjectIds(true)
                     .build()
@@ -175,7 +175,7 @@ public class SharedTestsRunner {
     private static CompletionStage<BaseEdgeDBClient> getClientHandle() throws InvocationTargetException, IllegalAccessException {
         if(getClientMethod == null) {
             try {
-                getClientMethod = EdgeDBClient.class.getDeclaredMethod("getClient");
+                getClientMethod = GelClientPool.class.getDeclaredMethod("getClient");
                 getClientMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
@@ -183,7 +183,7 @@ public class SharedTestsRunner {
         }
 
         //noinspection unchecked
-        return (CompletionStage<BaseEdgeDBClient>) getClientMethod.invoke(CLIENT);
+        return (CompletionStage<BaseEdgeDBClient>) getClientMethod.invoke(CLIENT_POOL);
     }
 
     private static final class BinaryResult {

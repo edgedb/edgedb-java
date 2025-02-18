@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import com.edgedb.driver.annotations.EdgeDBType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
@@ -25,7 +25,7 @@ class AbstractTypes : Example {
         var releaseYear: Long? = null
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
+    override suspend fun runAsync(clientPool: GelClientPool) {
         client.execute(
                 """insert Movie { 
                    title := "The Matrix", 

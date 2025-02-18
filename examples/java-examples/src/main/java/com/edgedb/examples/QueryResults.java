@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +24,9 @@ public final class QueryResults implements Example {
     }
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        return client.execute("insert Person { name := 'Example', age := 1234 } unless conflict on .name")
-                .thenCompose(v -> client.queryRequiredSingle(Person.class, "select Person { name, age } filter .name = 'Example'"))
+    public CompletionStage<Void> run(GelClientPool clientPool) {
+        return clientPool.execute("insert Person { name := 'Example', age := 1234 } unless conflict on .name")
+                .thenCompose(v -> clientPool.queryRequiredSingle(Person.class, "select Person { name, age } filter .name = 'Example'"))
                 .thenAccept(result -> logger.info("Person returned from query: {}", result));
     }
 }

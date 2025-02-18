@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -21,9 +21,9 @@ public final class JsonResults implements Example {
     }
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
+    public CompletionStage<Void> run(GelClientPool clientPool) {
 
-        return client.queryJson("select Person { name, age }")
+        return clientPool.queryJson("select Person { name, age }")
                 .thenApply(result -> {
                     try {
                         return mapper.readValue(result.getValue(), Person[].class);

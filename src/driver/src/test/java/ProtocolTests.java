@@ -1,4 +1,4 @@
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBType;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -33,11 +33,11 @@ public class ProtocolTests {
      */
     @Test
     public void testPacketContract() throws EdgeDBException, IOException, ExecutionException, InterruptedException {
-        var client = new EdgeDBClient().withModule("tests");
+        var clientPool = new GelClientPool().withModule("tests");
 
         // insert 1k items
         logger.info("Removing old data structures...");
-        client.execute("DELETE TestDatastructure")
+        clientPool.execute("DELETE TestDatastructure")
                 .toCompletableFuture().get();
 
         var results = new HashMap<UUID, String[]>();
@@ -51,7 +51,7 @@ public class ProtocolTests {
                     generateRandomString()
             };
 
-            var result = client.queryRequiredSingle(TestDatastructure.class, "INSERT TestDatastructure { a := <str>$a, b := <str>$b, c := <str>$c }", new HashMap<>(){{
+            var result = clientPool.queryRequiredSingle(TestDatastructure.class, "INSERT TestDatastructure { a := <str>$a, b := <str>$b, c := <str>$c }", new HashMap<>(){{
                 put("a", data[0]);
                 put("b", data[1]);
                 put("c", data[2]);
@@ -63,10 +63,10 @@ public class ProtocolTests {
         logger.info("Querying all items...");
 
         // assert the data can be read via binary and json
-        var structures = client.query(TestDatastructure.class, "SELECT TestDatastructure { id, a, b, c }")
+        var structures = clientPool.query(TestDatastructure.class, "SELECT TestDatastructure { id, a, b, c }")
                 .toCompletableFuture().get();
 
-        var json = client.queryJson("SELECT TestDatastructure { id, a, b, c }")
+        var json = clientPool.queryJson("SELECT TestDatastructure { id, a, b, c }")
                 .toCompletableFuture().get();
 
         var structuresFromJson = List.of(new JsonMapper().readValue(json.getValue(), TestDatastructure[].class));

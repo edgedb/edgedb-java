@@ -6,7 +6,7 @@ Transactions
 
 Transactions are a robust concept to ensure your queries are executed,
 even if network errors occur. To do this, simply use the ``transaction``
-method on ``EdgeDBClient``.
+method on ``GelClientPool``.
 
 .. code-block:: java
 

@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer
 import com.edgedb.driver.state.Config
 import org.slf4j.LoggerFactory
@@ -14,7 +14,7 @@ import scala.jdk.FutureConverters.*
 class GlobalsAndConfig extends Example:
   private val logger = LoggerFactory.getLogger(classOf[GlobalsAndConfig])
 
-  override def run(client: EdgeDBClient)(implicit context: ExecutionContext): Future[Unit] = {
+  override def run(clientPool: GelClientPool)(implicit context: ExecutionContext): Future[Unit] = {
     val configuredClient = client.withConfig(Config.builder()
       .withQueryExecutionTimeout(Duration.ZERO)
       .applyAccessPolicies(true)

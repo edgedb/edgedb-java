@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import com.edgedb.driver.annotations.EdgeDBLinkType
 import com.edgedb.driver.annotations.EdgeDBType
 import kotlinx.coroutines.future.await
@@ -37,7 +37,7 @@ class LinkProperties : Example {
         var friends: Collection<Person>? = null
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
+    override suspend fun runAsync(clientPool: GelClientPool) {
         client.execute(INSERT_QUERY).await()
 
         val result = client.queryRequiredSingle(

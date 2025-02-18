@@ -14,20 +14,20 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, EdgeDBException {
-        var client = new EdgeDBClient(EdgeDBClientConfig.builder()
+        var clientPool = new GelClientPool(EdgeDBClientConfig.builder()
                 .withNamingStrategy(NamingStrategy.snakeCase())
                 .useFieldSetters(true)
                 .build()
         ).withModule("examples");
 
-        runJavaExamples(client);
+        runJavaExamples(clientPool);
 
         logger.info("Examples complete");
 
         System.exit(0);
     }
 
-    private static void runJavaExamples(EdgeDBClient client) {
+    private static void runJavaExamples(GelClientPool clientPool) {
         var examples = new ArrayList<Supplier<Example>>() {
             {
                 add(AbstractTypes::new);
@@ -45,7 +45,7 @@ public class Main {
             var inst = example.get();
             logger.info("Running Java example {}...", inst);
             try {
-                inst.run(client).toCompletableFuture().get();
+                inst.run(clientPool).toCompletableFuture().get();
                 logger.info("Java example {} complete!", inst);
             }
             catch (Exception x) {

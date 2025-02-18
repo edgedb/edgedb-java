@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import com.edgedb.driver.annotations.EdgeDBType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,7 +26,7 @@ class AbstractTypes extends Example:
   import scala.jdk.FutureConverters._
   import AbstractTypes._
 
-  override def run(client: EdgeDBClient)(implicit context: ExecutionContext): Future[Unit] = {
+  override def run(clientPool: GelClientPool)(implicit context: ExecutionContext): Future[Unit] = {
     for {
       result <- client.query(
         classOf[Media],

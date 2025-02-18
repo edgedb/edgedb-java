@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBLinkType;
 import com.edgedb.driver.annotations.EdgeDBType;
 import org.slf4j.Logger;
@@ -28,10 +28,10 @@ public final class LinkProperties implements Example {
                     "insert Person { name := 'Person D', age := 23, friends := { a, b, c }, best_friend := c } unless conflict on .name";
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        return client.execute(INSERT_QUERY)
+    public CompletionStage<Void> run(GelClientPool clientPool) {
+        return clientPool.execute(INSERT_QUERY)
                 .thenCompose(v ->
-                        client.queryRequiredSingle(
+                        clientPool.queryRequiredSingle(
                                 Person.class,
                                 "select Person { name, age, friends: { name, age, friends }, best_friend: { name, age, friends } } filter .name = 'Person D'"
                         ))

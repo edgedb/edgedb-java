@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +26,11 @@ public class AbstractTypes implements Example {
     }
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        return client
+    public CompletionStage<Void> run(GelClientPool clientPool) {
+        return clientPool
                 .execute("insert Movie { title := \"The Matrix\", release_year := 1999 } unless conflict on .title")
-                .thenCompose(v -> client.execute("insert Show { title := \"The Office\", seasons := 9 } unless conflict on .title"))
-                .thenCompose(v -> client.query(Media.class, "select Media { title, [is Movie].release_year, [is Show].seasons }"))
+                .thenCompose(v -> clientPool.execute("insert Show { title := \"The Office\", seasons := 9 } unless conflict on .title"))
+                .thenCompose(v -> clientPool.query(Media.class, "select Media { title, [is Movie].release_year, [is Show].seasons }"))
                 .thenAccept(content -> {
                     for (var media : content) {
                         if(media instanceof Show) {

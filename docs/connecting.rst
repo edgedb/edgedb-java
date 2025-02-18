@@ -4,7 +4,7 @@
 Connection Parameters
 =====================
 
-The ``EdgeDBClient`` constructor can consume an ``GelConnection`` class 
+The ``GelClientPool`` constructor can consume an ``GelConnection`` class 
 containing connection arguments for the client.
 
 Most of the time, the connection arguments are implicitly resolved via 

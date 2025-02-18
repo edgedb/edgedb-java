@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -9,7 +9,7 @@ class BasicQueries : Example {
         private val logger = LoggerFactory.getLogger(BasicQueries::class.java)!!
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
+    override suspend fun runAsync(clientPool: GelClientPool) {
         // the 'query' method enforces the cardinality of 'MANY', meaning zero OR X elements are
         // returned. This translates to a collection of nullable results.
         val queryResult = client.query(String::class.java, "SELECT 'Hello, Kotlin!'").await()
