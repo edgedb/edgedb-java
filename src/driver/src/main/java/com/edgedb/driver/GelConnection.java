@@ -34,10 +34,10 @@ import java.util.regex.Pattern;
  * A class containing information on how to connect to a EdgeDB instance.
  */
 @SuppressWarnings("CloneableClassWithoutClone")
-public class EdgeDBConnection implements Cloneable {
+public class GelConnection implements Cloneable {
 
     /**
-     * Gets a {@linkplain Builder} used to construct a new {@linkplain EdgeDBConnection}.
+     * Gets a {@linkplain Builder} used to construct a new {@linkplain GelConnection}.
      *
      * @return A new builder instance.
      */
@@ -70,7 +70,7 @@ public class EdgeDBConnection implements Cloneable {
             .build();
 
     /**
-     * Constructs a new {@linkplain EdgeDBConnection}.
+     * Constructs a new {@linkplain GelConnection}.
      *
      * @param user        The connections' user.
      * @param password    The connections' password.
@@ -80,7 +80,7 @@ public class EdgeDBConnection implements Cloneable {
      * @param tlsca       The connections' tls certificate authority.
      * @param tlsSecurity The connections' tls security policy.
      */
-    public EdgeDBConnection(
+    public GelConnection(
             String user, String password, String database,
             String hostname, Integer port, String tlsca,
             @Nullable TLSSecurityMode tlsSecurity
@@ -95,9 +95,9 @@ public class EdgeDBConnection implements Cloneable {
     }
 
     /**
-     * Constructs an empty {@linkplain EdgeDBConnection}
+     * Constructs an empty {@linkplain GelConnection}
      */
-    public EdgeDBConnection() {
+    public GelConnection() {
     }
 
     //#region Main connection args
@@ -412,7 +412,7 @@ public class EdgeDBConnection implements Cloneable {
     //#region Builder
 
     /**
-     * A builder class used to construct a {@linkplain EdgeDBConnection}
+     * A builder class used to construct a {@linkplain GelConnection}
      */
     public static final class Builder {
         // Primary args
@@ -668,17 +668,17 @@ public class EdgeDBConnection implements Cloneable {
         }
 
         /**
-         * Constructs a {@linkplain EdgeDBConnection} from the current builder.
+         * Constructs a {@linkplain GelConnection} from the current builder.
          *
-         * @return A {@linkplain EdgeDBConnection} that represents the current builder.
+         * @return A {@linkplain GelConnection} that represents the current builder.
          */
-        public @NotNull EdgeDBConnection build(
+        public @NotNull GelConnection build(
         ) throws ConfigurationException, IOException {
             return fromBuilder(this, ConfigUtils.getDefaultSystemProvider());
         }
     }
 
-    private static @NotNull EdgeDBConnection fromBuilder(
+    private static @NotNull GelConnection fromBuilder(
         @NotNull Builder builder,
         @NotNull SystemProvider provider
         ) throws ConfigurationException, IOException {
@@ -1158,11 +1158,11 @@ public class EdgeDBConnection implements Cloneable {
 
     //#region Builder Helpers
 
-    private static EdgeDBConnection _fromResolvedFields(
+    private static GelConnection _fromResolvedFields(
         @NotNull ConfigUtils.ResolvedFields resolvedFields,
         @NotNull SystemProvider platform
     ) throws ConfigurationException {
-        EdgeDBConnection result = new EdgeDBConnection();
+        GelConnection result = new GelConnection();
 
         result.hostname = ConfigUtils.checkAndGetFieldValue(
             resolvedFields.host,
@@ -1560,10 +1560,10 @@ public class EdgeDBConnection implements Cloneable {
     }
 
     /**
-     * Creates a {@linkplain EdgeDBConnection} from a project file.
+     * Creates a {@linkplain GelConnection} from a project file.
      *
      * @param path The {@code edgedb.toml} file
-     * @return A {@linkplain EdgeDBConnection} that targets the instance hosting the project specified by the
+     * @return A {@linkplain GelConnection} that targets the instance hosting the project specified by the
      * {@code edgedb.toml} file.
      * @throws IOException            The project file or one of its dependants doesn't exist
      * @throws ConfigurationException A cloud instance parameter is invalid OR the instance name is in an invalid.
@@ -1738,7 +1738,7 @@ public class EdgeDBConnection implements Cloneable {
     /**
      * Turns this connection into a valid DSN string.
      *
-     * @return A DSN string representing the parameters within the current {@linkplain EdgeDBConnection}.
+     * @return A DSN string representing the parameters within the current {@linkplain GelConnection}.
      */
     @Override
     public @NotNull String toString() {

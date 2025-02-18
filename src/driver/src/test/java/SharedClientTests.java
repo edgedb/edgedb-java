@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Convert;
 
-import com.edgedb.driver.EdgeDBConnection;
-import com.edgedb.driver.EdgeDBConnection.WaitTime;
+import com.edgedb.driver.GelConnection;
+import com.edgedb.driver.GelConnection.WaitTime;
 import com.edgedb.driver.TLSSecurityMode;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
@@ -139,12 +139,12 @@ public class SharedClientTests {
     }
 
     private static class TestResult {
-        public @Nullable EdgeDBConnection connection;
+        public @Nullable GelConnection connection;
         public @Nullable Exception error;
         public @NotNull List<String> warnings;
 
         public static TestResult valid(
-            @NotNull EdgeDBConnection connection,
+            @NotNull GelConnection connection,
             @NotNull List<String> warnings
         ) {
             TestResult result = new TestResult();
@@ -169,7 +169,7 @@ public class SharedClientTests {
             MockProvider mockProvider = new MockProvider(testCase);
 
             try {
-                EdgeDBConnection.Builder builder = new EdgeDBConnection.Builder();
+                GelConnection.Builder builder = new GelConnection.Builder();
 
                 if (testCase.options != null) {
                     TestCase.OptionsData options = testCase.options;
@@ -248,15 +248,15 @@ public class SharedClientTests {
                 }
 
                 // Use reflection to access private build method
-                Method method = EdgeDBConnection.class.getDeclaredMethod(
+                Method method = GelConnection.class.getDeclaredMethod(
                     "fromBuilder",
-                    EdgeDBConnection.Builder.class,
+                    GelConnection.Builder.class,
                     SystemProvider.class
                 );
                 method.setAccessible(true);
 
                 try {
-                    EdgeDBConnection connection = (EdgeDBConnection)method.invoke(
+                    GelConnection connection = (GelConnection)method.invoke(
                         null,
                         builder,
                         mockProvider
@@ -336,7 +336,7 @@ public class SharedClientTests {
         );
         assertNotNull(result.connection, testName);
 
-        EdgeDBConnection actual = result.connection;
+        GelConnection actual = result.connection;
 
         assertEquals(expectedHostname, actual.getHostname(), testName);
         assertEquals(expectedPort, actual.getPort(), testName);

@@ -56,7 +56,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     private final AtomicInteger clientCount = new AtomicInteger();
     private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
-    private final EdgeDBConnection connection;
+    private final GelConnection connection;
     private final EdgeDBClientConfig config;
     private final ClientPoolHolder poolHolder;
     private final ClientFactory clientFactory;
@@ -69,7 +69,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
+    public EdgeDBClient(GelConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -84,7 +84,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @param connection The connection parameters used to connect this client to EdgeDB.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBConnection connection) throws EdgeDBException {
+    public EdgeDBClient(GelConnection connection) throws EdgeDBException {
         this(connection, EdgeDBClientConfig.DEFAULT);
     }
 
@@ -95,7 +95,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public EdgeDBClient(@NotNull EdgeDBClientConfig config) throws IOException, ConfigurationException {
-        this(EdgeDBConnection.builder().build(), config);
+        this(GelConnection.builder().build(), config);
     }
 
     /**
@@ -104,7 +104,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public EdgeDBClient() throws IOException, EdgeDBException {
-        this(EdgeDBConnection.builder().build(), EdgeDBClientConfig.DEFAULT);
+        this(GelConnection.builder().build(), EdgeDBClientConfig.DEFAULT);
     }
 
     private EdgeDBClient(@NotNull EdgeDBClient other, Session session) {
@@ -419,7 +419,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
+        BaseEdgeDBClient create(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
                 throws EdgeDBException;
     }
 }

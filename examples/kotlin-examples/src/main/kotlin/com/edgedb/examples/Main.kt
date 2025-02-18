@@ -2,7 +2,7 @@ package com.edgedb.examples
 
 import com.edgedb.driver.EdgeDBClient
 import com.edgedb.driver.EdgeDBClientConfig
-import com.edgedb.driver.EdgeDBConnection
+import com.edgedb.driver.GelConnection
 import com.edgedb.driver.namingstrategies.NamingStrategy
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory

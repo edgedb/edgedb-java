@@ -1,7 +1,7 @@
 package com.edgedb.driver.util;
 
 import com.edgedb.driver.TLSSecurityMode;
-import com.edgedb.driver.EdgeDBConnection.WaitTime;
+import com.edgedb.driver.GelConnection.WaitTime;
 import com.edgedb.driver.abstractions.OSType;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.internal.DefaultSystemProvider;
@@ -199,8 +199,8 @@ public final class ConfigUtils {
     //#region ResolvedFields
 
     /**
-     * A json readable representation of an EdgeDBConnection.
-     * When using Credentials to create an EdgeDBConnection, the data must conform to this type.
+     * A json readable representation of an GelDBConnection.
+     * When using Credentials to create an GelDBConnection, the data must conform to this type.
      */
     public static final class ConnectionCredentials {
 

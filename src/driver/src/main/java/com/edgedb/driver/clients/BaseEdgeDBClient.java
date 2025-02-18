@@ -1,7 +1,7 @@
 package com.edgedb.driver.clients;
 
 import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.EdgeDBQueryable;
 import com.edgedb.driver.async.AsyncEvent;
 import com.edgedb.driver.state.Config;
@@ -19,13 +19,13 @@ import java.util.function.Function;
 public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(BaseEdgeDBClient.class);
     private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
-    private final EdgeDBConnection connection;
+    private final GelConnection connection;
     private final EdgeDBClientConfig config;
     private final AutoCloseable poolHandle;
 
     protected Session session;
 
-    public BaseEdgeDBClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public BaseEdgeDBClient(GelConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
         this.connection = connection;
         this.config = config;
         this.session = new Session();
@@ -45,7 +45,7 @@ public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryabl
 
     public abstract boolean isConnected();
 
-    public EdgeDBConnection getConnectionArguments() {
+    public GelConnection getConnectionArguments() {
         return this.connection;
     }
     public EdgeDBClientConfig getConfig() {

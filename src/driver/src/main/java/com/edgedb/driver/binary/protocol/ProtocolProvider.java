@@ -1,6 +1,6 @@
 package com.edgedb.driver.binary.protocol;
 
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 public interface ProtocolProvider {
     @Nullable ProtocolProvider DEFAULT_PROVIDER = null;
 
-    ConcurrentMap<EdgeDBConnection, Function<EdgeDBBinaryClient, ProtocolProvider>> PROVIDERS_FACTORY = new ConcurrentHashMap<>();
+    ConcurrentMap<GelConnection, Function<EdgeDBBinaryClient, ProtocolProvider>> PROVIDERS_FACTORY = new ConcurrentHashMap<>();
     Map<ProtocolVersion, Function<EdgeDBBinaryClient, ProtocolProvider>> PROVIDERS = new HashMap<>(){{
        put(ProtocolVersion.of(1, 0), V1ProtocolProvider::new);
        put(ProtocolVersion.of(2, 0), V2ProtocolProvider::new);
