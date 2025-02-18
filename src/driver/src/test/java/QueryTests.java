@@ -1,5 +1,5 @@
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBLinkType;
+import com.edgedb.driver.annotations.GelLinkType;
 import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.datatypes.MultiRange;
 import com.edgedb.driver.datatypes.Range;
@@ -16,7 +16,7 @@ public class QueryTests {
     public static final class Links {
         public String a;
         public Links b;
-        @EdgeDBLinkType(Links.class)
+        @GelLinkType(Links.class)
         public Collection<Links> c;
     }
 

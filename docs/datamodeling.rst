@@ -49,7 +49,7 @@ There are a few requirements with the class representation:
   ``@GelType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
-  ``@EdgeDBLinkType`` annotation.
+  ``@GelLinkType`` annotation.
 
 * A field must be public *or* have a valid setter if
   ``useFieldSetters`` is ``true`` in the client configuration.
@@ -147,7 +147,7 @@ Multi-link properties
 
 The JVM doesn't retain generic information for collection generics. To get 
 around this, you must specify the type of the collection with the 
-``@EdgeDBLinkType`` annotation.
+``@GelLinkType`` annotation.
 
 .. tabs::
 
@@ -159,7 +159,7 @@ around this, you must specify the type of the collection with the
             public String name;
             public int age;
 
-            @EdgeDBLinkType(Person.class)
+            @GelLinkType(Person.class)
             public List<Person> friends;
         }
 

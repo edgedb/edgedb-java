@@ -1,6 +1,6 @@
 package com.edgedb.examples
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.{EdgeDBLinkType, GelType}
+import com.edgedb.driver.annotations.{GelLinkType, GelType}
 import org.slf4j.LoggerFactory
 
 import java.util
@@ -14,7 +14,7 @@ object LinkProperties:
     var age: Long = _
     var bestFriend: Person = _
 
-    @EdgeDBLinkType(classOf[Person])
+    @GelLinkType(classOf[Person])
     var friends: util.Collection[Person] = _
 
 class LinkProperties extends Example:

@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.EdgeDBLinkType
+import com.edgedb.driver.annotations.GelLinkType
 import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ class LinkProperties : Example {
         var age: Long? = null
         var bestFriend: Person? = null
 
-        @EdgeDBLinkType(Person::class)
+        @GelLinkType(Person::class)
         var friends: Collection<Person>? = null
     }
 

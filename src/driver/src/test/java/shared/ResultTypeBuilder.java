@@ -1,6 +1,6 @@
 package shared;
 
-import com.edgedb.driver.annotations.EdgeDBLinkType;
+import com.edgedb.driver.annotations.GelLinkType;
 import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.datatypes.Range;
@@ -327,7 +327,7 @@ public class ResultTypeBuilder {
 
                 if(prop.getValue().elementType != null) {
                     field.addAnnotation(
-                            AnnotationSourceGenerator.create(EdgeDBLinkType.class)
+                            AnnotationSourceGenerator.create(GelLinkType.class)
                                     .addParameter("value", VariableSourceGenerator.create(TypeDeclarationSourceGenerator.create(prop.getValue().elementType), ".class"))
                     );
                 }

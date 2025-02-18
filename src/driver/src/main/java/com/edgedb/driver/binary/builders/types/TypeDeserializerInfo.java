@@ -334,7 +334,7 @@ public class TypeDeserializerInfo<T> {
         public final @NotNull Field field;
         private final @Nullable Method setMethod;
 
-        private final @Nullable EdgeDBLinkType linkType;
+        private final @Nullable GelLinkType linkType;
 
         public FieldInfo(@NotNull Field field, @NotNull Map<String, Method> setters) {
             this.field = field;
@@ -350,7 +350,7 @@ public class TypeDeserializerInfo<T> {
 
             this.setMethod = setMethod;
 
-            this.linkType = field.getAnnotation(EdgeDBLinkType.class);
+            this.linkType = field.getAnnotation(GelLinkType.class);
         }
 
         public Class<?> getType(@Nullable Cardinality cardinality) throws GelException {

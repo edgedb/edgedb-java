@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBLinkType;
+import com.edgedb.driver.annotations.GelLinkType;
 import com.edgedb.driver.annotations.GelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ public final class LinkProperties implements Example {
         public String name;
         public Long age;
         public Person bestFriend;
-        @EdgeDBLinkType(Person.class)
+        @GelLinkType(Person.class)
         public Collection<Person> friends;
     }
 
