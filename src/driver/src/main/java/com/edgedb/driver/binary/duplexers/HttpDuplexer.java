@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketSerializer;
 import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
-import com.edgedb.driver.clients.EdgeDBHttpClient;
+import com.edgedb.driver.clients.GelHttpClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import io.netty.buffer.ByteBufInputStream;
@@ -28,14 +28,14 @@ public class HttpDuplexer extends Duplexer {
     private static final Logger logger = LoggerFactory.getLogger(HttpDuplexer.class);
     private static final String HTTP_BINARY_CONTENT_TYPE = "application/x.edgedb.v_1_0.binary";
 
-    private final EdgeDBHttpClient client;
+    private final GelHttpClient client;
     private final Semaphore lock;
     private final Executor lockExecutor;
     private final Queue<@NotNull Receivable> packetQueue;
     private final Queue<CompletableFuture<Receivable>> readPromises;
     private final HttpResponse.BodyHandler<List<Receivable>> bodyHandler;
 
-    public HttpDuplexer(EdgeDBHttpClient client) {
+    public HttpDuplexer(GelHttpClient client) {
         bodyHandler = PacketSerializer.createHandler(client);
         this.client = client;
         this.lock = new Semaphore(1);
@@ -134,7 +134,7 @@ public class HttpDuplexer extends Duplexer {
                     logger.debug("Sending execution request...");
                     return client.httpClient.sendAsync(request, bodyHandler);
                 })
-                .thenCompose(EdgeDBHttpClient::ensureSuccess)
+                .thenCompose(GelHttpClient::ensureSuccess)
                 .thenAccept(response -> {
                     logger.debug("Enqueueing {} packets", response.body().size());
                     for(var receivable : response.body()) {

@@ -125,7 +125,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
         if(config.getClientType() == ClientType.TCP) {
             return EdgeDBTCPClient::new;
         } else if (config.getClientType() == ClientType.HTTP) {
-            return EdgeDBHttpClient::new;
+            return GelHttpClient::new;
         }
 
         throw new ConfigurationException(String.format("No such implementation for client type %s found", this.config.getClientType()));

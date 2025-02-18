@@ -34,8 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-public final class EdgeDBHttpClient extends GelBinaryClient {
-    private static final Logger logger = LoggerFactory.getLogger(EdgeDBHttpClient.class);
+public final class GelHttpClient extends GelBinaryClient {
+    private static final Logger logger = LoggerFactory.getLogger(GelHttpClient.class);
     private static final String HTTP_TOKEN_AUTH_METHOD = "SCRAM-SHA-256";
     private final HttpDuplexer duplexer;
     public final HttpClient httpClient;
@@ -45,7 +45,7 @@ public final class EdgeDBHttpClient extends GelBinaryClient {
     private @Nullable URI authUri;
     private @Nullable URI execUri;
 
-    public EdgeDBHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
+    public GelHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
         super(connection, config, poolHandle);
         this.duplexer = new HttpDuplexer(this);
         SSLContext context;
@@ -149,7 +149,7 @@ public final class EdgeDBHttpClient extends GelBinaryClient {
 
                     return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
                 })
-                .thenCompose(EdgeDBHttpClient::ensureSuccess)
+                .thenCompose(GelHttpClient::ensureSuccess)
                 .thenApply(HttpResponse::body);
     }
 
