@@ -12,7 +12,7 @@ import com.edgedb.driver.binary.protocol.common.*;
 import com.edgedb.driver.binary.protocol.v1.descriptors.*;
 import com.edgedb.driver.binary.protocol.v1.receivables.*;
 import com.edgedb.driver.binary.protocol.v1.sendables.*;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.BinaryProtocolUtils;
@@ -82,10 +82,10 @@ public class V1ProtocolProvider implements ProtocolProvider {
     }
 
     private ProtocolPhase phase;
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
     private @Nullable Map<String, @Nullable Object> rawServerConfig;
 
-    public V1ProtocolProvider(EdgeDBBinaryClient client) {
+    public V1ProtocolProvider(GelBinaryClient client) {
         this.client = client;
 
         this.phase = ProtocolPhase.CONNECTION;

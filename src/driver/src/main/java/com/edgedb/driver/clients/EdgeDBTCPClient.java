@@ -29,7 +29,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
-public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
+public class EdgeDBTCPClient extends GelBinaryClient implements TransactableClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
     private static final NioEventLoopGroup NETTY_TCP_GROUP = new NioEventLoopGroup();
     private static final EventExecutorGroup DUPLEXER_GROUP = new DefaultEventExecutorGroup(8);

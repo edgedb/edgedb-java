@@ -6,7 +6,7 @@ import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.binary.protocol.common.ProtocolError;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
 import com.edgedb.driver.exceptions.EdgeDBException;
@@ -41,7 +41,7 @@ public class ChannelDuplexer extends Duplexer {
 
     private final ReentrantLock messageEnqueueLock = new ReentrantLock();
 
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
 
     private boolean isConnected;
 
@@ -167,7 +167,7 @@ public class ChannelDuplexer extends Duplexer {
         }
     }
 
-    public ChannelDuplexer(EdgeDBBinaryClient client) {
+    public ChannelDuplexer(GelBinaryClient client) {
         this.client = client;
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();

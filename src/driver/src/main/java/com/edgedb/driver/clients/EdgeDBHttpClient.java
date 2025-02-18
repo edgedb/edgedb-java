@@ -34,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
+public final class EdgeDBHttpClient extends GelBinaryClient {
     private static final Logger logger = LoggerFactory.getLogger(EdgeDBHttpClient.class);
     private static final String HTTP_TOKEN_AUTH_METHOD = "SCRAM-SHA-256";
     private final HttpDuplexer duplexer;

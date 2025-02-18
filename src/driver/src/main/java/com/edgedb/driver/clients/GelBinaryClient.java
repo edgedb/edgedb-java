@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
-public abstract class EdgeDBBinaryClient extends BaseGelClient {
-    private static final Logger logger = LoggerFactory.getLogger(EdgeDBBinaryClient.class);
+public abstract class GelBinaryClient extends BaseGelClient {
+    private static final Logger logger = LoggerFactory.getLogger(GelBinaryClient.class);
     @SuppressWarnings("rawtypes")
     private @Nullable Codec<Map> stateCodec;
     private UUID stateDescriptorId;
@@ -46,7 +46,7 @@ public abstract class EdgeDBBinaryClient extends BaseGelClient {
     private @NotNull CompletableFuture<Void> readyPromise;
     private final CodecContext codecContext = new CodecContext(this);
 
-    public EdgeDBBinaryClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
+    public GelBinaryClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
         this.connectionSemaphore = new Semaphore(1);
         this.querySemaphore = new Semaphore(1);

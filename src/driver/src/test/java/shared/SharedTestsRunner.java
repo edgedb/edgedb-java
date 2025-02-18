@@ -8,7 +8,7 @@ import com.edgedb.driver.binary.protocol.QueryParameters;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.clients.BaseGelClient;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -79,9 +79,9 @@ public class SharedTestsRunner {
             throw new RuntimeException(e);
         }
 
-        EdgeDBBinaryClient clientHandle;
+        GelBinaryClient clientHandle;
         try {
-            clientHandle = (EdgeDBBinaryClient)getClientHandle().toCompletableFuture().get();
+            clientHandle = (GelBinaryClient)getClientHandle().toCompletableFuture().get();
         } catch (InterruptedException | ExecutionException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -142,7 +142,7 @@ public class SharedTestsRunner {
         }
     }
 
-    private static Object buildResult(EdgeDBBinaryClient client, Class<?> type, BinaryResult result) throws EdgeDBException, OperationNotSupportedException {
+    private static Object buildResult(GelBinaryClient client, Class<?> type, BinaryResult result) throws EdgeDBException, OperationNotSupportedException {
         switch (result.cardinality) {
             case MANY:
                 var arr = (Object[])Array.newInstance(type, result.data.size());
@@ -198,7 +198,7 @@ public class SharedTestsRunner {
         }
     }
 
-    private static BinaryResult executeQuery(EdgeDBBinaryClient client, QueryExecutionArguments query) throws ExecutionException, InterruptedException {
+    private static BinaryResult executeQuery(GelBinaryClient client, QueryExecutionArguments query) throws ExecutionException, InterruptedException {
         Map<String, Object> args = null;
 
         if(query.arguments != null && query.arguments.size() > 0) {

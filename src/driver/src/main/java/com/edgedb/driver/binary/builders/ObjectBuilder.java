@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.builders.types.TypeBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.binary.codecs.visitors.TypeVisitor;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.exceptions.NoTypeConverterException;
 import com.edgedb.driver.util.TypeUtils;
@@ -31,7 +31,7 @@ public final class ObjectBuilder {
         }};
     }
 
-    public static <T> @Nullable T buildResult(@NotNull EdgeDBBinaryClient client, Codec<?> codec, @NotNull ByteBuf data, @NotNull Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @Nullable T buildResult(@NotNull GelBinaryClient client, Codec<?> codec, @NotNull ByteBuf data, @NotNull Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
         var visitor = new TypeVisitor(client);
         visitor.setTargetType(cls);
         codec = visitor.visit(codec);

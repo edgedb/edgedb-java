@@ -4,7 +4,7 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
         this.numElements = reader.readInt32();
     }
 
-    public EdgeDBBinaryClient getClient() {
+    public GelBinaryClient getClient() {
         return this.context.client;
     }
 

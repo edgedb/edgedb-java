@@ -2,7 +2,7 @@ package com.edgedb.driver.binary.codecs.visitors;
 
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.codecs.*;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.EdgeDBException;
 import com.edgedb.driver.util.TypeUtils;
 import org.jetbrains.annotations.NotNull;
@@ -16,9 +16,9 @@ import java.util.function.Supplier;
 public final class TypeVisitor implements CodecVisitor {
     private final @NotNull Stack<TypeResultContextFrame> frames;
     private final @NotNull FrameHandle handle;
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
 
-    public TypeVisitor(EdgeDBBinaryClient client) {
+    public TypeVisitor(GelBinaryClient client) {
         this.frames = new Stack<>();
         this.client = client;
         this.handle = new FrameHandle(this.frames::pop);
