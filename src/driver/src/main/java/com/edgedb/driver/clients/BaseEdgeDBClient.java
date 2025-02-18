@@ -2,7 +2,7 @@ package com.edgedb.driver.clients;
 
 import com.edgedb.driver.GelClientConfig;
 import com.edgedb.driver.GelConnection;
-import com.edgedb.driver.EdgeDBQueryable;
+import com.edgedb.driver.GelQueryable;
 import com.edgedb.driver.async.AsyncEvent;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
@@ -16,7 +16,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class BaseEdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
+public abstract class BaseEdgeDBClient implements StatefulClient, GelQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(BaseEdgeDBClient.class);
     private final @NotNull AsyncEvent<BaseEdgeDBClient> onReady;
     private final GelConnection connection;

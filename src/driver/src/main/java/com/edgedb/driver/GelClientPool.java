@@ -33,7 +33,7 @@ import static com.edgedb.driver.util.ComposableUtil.composeWith;
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
-public final class GelClientPool implements StatefulClient, EdgeDBQueryable, AutoCloseable {
+public final class GelClientPool implements StatefulClient, GelQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(GelClientPool.class);
 
     private static final class PooledClient {
@@ -300,17 +300,17 @@ public final class GelClientPool implements StatefulClient, EdgeDBQueryable, Aut
 
     @Override
     public <T> CompletionStage<List<T>> query(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::query);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::query);
     }
 
     @Override
     public <T> CompletionStage<T> querySingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::querySingle);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::querySingle);
     }
 
     @Override
     public <T> CompletionStage<T> queryRequiredSingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::queryRequiredSingle);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::queryRequiredSingle);
     }
 
     @Override
