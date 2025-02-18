@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ public final class JsonResults implements Example {
     private static final Logger logger = LoggerFactory.getLogger(JsonResults.class);
     private static final JsonMapper mapper = new JsonMapper();
 
-    @EdgeDBType
+    @GelType
     public static final class Person {
         public String name;
         public Long age;

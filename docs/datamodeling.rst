@@ -17,7 +17,7 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int Age;
@@ -46,7 +46,7 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
 There are a few requirements with the class representation:
 
 * All classes that represent data need to be marked with the 
-  ``@EdgeDBType`` annotation.
+  ``@GelType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
   ``@EdgeDBLinkType`` annotation.
@@ -97,7 +97,7 @@ For example, creating a bean that represents the ``Person`` schema type:
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             private String name;
             private int age;
@@ -154,7 +154,7 @@ around this, you must specify the type of the collection with the
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int age;
@@ -206,7 +206,7 @@ the name, type, and value.
 
 .. code-block:: java
 
-    @EdgeDBType
+    @GelType
     public class Person {
         private String name;
         private int age;
@@ -268,7 +268,7 @@ Value consumers take in the fields' values in the constructor, mapped by a
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             private final String name;
             private final int age;
@@ -317,17 +317,17 @@ schema types in code. For example:
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public abstract class Media {
             public String title;
         }
 
-        @EdgeDBType
+        @GelType
         public class Show extends Media {
             public Long seasons;
         }
 
-        @EdgeDBType
+        @GelType
         public class Movie extends Media {
             public Long release_year;
         }

@@ -1,7 +1,7 @@
 package com.edgedb.driver.datatypes.internal;
 
 import com.edgedb.driver.annotations.GelDeserializer;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.exceptions.GelException;
@@ -12,7 +12,7 @@ import javax.naming.OperationNotSupportedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@EdgeDBType
+@GelType
 public final class TupleImpl implements Tuple {
     private final @NotNull List<Element> elements;
 

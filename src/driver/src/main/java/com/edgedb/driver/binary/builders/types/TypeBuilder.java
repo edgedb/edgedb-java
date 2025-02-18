@@ -1,6 +1,6 @@
 package com.edgedb.driver.binary.builders.types;
 
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
 import com.edgedb.driver.clients.GelBinaryClient;
@@ -67,6 +67,6 @@ public final class TypeBuilder {
             return true;
         }
 
-        return type.getAnnotation(EdgeDBType.class) != null;
+        return type.getAnnotation(GelType.class) != null;
     }
 }

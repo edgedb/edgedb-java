@@ -1,6 +1,6 @@
 package com.edgedb.examples
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.{GelDeserializer, EdgeDBName, EdgeDBType}
+import com.edgedb.driver.annotations.{GelDeserializer, EdgeDBName, GelType}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -9,7 +9,7 @@ import scala.jdk.FutureConverters.*
 object CustomDeserializer:
   private val logger = LoggerFactory.getLogger(classOf[CustomDeserializer])
 
-  @EdgeDBType
+  @GelType
   class Person @GelDeserializer()
   (
     @EdgeDBName("name")

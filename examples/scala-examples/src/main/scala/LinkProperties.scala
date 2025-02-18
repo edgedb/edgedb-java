@@ -1,6 +1,6 @@
 package com.edgedb.examples
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.{EdgeDBLinkType, EdgeDBType}
+import com.edgedb.driver.annotations.{EdgeDBLinkType, GelType}
 import org.slf4j.LoggerFactory
 
 import java.util
@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters.*
 
 object LinkProperties:
-  @EdgeDBType
+  @GelType
   class Person:
     var name: String = _
     var age: Long = _

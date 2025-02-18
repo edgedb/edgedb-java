@@ -1,6 +1,6 @@
 import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.EdgeDBLinkType;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.datatypes.MultiRange;
 import com.edgedb.driver.datatypes.Range;
 import org.junit.jupiter.api.Test;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueryTests {
-    @EdgeDBType
+    @GelType
     public static final class Links {
         public String a;
         public Links b;
@@ -73,7 +73,7 @@ public class QueryTests {
         }
     }
 
-    @EdgeDBType
+    @GelType
     public static class TestDataContainer {
         public long a;
         public Long b;

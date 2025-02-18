@@ -3,7 +3,7 @@ package com.edgedb.examples;
 import com.edgedb.driver.GelClientPool;
 import com.edgedb.driver.annotations.GelDeserializer;
 import com.edgedb.driver.annotations.EdgeDBName;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionStage;
 public final class CustomDeserializer implements Example {
     private static final Logger logger = LoggerFactory.getLogger(CustomDeserializer.class);
 
-    @EdgeDBType
+    @GelType
     public static final class Person {
         private final String name;
         private final Long age;

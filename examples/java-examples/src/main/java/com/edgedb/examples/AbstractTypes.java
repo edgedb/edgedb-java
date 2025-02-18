@@ -1,7 +1,7 @@
 package com.edgedb.examples;
 
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,17 +10,17 @@ import java.util.concurrent.CompletionStage;
 public class AbstractTypes implements Example {
     private static final Logger logger = LoggerFactory.getLogger(AbstractTypes.class);
 
-    @EdgeDBType
+    @GelType
     public static abstract class Media {
         public String title;
     }
 
-    @EdgeDBType
+    @GelType
     public static class Show extends Media {
         public Long seasons;
     }
 
-    @EdgeDBType
+    @GelType
     public static class Movie extends Media {
         public Long releaseYear;
     }

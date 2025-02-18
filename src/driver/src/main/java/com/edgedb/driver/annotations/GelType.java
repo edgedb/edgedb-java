@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface EdgeDBType {
+public @interface GelType {
     /**
      * Gets or sets the module that this type resides in.
      * @return The module the type resides in if specified; otherwise {@code [UNASSIGNED]} is returned indicating that

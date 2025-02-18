@@ -29,7 +29,7 @@ public class TypeDeserializerInfo<T> {
     public final TypeDeserializerFactory<T> factory;
 
     private final Class<T> type;
-    private final @Nullable EdgeDBType edgeDBTypeAnno;
+    private final @Nullable GelType edgeDBTypeAnno;
 
     // lazy fields, use getter methods
     private List<FieldInfo> fields;
@@ -45,7 +45,7 @@ public class TypeDeserializerInfo<T> {
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.type = type;
-        this.edgeDBTypeAnno = type.getAnnotation(EdgeDBType.class);
+        this.edgeDBTypeAnno = type.getAnnotation(GelType.class);
         this.children = new HashMap<>();
 
         try {
@@ -59,7 +59,7 @@ public class TypeDeserializerInfo<T> {
     public TypeDeserializerInfo(Class<T> cls, TypeDeserializerFactory<T> factory) {
         this.type = cls;
         this.factory = factory;
-        this.edgeDBTypeAnno = type.getAnnotation(EdgeDBType.class);
+        this.edgeDBTypeAnno = type.getAnnotation(GelType.class);
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.children = new HashMap<>();
@@ -78,7 +78,7 @@ public class TypeDeserializerInfo<T> {
             var bases = new ArrayList<Class<?>>();
             Class<?> tempType = type;
             Class<?> base;
-            while((base = tempType.getSuperclass()) != null && base.isAnnotationPresent(EdgeDBType.class)) {
+            while((base = tempType.getSuperclass()) != null && base.isAnnotationPresent(GelType.class)) {
                 bases.add(base);
                 tempType = base;
             }

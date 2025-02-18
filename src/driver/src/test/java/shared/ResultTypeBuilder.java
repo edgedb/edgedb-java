@@ -1,7 +1,7 @@
 package shared;
 
 import com.edgedb.driver.annotations.EdgeDBLinkType;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.datatypes.RelativeDuration;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ResultTypeBuilder {
-    public static Class<?> getClassFromEdgeDBTypeName(String name){
+    public static Class<?> getClassFromGelTypeName(String name){
         if(StringsUtil.isNullOrEmpty(name)) {
             throw new NullPointerException("Type name was null or empty");
         }
@@ -80,9 +80,9 @@ public class ResultTypeBuilder {
         }
     }
 
-    public static @Nullable Class<?> tryGetClassFromEdgeDBTypeName(String name) {
+    public static @Nullable Class<?> tryGetClassFromGelTypeName(String name) {
         try {
-            return getClassFromEdgeDBTypeName(name);
+            return getClassFromGelTypeName(name);
         }
         catch(Exception x) {
             return null;
@@ -101,7 +101,7 @@ public class ResultTypeBuilder {
                 return new Object[0];
             }
 
-            var elementType = tryGetClassFromEdgeDBTypeName(collectionNode.getElementType());
+            var elementType = tryGetClassFromGelTypeName(collectionNode.getElementType());
 
             if(elementType == null) {
                 elementType = toObject((ResultNode) values[0]).getClass();
@@ -319,7 +319,7 @@ public class ResultTypeBuilder {
             var typename = getTypeName(node);
             var classDef = ClassSourceGenerator
                     .create(TypeDeclarationSourceGenerator.create(typename))
-                    .addAnnotation(AnnotationSourceGenerator.create(EdgeDBType.class))
+                    .addAnnotation(AnnotationSourceGenerator.create(GelType.class))
                     .addModifier(Modifier.PUBLIC);
 
             for(var prop : propertyDef.entrySet()) {

@@ -1,22 +1,22 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.EdgeDBType
+import com.edgedb.driver.annotations.GelType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 object AbstractTypes:
-  @EdgeDBType
+  @GelType
   abstract class Media:
     var title: String = _
 
-  @EdgeDBType
+  @GelType
   class Movie extends Media:
     var releaseYear: Long = _
 
-  @EdgeDBType
+  @GelType
   class Show extends Media:
     var seasons: Long = _
 

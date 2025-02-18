@@ -138,7 +138,7 @@ public class ResultNodeDeserializer extends StdDeserializer<Object> {
             default:
                 return new ResultNodeImpl(
                         nodeType,
-                        context.readTreeAsValue((JsonNode) tree.get("value"), ResultTypeBuilder.getClassFromEdgeDBTypeName(nodeType))
+                        context.readTreeAsValue((JsonNode) tree.get("value"), ResultTypeBuilder.getClassFromGelTypeName(nodeType))
                 );
         }
     }

@@ -88,7 +88,7 @@ schema type:
     .. code-tab:: java
         :caption: Code
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int age;

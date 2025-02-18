@@ -1,5 +1,5 @@
 import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ProtocolTests {
     private static final Logger logger = LoggerFactory.getLogger(ProtocolTests.class);
 
-    @EdgeDBType
+    @GelType
     public static class TestDatastructure {
         public UUID id;
 

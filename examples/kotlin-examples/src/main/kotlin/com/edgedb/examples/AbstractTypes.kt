@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.EdgeDBType
+import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -10,17 +10,17 @@ class AbstractTypes : Example {
         private val logger = LoggerFactory.getLogger(AbstractTypes::class.java)!!
     }
 
-    @EdgeDBType
+    @GelType
     abstract class Media {
         var title: String? = null
     }
 
-    @EdgeDBType
+    @GelType
     class Show : Media() {
         var seasons: Long? = null
     }
 
-    @EdgeDBType
+    @GelType
     class Movie : Media() {
         var releaseYear: Long? = null
     }
