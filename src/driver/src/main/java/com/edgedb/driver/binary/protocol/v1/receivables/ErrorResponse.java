@@ -7,7 +7,7 @@ import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.ServerMessageType;
 import com.edgedb.driver.binary.protocol.common.KeyValue;
 import com.edgedb.driver.binary.protocol.common.ProtocolError;
-import com.edgedb.driver.exceptions.EdgeDBErrorException;
+import com.edgedb.driver.exceptions.GelErrorException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,11 +39,11 @@ public class ErrorResponse implements Receivable, ProtocolError {
 
     }
 
-    public @NotNull EdgeDBErrorException toException() {
+    public @NotNull GelErrorException toException() {
         return toException(null);
     }
-    public @NotNull EdgeDBErrorException toException(@Nullable String query) {
-        return new EdgeDBErrorException(
+    public @NotNull GelErrorException toException(@Nullable String query) {
+        return new GelErrorException(
                 Arrays.stream(attributes).collect(Collectors.toMap(v -> v.code, v -> {
                     if(v.value == null) {
                         return new byte[0];

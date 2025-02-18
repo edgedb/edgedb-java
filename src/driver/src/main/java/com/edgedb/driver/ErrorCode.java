@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents different possible error codes returned by EdgeDB.
- * @see com.edgedb.driver.exceptions.EdgeDBErrorException
+ * @see com.edgedb.driver.exceptions.GelErrorException
  */
 public enum ErrorCode implements BinaryEnum<Integer> {
     INTERNAL_SERVER_ERROR                      (0x01_00_00_00),

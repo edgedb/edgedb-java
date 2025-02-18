@@ -12,7 +12,7 @@ import java.util.function.Function;
 /**
  * Represents an exception that was caused by an error from EdgeDB.
  */
-public class EdgeDBErrorException extends GelException {
+public class GelErrorException extends GelException {
     private static final short DETAILS_ATTRIBUTE = 0x0002;
     private static final short TRACEBACK_ATTRIBUTE = 0x0101;
     private static final short HINT_ATTRIBUTE = 0x0001;
@@ -28,13 +28,13 @@ public class EdgeDBErrorException extends GelException {
     private final @Nullable String query;
 
     /**
-     * Constructs a new {@linkplain EdgeDBErrorException}.
+     * Constructs a new {@linkplain GelErrorException}.
      * @param attributes The attributes of the error, received by EdgeDB.
      * @param message The error message.
      * @param errorCode The error code.
      * @param query The optional query that caused this error.
      */
-    public EdgeDBErrorException(Map<Short, byte[]> attributes, String message, @NotNull ErrorCode errorCode, @Nullable String query) {
+    public GelErrorException(Map<Short, byte[]> attributes, String message, @NotNull ErrorCode errorCode, @Nullable String query) {
         super(errorCode.shouldRetry(), errorCode.shouldReconnect());
 
         this.attributes = attributes;

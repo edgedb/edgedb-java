@@ -12,7 +12,7 @@ import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBErrorException;
+import com.edgedb.driver.exceptions.GelErrorException;
 import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.ResultCardinalityMismatchException;
 import io.netty.buffer.ByteBuf;
@@ -129,7 +129,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                 e -> {
                     logger.debug("got exception in execute step", e);
 
-                    if(e instanceof EdgeDBErrorException && !((GelException)e).shouldReconnect && !((GelException)e).shouldRetry) {
+                    if(e instanceof GelErrorException && !((GelException)e).shouldReconnect && !((GelException)e).shouldRetry) {
                         return CompletableFuture.failedFuture(e);
                     }
 
@@ -467,7 +467,7 @@ public abstract class GelBinaryClient extends BaseGelClient {
                             return dispatchReady();
                         }),
                 error -> {
-                    if(error instanceof EdgeDBErrorException && ((GelException)error).shouldReconnect) {
+                    if(error instanceof GelErrorException && ((GelException)error).shouldReconnect) {
                         if(getConfig().getConnectionRetryMode() == ConnectionRetryMode.NEVER_RETRY) {
                             return CompletableFuture.failedFuture(new ConnectionFailedException(error));
                         }
