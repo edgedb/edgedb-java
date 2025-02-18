@@ -1,6 +1,6 @@
 package com.edgedb.driver.util;
 
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.TLSSecurityMode;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class SslUtils {
     };
 
     public static void initContextWithConnectionDetails(
-            @NotNull SSLContext context, @NotNull EdgeDBConnection connection)
+            @NotNull SSLContext context, @NotNull GelConnection connection)
     throws KeyManagementException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         if(connection.getTLSSecurity() == TLSSecurityMode.INSECURE) {
             context.init(null, new TrustManager[] {INSECURE_TRUST_MANAGER}, null);
@@ -41,7 +41,7 @@ public class SslUtils {
         context.init(null, getTrustManagerFactory(connection).getTrustManagers(), null);
     }
 
-    public static void applyTrustManager(@NotNull EdgeDBConnection connection, @NotNull SslContextBuilder builder) throws GeneralSecurityException, IOException {
+    public static void applyTrustManager(@NotNull GelConnection connection, @NotNull SslContextBuilder builder) throws GeneralSecurityException, IOException {
         if(connection.getTLSSecurity() == TLSSecurityMode.INSECURE) {
             builder.trustManager(INSECURE_TRUST_MANAGER);
         }
@@ -50,7 +50,7 @@ public class SslUtils {
         }
     }
 
-    public static @NotNull TrustManagerFactory getTrustManagerFactory(@NotNull EdgeDBConnection connection) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
+    public static @NotNull TrustManagerFactory getTrustManagerFactory(@NotNull GelConnection connection) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
         var authority = connection.getTLSCertificateAuthority();
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

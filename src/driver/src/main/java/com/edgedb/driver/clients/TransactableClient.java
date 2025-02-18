@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
-public interface TransactableClient extends EdgeDBQueryable, AutoCloseable {
+public interface TransactableClient extends GelQueryable, AutoCloseable {
     TransactionState getTransactionState();
 
     default <T> CompletionStage<T> transaction(@NotNull Function<Transaction, CompletionStage<T>> func) {

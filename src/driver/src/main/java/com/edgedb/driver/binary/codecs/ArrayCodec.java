@@ -3,7 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
     }
 
     @Override
-    public void serialize(@NotNull PacketWriter writer, T @Nullable [] value, CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, T @Nullable [] value, CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null) {
             writer.writeArrayWithoutLength(EMPTY_ARRAY);
             return;
@@ -57,7 +57,7 @@ public class ArrayCodec<T> extends CodecBase<T[]> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T @Nullable [] deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public T @Nullable [] deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var dimensions = reader.readInt32();
 
         reader.skip(BinaryProtocolUtils.LONG_SIZE); // reserved

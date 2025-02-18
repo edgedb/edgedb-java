@@ -3,9 +3,9 @@ package com.edgedb.driver.binary;
 import com.edgedb.driver.binary.protocol.ServerMessageType;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.HexUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -44,7 +44,7 @@ public class PacketSerializer {
         return (T)binaryEnumMap.get(enumCls).get(raw);
     }
 
-    public static @NotNull MessageToMessageDecoder<ByteBuf> createDecoder(EdgeDBBinaryClient client) {
+    public static @NotNull MessageToMessageDecoder<ByteBuf> createDecoder(GelBinaryClient client) {
         return new MessageToMessageDecoder<>() {
             private final Map<Channel, PacketContract> contracts = new HashMap<>();
 
@@ -80,7 +80,7 @@ public class PacketSerializer {
 
                         if(packet == null) {
                             logger.error("Got null result for packet type {}", type);
-                            throw new EdgeDBException("Failed to read message type: malformed data");
+                            throw new GelException("Failed to read message type: malformed data");
                         }
 
                         logger.debug("S->C: T:{}", type);
@@ -198,20 +198,20 @@ public class PacketSerializer {
     }
 
     public static @Nullable Receivable deserialize(
-            EdgeDBBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer
+            GelBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer
     ) {
         var reader = new PacketReader(buffer);
         return deserializeSingle(client, messageType, length, reader, true);
     }
 
     public static @Nullable Receivable deserialize(
-            EdgeDBBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer, boolean verifyEmpty
+            GelBinaryClient client, ServerMessageType messageType, long length, @NotNull ByteBuf buffer, boolean verifyEmpty
     ) {
         var reader = new PacketReader(buffer);
         return deserializeSingle(client, messageType, length, reader, verifyEmpty);
     }
 
-    public static @Nullable Receivable deserializeSingle(EdgeDBBinaryClient client, PacketReader reader) {
+    public static @Nullable Receivable deserializeSingle(GelBinaryClient client, PacketReader reader) {
         var messageType = reader.readEnum(ServerMessageType.class, Byte.TYPE);
         var length = reader.readUInt32().longValue();
 
@@ -219,7 +219,7 @@ public class PacketSerializer {
     }
 
     public static @Nullable Receivable deserializeSingle(
-            EdgeDBBinaryClient client, ServerMessageType type, long length, @NotNull PacketReader reader,
+            GelBinaryClient client, ServerMessageType type, long length, @NotNull PacketReader reader,
             boolean verifyEmpty
     ) {
         try {
@@ -237,12 +237,12 @@ public class PacketSerializer {
         }
     }
 
-    public static HttpResponse.BodyHandler<List<Receivable>> createHandler(EdgeDBBinaryClient client) {
+    public static HttpResponse.BodyHandler<List<Receivable>> createHandler(GelBinaryClient client) {
         return new PacketBodyHandler(client);
     }
     private static class PacketBodyHandler implements HttpResponse.BodyHandler<List<Receivable>> {
-        private final EdgeDBBinaryClient client;
-        public PacketBodyHandler(EdgeDBBinaryClient client) {
+        private final GelBinaryClient client;
+        public PacketBodyHandler(GelBinaryClient client) {
             this.client = client;
         }
 
@@ -318,7 +318,7 @@ public class PacketSerializer {
 
                     if(packet == null && completeBuffer.readableBytes() > 0) {
                         promise.completeExceptionally(
-                                new EdgeDBException("Failed to deserialize packet, buffer had " + completeBuffer.readableBytes() + " bytes remaining")
+                                new GelException("Failed to deserialize packet, buffer had " + completeBuffer.readableBytes() + " bytes remaining")
                         );
                         return;
                     }

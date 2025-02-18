@@ -42,30 +42,30 @@ libraryDependencies ++= Seq(
 
 ## Usage
 
-The `EdgeDBClient` class contains all the methods necessary to interact with the EdgeDB database.
+The `GelClientPool` class contains all the methods necessary to interact with the EdgeDB database.
 
 ```java
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 
 void main() {
-    var client = new EdgeDBClient();
+    var clientPool = new GelClientPool();
 
-    client.query(String.class, "SELECT 'Hello, Java!'")
+    clientPool.query(String.class, "SELECT 'Hello, Java!'")
         .thenAccept(System.out::println);
 }
 ```
 
-The `EdgeDBClient` uses `CompletionStage` for asynchronous operations, allowing you
+The `GelClientPool` uses `CompletionStage` for asynchronous operations, allowing you
 to integrate it with your favorite asynchronous frameworks
 
 ```java
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import reactor.core.publisher.Mono;
 
 void main() {
-    var client = new EdgeDBClient();
+    var clientPool = new GelClientPool();
 
-    Mono.fromFuture(client.querySingle(String.class, "SELECT 'Hello, Java!'"))
+    Mono.fromFuture(clientPool.querySingle(String.class, "SELECT 'Hello, Java!'"))
         .doOnNext(System.out::println)
         .block();
 }
@@ -75,15 +75,15 @@ This also means it plays nicely with other JVM language that support asynchronou
 
 ```kotlin
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 
 fun main() {
-    val client = EdgeDBClient()
+    val clientPool = GelClientPool()
 
     runBlocking {
-        client.querySingle(String::class.java, "SELECT 'Hello, Kotlin!'")
+        clientPool.querySingle(String::class.java, "SELECT 'Hello, Kotlin!'")
             .thenAccept { println(it) }
             .await()
     }
@@ -92,20 +92,20 @@ fun main() {
 
 ```scala
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import scala.jdk.FutureConverters.*
 
 object Main extends App {
-  val client = new EdgeDBClient()
+  val clientPool = new GelClientPool()
 
-  client.querySingle(classOf[String], "SELECT 'Hello, Scala!'")
+  clientPool.querySingle(classOf[String], "SELECT 'Hello, Scala!'")
     .asScala
     .map(println)
 }
 ```
 
 ## Examples
-Some examples of using the Java client api can be found in the [examples](./examples) directory.
+Some examples of using the Java clientPool api can be found in the [examples](./examples) directory.
 
 ## Compiling
 This project uses gradle. To build the project run the following command:

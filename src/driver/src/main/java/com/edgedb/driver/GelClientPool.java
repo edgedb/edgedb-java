@@ -4,7 +4,7 @@ import com.edgedb.driver.abstractions.ClientQueryDelegate;
 import com.edgedb.driver.clients.*;
 import com.edgedb.driver.datatypes.Json;
 import com.edgedb.driver.exceptions.ConfigurationException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.state.Config;
 import com.edgedb.driver.state.Session;
 import com.edgedb.driver.util.ClientPoolHolder;
@@ -33,14 +33,14 @@ import static com.edgedb.driver.util.ComposableUtil.composeWith;
 /**
  * Represents a client pool used to interact with EdgeDB.
  */
-public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(EdgeDBClient.class);
+public final class GelClientPool implements StatefulClient, GelQueryable, AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(GelClientPool.class);
 
     private static final class PooledClient {
-        public final BaseEdgeDBClient client;
+        public final BaseGelClient client;
         public Instant lastUsed;
 
-        public PooledClient(BaseEdgeDBClient client) {
+        public PooledClient(BaseGelClient client) {
             this.client = client;
             lastUsed = Instant.now();
         }
@@ -56,20 +56,20 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     private final AtomicInteger clientCount = new AtomicInteger();
     private final @NotNull ConcurrentLinkedQueue<PooledClient> clients;
-    private final EdgeDBConnection connection;
-    private final EdgeDBClientConfig config;
+    private final GelConnection connection;
+    private final GelClientConfig config;
     private final ClientPoolHolder poolHolder;
     private final ClientFactory clientFactory;
     private final Session session;
     private final int clientAvailability;
 
     /**
-     * Constructs a new {@linkplain EdgeDBClient}.
+     * Constructs a new {@linkplain GelClientPool}.
      * @param connection The connection parameters used to connect this client to EdgeDB.
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBConnection connection, @NotNull EdgeDBClientConfig config) throws ConfigurationException {
+    public GelClientPool(GelConnection connection, @NotNull GelClientConfig config) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -80,34 +80,34 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
     }
 
     /**
-     * Constructs a new {@linkplain EdgeDBClient}.
+     * Constructs a new {@linkplain GelClientPool}.
      * @param connection The connection parameters used to connect this client to EdgeDB.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(EdgeDBConnection connection) throws EdgeDBException {
-        this(connection, EdgeDBClientConfig.DEFAULT);
+    public GelClientPool(GelConnection connection) throws GelException {
+        this(connection, GelClientConfig.DEFAULT);
     }
 
     /**
-     * Constructs a new {@linkplain EdgeDBClient}.
+     * Constructs a new {@linkplain GelClientPool}.
      * @param config The configuration for this client.
      * @throws IOException The connection arguments couldn't be automatically resolved.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient(@NotNull EdgeDBClientConfig config) throws IOException, ConfigurationException {
-        this(EdgeDBConnection.builder().build(), config);
+    public GelClientPool(@NotNull GelClientConfig config) throws IOException, ConfigurationException {
+        this(GelConnection.builder().build(), config);
     }
 
     /**
-     * Constructs a new {@linkplain EdgeDBClient}.
+     * Constructs a new {@linkplain GelClientPool}.
      * @throws IOException The connection arguments couldn't be automatically resolved.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public EdgeDBClient() throws IOException, EdgeDBException {
-        this(EdgeDBConnection.builder().build(), EdgeDBClientConfig.DEFAULT);
+    public GelClientPool() throws IOException, GelException {
+        this(GelConnection.builder().build(), GelClientConfig.DEFAULT);
     }
 
-    private EdgeDBClient(@NotNull EdgeDBClient other, Session session) {
+    private GelClientPool(@NotNull GelClientPool other, Session session) {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = other.config;
         this.connection = other.connection;
@@ -123,9 +123,9 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     private @NotNull ClientFactory createClientFactory() throws ConfigurationException {
         if(config.getClientType() == ClientType.TCP) {
-            return EdgeDBTCPClient::new;
+            return GelTcpClient::new;
         } else if (config.getClientType() == ClientType.HTTP) {
-            return EdgeDBHttpClient::new;
+            return GelHttpClient::new;
         }
 
         throw new ConfigurationException(String.format("No such implementation for client type %s found", this.config.getClientType()));
@@ -182,8 +182,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied session, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withSession(@NotNull Session session) {
-        return new EdgeDBClient(this, session);
+    public @NotNull GelClientPool withSession(@NotNull Session session) {
+        return new GelClientPool(this, session);
     }
 
     /**
@@ -194,8 +194,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withModuleAliases(@NotNull Map<String, String> aliases) {
-        return new EdgeDBClient(this, this.session.withModuleAliases(aliases));
+    public @NotNull GelClientPool withModuleAliases(@NotNull Map<String, String> aliases) {
+        return new GelClientPool(this, this.session.withModuleAliases(aliases));
     }
 
     /**
@@ -206,8 +206,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withConfig(@NotNull Config config) {
-        return new EdgeDBClient(this, this.session.withConfig(config));
+    public @NotNull GelClientPool withConfig(@NotNull Config config) {
+        return new GelClientPool(this, this.session.withConfig(config));
     }
 
     /**
@@ -218,8 +218,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withConfig(@NotNull Consumer<Config.Builder> func) {
-        return new EdgeDBClient(this, this.session.withConfig(func));
+    public @NotNull GelClientPool withConfig(@NotNull Consumer<Config.Builder> func) {
+        return new GelClientPool(this, this.session.withConfig(func));
     }
 
     /**
@@ -230,8 +230,8 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withGlobals(@NotNull Map<String, Object> globals) {
-        return new EdgeDBClient(this, this.session.withGlobals(globals));
+    public @NotNull GelClientPool withGlobals(@NotNull Map<String, Object> globals) {
+        return new GelClientPool(this, this.session.withGlobals(globals));
     }
 
     /**
@@ -242,16 +242,16 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
      * @return A new client instance with the applied module aliases, sharing the same underlying client pool.
      */
     @Override
-    public @NotNull EdgeDBClient withModule(@NotNull String module) {
-        return new EdgeDBClient(this, this.session.withModule(module));
+    public @NotNull GelClientPool withModule(@NotNull String module) {
+        return new GelClientPool(this, this.session.withModule(module));
     }
 
     // added because Map.entry cannot contain nulls
     private static final class ExecutePair<U> {
-        private final BaseEdgeDBClient client;
+        private final BaseGelClient client;
         private final @Nullable U result;
 
-        private ExecutePair(BaseEdgeDBClient client, @Nullable U result) {
+        private ExecutePair(BaseGelClient client, @Nullable U result) {
             this.client = client;
             this.result = result;
         }
@@ -260,7 +260,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
             return result;
         }
 
-        public BaseEdgeDBClient getClient() {
+        public BaseGelClient getClient() {
             return client;
         }
     }
@@ -300,17 +300,17 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     @Override
     public <T> CompletionStage<List<T>> query(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::query);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::query);
     }
 
     @Override
     public <T> CompletionStage<T> querySingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::querySingle);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::querySingle);
     }
 
     @Override
     public <T> CompletionStage<T> queryRequiredSingle(@NotNull Class<T> cls, @NotNull String query, @Nullable Map<String, Object> args, @NotNull EnumSet<Capabilities> capabilities) {
-        return executePooledQuery(cls, query, args, capabilities, EdgeDBQueryable::queryRequiredSingle);
+        return executePooledQuery(cls, query, args, capabilities, GelQueryable::queryRequiredSingle);
     }
 
     @Override
@@ -336,7 +336,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         }
     }
 
-    private synchronized CompletionStage<BaseEdgeDBClient> getClient() {
+    private synchronized CompletionStage<BaseGelClient> getClient() {
         logger.trace("polling cached clients...");
         var cachedClient = clients.poll();
 
@@ -364,7 +364,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
                                 client.getClass().getSimpleName()
                         );
                         throw new CompletionException(
-                                new EdgeDBException("Cannot use transactions with " + client + " type")
+                                new GelException("Cannot use transactions with " + client + " type")
                         );
                     }
 
@@ -379,7 +379,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         );
     }
 
-    private synchronized void acceptClient(BaseEdgeDBClient client) {
+    private synchronized void acceptClient(BaseGelClient client) {
         this.clients.add(new PooledClient(client));
         var count = this.clientCount.incrementAndGet();
 
@@ -391,7 +391,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         }
     }
 
-    private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseEdgeDBClient client) {
+    private synchronized @NotNull CompletionStage<Void> onClientReady(@NotNull BaseGelClient client) {
         var suggestedConcurrency = client.getSuggestedPoolConcurrency();
 
         suggestedConcurrency.ifPresent(this.poolHolder::resize);
@@ -399,14 +399,14 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
         return CompletableFuture.completedFuture(null);
     }
 
-    private CompletionStage<BaseEdgeDBClient> createClient() {
+    private CompletionStage<BaseGelClient> createClient() {
         return this.poolHolder.acquireContract()
                 .thenApply(contract -> {
                     logger.trace("Contract acquired, remaining handles: {}", this.poolHolder.remaining());
-                    BaseEdgeDBClient client;
+                    BaseGelClient client;
                     try {
                         client = clientFactory.create(this.connection, this.config, contract);
-                    } catch (EdgeDBException e) {
+                    } catch (GelException e) {
                         throw new CompletionException(e);
                     }
                     contract.register(client, this::acceptClient);
@@ -419,7 +419,7 @@ public final class EdgeDBClient implements StatefulClient, EdgeDBQueryable, Auto
 
     @FunctionalInterface
     private interface ClientFactory {
-        BaseEdgeDBClient create(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle)
-                throws EdgeDBException;
+        BaseGelClient create(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle)
+                throws GelException;
     }
 }

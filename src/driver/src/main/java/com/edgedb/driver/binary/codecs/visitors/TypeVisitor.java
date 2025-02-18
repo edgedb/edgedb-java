@@ -2,8 +2,8 @@ package com.edgedb.driver.binary.codecs.visitors;
 
 import com.edgedb.driver.binary.builders.types.TypeDeserializerInfo;
 import com.edgedb.driver.binary.codecs.*;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.clients.GelBinaryClient;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.TypeUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,9 +16,9 @@ import java.util.function.Supplier;
 public final class TypeVisitor implements CodecVisitor {
     private final @NotNull Stack<TypeResultContextFrame> frames;
     private final @NotNull FrameHandle handle;
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
 
-    public TypeVisitor(EdgeDBBinaryClient client) {
+    public TypeVisitor(GelBinaryClient client) {
         this.frames = new Stack<>();
         this.client = client;
         this.handle = new FrameHandle(this.frames::pop);
@@ -33,7 +33,7 @@ public final class TypeVisitor implements CodecVisitor {
     }
 
     @Override
-    public Codec<?> visit(@NotNull Codec<?> codec) throws EdgeDBException {
+    public Codec<?> visit(@NotNull Codec<?> codec) throws GelException {
         if (getContext().type.equals(Void.class)) {
             return codec;
         }
@@ -55,7 +55,7 @@ public final class TypeVisitor implements CodecVisitor {
         return codec;
     }
 
-    private static @NotNull Codec<?> visitTupleCodec(@NotNull TypeVisitor visitor, @NotNull TupleCodec codec) throws EdgeDBException {
+    private static @NotNull Codec<?> visitTupleCodec(@NotNull TypeVisitor visitor, @NotNull TupleCodec codec) throws GelException {
         for(int i = 0; i != codec.innerCodecs.length; i++) {
             var innerCodec = codec.innerCodecs[i];
             try(var ignored = visitor.enterNewContext(c -> {
@@ -78,7 +78,7 @@ public final class TypeVisitor implements CodecVisitor {
         return codec;
     }
 
-    public static @NotNull Codec<?> visitObjectCodec(@NotNull TypeVisitor visitor, ObjectCodec codec) throws EdgeDBException {
+    public static @NotNull Codec<?> visitObjectCodec(@NotNull TypeVisitor visitor, ObjectCodec codec) throws GelException {
         ObjectCodec.TypeInitializedObjectCodec typeCodec;
 
         if(codec instanceof ObjectCodec.TypeInitializedObjectCodec) {
@@ -92,7 +92,7 @@ public final class TypeVisitor implements CodecVisitor {
         }
 
         if(typeCodec.getDeserializer() == null) {
-            throw new EdgeDBException("Could not find a valid deserialization strategy for " + visitor.getContext().type);
+            throw new GelException("Could not find a valid deserialization strategy for " + visitor.getContext().type);
         }
 
         var map = typeCodec.getDeserializer().getFieldMap(visitor.client.getConfig().getNamingStrategy());
@@ -125,7 +125,7 @@ public final class TypeVisitor implements CodecVisitor {
         return typeCodec;
     }
 
-    public static Codec<?> visitCompilableCodec(@NotNull TypeVisitor visitor, @NotNull CompilableCodec codec) throws EdgeDBException {
+    public static Codec<?> visitCompilableCodec(@NotNull TypeVisitor visitor, @NotNull CompilableCodec codec) throws GelException {
         Codec innerCodec;
 
         // context type control:

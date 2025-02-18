@@ -1,6 +1,6 @@
 package com.edgedb.examples
-import com.edgedb.driver.EdgeDBClient
-import com.edgedb.driver.annotations.{EdgeDBLinkType, EdgeDBType}
+import com.edgedb.driver.GelClientPool
+import com.edgedb.driver.annotations.{GelLinkType, GelType}
 import org.slf4j.LoggerFactory
 
 import java.util
@@ -8,20 +8,20 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters.*
 
 object LinkProperties:
-  @EdgeDBType
+  @GelType
   class Person:
     var name: String = _
     var age: Long = _
     var bestFriend: Person = _
 
-    @EdgeDBLinkType(classOf[Person])
+    @GelLinkType(classOf[Person])
     var friends: util.Collection[Person] = _
 
 class LinkProperties extends Example:
   private val logger = LoggerFactory.getLogger(classOf[LinkProperties])
   import LinkProperties.Person
 
-  override def run(client: EdgeDBClient)(implicit context: ExecutionContext): Future[Unit] = {
+  override def run(clientPool: GelClientPool)(implicit context: ExecutionContext): Future[Unit] = {
     for(
       result <- client.queryRequiredSingle(
         classOf[Person],

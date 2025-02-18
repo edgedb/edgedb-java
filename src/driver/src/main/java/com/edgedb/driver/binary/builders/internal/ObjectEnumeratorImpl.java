@@ -4,8 +4,8 @@ import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.ObjectEnumerator;
 import com.edgedb.driver.binary.codecs.CodecContext;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.clients.GelBinaryClient;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
         this.numElements = reader.readInt32();
     }
 
-    public EdgeDBBinaryClient getClient() {
+    public GelBinaryClient getClient() {
         return this.context.client;
     }
 
@@ -41,7 +41,7 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
     }
 
     @Override
-    public @Nullable ObjectEnumerator.ObjectElement next() throws EdgeDBException, OperationNotSupportedException {
+    public @Nullable ObjectEnumerator.ObjectElement next() throws GelException, OperationNotSupportedException {
         if(!hasRemaining()) {
             return null;
         }
@@ -69,7 +69,7 @@ public final class ObjectEnumeratorImpl implements ObjectEnumerator {
     }
 
     @Override
-    public @NotNull Map<String, Object> flatten() throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Map<String, Object> flatten() throws GelException, OperationNotSupportedException {
         return new HashMap<>() {
             {
                 ObjectEnumerator.ObjectElement element;

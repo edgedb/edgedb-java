@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents an exception thrown because of a malformed scram message.
  */
-public class ScramException extends EdgeDBException {
+public class ScramException extends GelException {
     /**
      * Constructs a new {@linkplain ScramException}.
      */

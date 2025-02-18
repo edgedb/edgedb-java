@@ -1,12 +1,12 @@
 package com.edgedb.driver.binary.builders.types;
 
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.codecs.ObjectCodec;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.Tuple;
 import com.edgedb.driver.datatypes.internal.TupleImpl;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public final class TypeBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable T buildObject(@NotNull EdgeDBBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull ByteBuf data) throws OperationNotSupportedException, EdgeDBException {
+    public static <T> @Nullable T buildObject(@NotNull GelBinaryClient client, @NotNull Class<T> type, ObjectCodec codec, @NotNull ByteBuf data) throws OperationNotSupportedException, GelException {
         var info = getDeserializerInfo(type);
 
         if(info == null) {
@@ -67,6 +67,6 @@ public final class TypeBuilder {
             return true;
         }
 
-        return type.getAnnotation(EdgeDBType.class) != null;
+        return type.getAnnotation(GelType.class) != null;
     }
 }

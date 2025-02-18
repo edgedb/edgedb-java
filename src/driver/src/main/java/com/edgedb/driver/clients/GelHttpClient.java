@@ -1,12 +1,12 @@
 package com.edgedb.driver.clients;
 
-import com.edgedb.driver.EdgeDBClientConfig;
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelClientConfig;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.TransactionState;
 import com.edgedb.driver.binary.duplexers.Duplexer;
 import com.edgedb.driver.binary.duplexers.HttpDuplexer;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.ScramException;
 import com.edgedb.driver.util.Scram;
 import com.edgedb.driver.util.SslUtils;
@@ -34,8 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
-    private static final Logger logger = LoggerFactory.getLogger(EdgeDBHttpClient.class);
+public final class GelHttpClient extends GelBinaryClient {
+    private static final Logger logger = LoggerFactory.getLogger(GelHttpClient.class);
     private static final String HTTP_TOKEN_AUTH_METHOD = "SCRAM-SHA-256";
     private final HttpDuplexer duplexer;
     public final HttpClient httpClient;
@@ -45,7 +45,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
     private @Nullable URI authUri;
     private @Nullable URI execUri;
 
-    public EdgeDBHttpClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) throws EdgeDBException {
+    public GelHttpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) throws GelException {
         super(connection, config, poolHandle);
         this.duplexer = new HttpDuplexer(this);
         SSLContext context;
@@ -54,7 +54,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
             SslUtils.initContextWithConnectionDetails(context, getConnectionArguments());
         } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException | IOException |
                  KeyManagementException e) {
-            throw new EdgeDBException("Failed to initialize SSL context", e);
+            throw new GelException("Failed to initialize SSL context", e);
         }
 
         this.httpClient = HttpClient.newBuilder()
@@ -149,7 +149,7 @@ public final class EdgeDBHttpClient extends EdgeDBBinaryClient {
 
                     return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
                 })
-                .thenCompose(EdgeDBHttpClient::ensureSuccess)
+                .thenCompose(GelHttpClient::ensureSuccess)
                 .thenApply(HttpResponse::body);
     }
 

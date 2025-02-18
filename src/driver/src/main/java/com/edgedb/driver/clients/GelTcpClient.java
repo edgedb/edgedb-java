@@ -29,8 +29,8 @@ import java.util.concurrent.CompletionStage;
 
 import static com.edgedb.driver.util.ComposableUtil.exceptionallyCompose;
 
-public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableClient {
-    private static final Logger logger = LoggerFactory.getLogger(EdgeDBTCPClient.class);
+public class GelTcpClient extends GelBinaryClient implements TransactableClient {
+    private static final Logger logger = LoggerFactory.getLogger(GelTcpClient.class);
     private static final NioEventLoopGroup NETTY_TCP_GROUP = new NioEventLoopGroup();
     private static final EventExecutorGroup DUPLEXER_GROUP = new DefaultEventExecutorGroup(8);
 
@@ -38,7 +38,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
     private final Bootstrap bootstrap;
     private TransactionState transactionState;
 
-    public EdgeDBTCPClient(EdgeDBConnection connection, EdgeDBClientConfig config, AutoCloseable poolHandle) {
+    public GelTcpClient(GelConnection connection, GelClientConfig config, AutoCloseable poolHandle) {
         super(connection, config, poolHandle);
         this.duplexer = new ChannelDuplexer(this);
 
@@ -73,7 +73,7 @@ public class EdgeDBTCPClient extends EdgeDBBinaryClient implements TransactableC
 
                         // edgedb-binary protocol and duplexer
                         pipeline.addLast(
-                                PacketSerializer.createDecoder(EdgeDBTCPClient.this),
+                                PacketSerializer.createDecoder(GelTcpClient.this),
                                 PacketSerializer.createEncoder()
                         );
 

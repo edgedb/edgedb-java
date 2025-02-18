@@ -4,22 +4,22 @@
 Connection Parameters
 =====================
 
-The ``EdgeDBClient`` constructor can consume an ``EdgeDBConnection`` class 
+The ``GelClientPool`` constructor can consume an ``GelConnection`` class 
 containing connection arguments for the client.
 
 Most of the time, the connection arguments are implicitly resolved via 
-:ref:`projects <ref_intro_projects>`. In other cases, the ``EdgeDBConnection``
+:ref:`projects <ref_intro_projects>`. In other cases, the ``GelConnection``
 class exposes ways to construct connection arguments.
 
 Connection builder
 ------------------
 
 You can use a provided builder by calling the ``builder()`` method on 
-``EdgeDBConnection``
+``GelConnection``
 
 .. code-block:: java
 
-    var builder = EdgeDBConnection.builder();
+    var builder = GelConnection.builder();
 
 The builder has the following methods:
 
@@ -45,17 +45,17 @@ The builder has the following methods:
 Parse & constructor methods
 ---------------------------
 
-``EdgeDBConnection`` also exposes static methods used to parse connection 
+``GelConnection`` also exposes static methods used to parse connection 
 arguments from different sources.
 
 fromDSN
 ^^^^^^^
 
-This method parses a :ref:`DSN <ref_dsn>` string into an ``EdgeDBConnection``.
+This method parses a :ref:`DSN <ref_dsn>` string into an ``GelConnection``.
 
 .. code-block:: java
 
-    var connection = EdgeDBConnection
+    var connection = GelConnection
         .fromDSN("edgedb://user:pass@host:port/db");
 
 fromProjectFile
@@ -66,7 +66,7 @@ This method resolves connection arguments from an ``edgedb.toml``
 
 .. code-block:: java
 
-    var connection = EdgeDBConnection
+    var connection = GelConnection
         .fromProjectFile("~/myproject/edgedb.toml");
 
 fromInstanceName
@@ -76,7 +76,7 @@ This method resolves the connection arguments for a given instance name.
 
 .. code-block:: java
 
-    var connection = EdgeDBConnection
+    var connection = GelConnection
         .fromInstanceName("my_instance_name");
 
 resolveEdgeDBTOML
@@ -89,7 +89,7 @@ scanned recursivly until a project file is found; if none is found, a
 
 .. code-block:: java
 
-    var connection = EdgeDBConnection
+    var connection = GelConnection
         .resolveEdgeDBTOML();
 
 parse
@@ -101,6 +101,6 @@ environment variables to the connection, following the
 
 .. code-block:: java
 
-    var connection = EdgeDBConnection
+    var connection = GelConnection
         .parse("my_instance");
 

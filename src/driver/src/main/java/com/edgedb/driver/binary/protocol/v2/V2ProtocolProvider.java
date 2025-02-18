@@ -9,7 +9,7 @@ import com.edgedb.driver.binary.protocol.TypeDescriptor;
 import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
 import com.edgedb.driver.binary.protocol.v2.descriptors.*;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.exceptions.UnexpectedMessageException;
@@ -52,7 +52,7 @@ public class V2ProtocolProvider extends V1ProtocolProvider implements ProtocolPr
         return ProtocolVersion.of(2, 0);
     }
 
-    public V2ProtocolProvider(EdgeDBBinaryClient client) {
+    public V2ProtocolProvider(GelBinaryClient client) {
         super(client);
     }
 

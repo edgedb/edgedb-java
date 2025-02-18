@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
-import com.edgedb.driver.annotations.EdgeDBType
+import com.edgedb.driver.GelClientPool
+import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -10,23 +10,23 @@ class AbstractTypes : Example {
         private val logger = LoggerFactory.getLogger(AbstractTypes::class.java)!!
     }
 
-    @EdgeDBType
+    @GelType
     abstract class Media {
         var title: String? = null
     }
 
-    @EdgeDBType
+    @GelType
     class Show : Media() {
         var seasons: Long? = null
     }
 
-    @EdgeDBType
+    @GelType
     class Movie : Media() {
         var releaseYear: Long? = null
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
-        client.execute(
+    override suspend fun runAsync(clientPool: GelClientPool) {
+        clientPool.execute(
                 """insert Movie { 
                    title := "The Matrix", 
                    release_year := 1999 
@@ -37,7 +37,7 @@ class AbstractTypes : Example {
                } unless conflict on .title"""
         ).await()
 
-        val results = client.query(
+        val results = clientPool.query(
                 Media::class.java,
                 """select Media { 
                    title, 

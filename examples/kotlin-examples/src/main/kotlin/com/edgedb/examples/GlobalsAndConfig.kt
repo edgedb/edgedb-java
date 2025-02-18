@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -11,8 +11,8 @@ class GlobalsAndConfig : Example {
         private val logger = LoggerFactory.getLogger(GlobalsAndConfig::class.java)!!
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
-        val configuredClient = client
+    override suspend fun runAsync(clientPool: GelClientPool) {
+        val configuredClient = clientPool
                 .withConfig { config -> config
                         .withIdleTransactionTimeout(Duration.ZERO)
                         .applyAccessPolicies(true)

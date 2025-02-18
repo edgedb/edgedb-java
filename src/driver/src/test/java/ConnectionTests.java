@@ -1,6 +1,6 @@
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.TLSSecurityMode;
-import com.edgedb.driver.EdgeDBConnection.WaitTime;
+import com.edgedb.driver.GelConnection.WaitTime;
 import com.edgedb.driver.abstractions.SystemProvider;
 import com.edgedb.driver.internal.BaseDefaultSystemProvider;
 import com.edgedb.driver.util.ConfigUtils;

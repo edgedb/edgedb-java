@@ -1,11 +1,11 @@
 package com.edgedb.driver.binary.protocol;
 
-import com.edgedb.driver.EdgeDBConnection;
+import com.edgedb.driver.GelConnection;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.v1.V1ProtocolProvider;
 import com.edgedb.driver.binary.protocol.v2.V2ProtocolProvider;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import com.edgedb.driver.exceptions.UnexpectedMessageException;
 import org.jetbrains.annotations.Nullable;
@@ -20,20 +20,20 @@ import java.util.function.Function;
 public interface ProtocolProvider {
     @Nullable ProtocolProvider DEFAULT_PROVIDER = null;
 
-    ConcurrentMap<EdgeDBConnection, Function<EdgeDBBinaryClient, ProtocolProvider>> PROVIDERS_FACTORY = new ConcurrentHashMap<>();
-    Map<ProtocolVersion, Function<EdgeDBBinaryClient, ProtocolProvider>> PROVIDERS = new HashMap<>(){{
+    ConcurrentMap<GelConnection, Function<GelBinaryClient, ProtocolProvider>> PROVIDERS_FACTORY = new ConcurrentHashMap<>();
+    Map<ProtocolVersion, Function<GelBinaryClient, ProtocolProvider>> PROVIDERS = new HashMap<>(){{
        put(ProtocolVersion.of(1, 0), V1ProtocolProvider::new);
        put(ProtocolVersion.of(2, 0), V2ProtocolProvider::new);
     }};
 
-    static ProtocolProvider getProvider(EdgeDBBinaryClient client) {
+    static ProtocolProvider getProvider(GelBinaryClient client) {
         return PROVIDERS_FACTORY.computeIfAbsent(
                 client.getConnectionArguments(),
                 ignored -> PROVIDERS.get(ProtocolVersion.BINARY_PROTOCOL_DEFAULT_VERSION)
         ).apply(client);
     }
 
-    static void updateProviderFor(EdgeDBBinaryClient client, ProtocolProvider provider) {
+    static void updateProviderFor(GelBinaryClient client, ProtocolProvider provider) {
         PROVIDERS_FACTORY.put(client.getConnectionArguments(), PROVIDERS.get(provider.getVersion()));
     }
 

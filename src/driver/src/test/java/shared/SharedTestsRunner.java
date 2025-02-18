@@ -1,16 +1,16 @@
 package shared;
 
-import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.EdgeDBClientConfig;
+import com.edgedb.driver.GelClientPool;
+import com.edgedb.driver.GelClientConfig;
 import com.edgedb.driver.binary.builders.ObjectBuilder;
 import com.edgedb.driver.binary.codecs.Codec;
 import com.edgedb.driver.binary.protocol.QueryParameters;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
-import com.edgedb.driver.clients.BaseEdgeDBClient;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.BaseGelClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.RelativeDuration;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -49,16 +49,16 @@ public class SharedTestsRunner {
                 addDeserializer(Duration.class, new CDurationDeserializer());
             }});
 
-    private static final EdgeDBClient CLIENT;
+    private static final GelClientPool CLIENT_POOL;
 
     static {
         try {
-            CLIENT = new EdgeDBClient(EdgeDBClientConfig.builder()
+            CLIENT_POOL = new GelClientPool(GelClientConfig.builder()
                     .withMessageTimeout(1, TimeUnit.HOURS)
                     .withExplicitObjectIds(true)
                     .build()
             );
-        } catch (IOException | EdgeDBException e) {
+        } catch (IOException | GelException e) {
             throw new RuntimeException(e);
         }
     }
@@ -79,9 +79,9 @@ public class SharedTestsRunner {
             throw new RuntimeException(e);
         }
 
-        EdgeDBBinaryClient clientHandle;
+        GelBinaryClient clientHandle;
         try {
-            clientHandle = (EdgeDBBinaryClient)getClientHandle().toCompletableFuture().get();
+            clientHandle = (GelBinaryClient)getClientHandle().toCompletableFuture().get();
         } catch (InterruptedException | ExecutionException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -127,7 +127,7 @@ public class SharedTestsRunner {
                     IntStream.range(0, executionResult.data.size())
                             .mapToObj(k -> Map.entry(executionResult.data.get(k), readerIndexes[k]))
                             .forEach(v -> v.getKey().readerIndex(v.getValue()));
-                } catch (EdgeDBException | OperationNotSupportedException e) {
+                } catch (GelException | OperationNotSupportedException e) {
                     throw new RuntimeException(e);
                 }
 
@@ -142,7 +142,7 @@ public class SharedTestsRunner {
         }
     }
 
-    private static Object buildResult(EdgeDBBinaryClient client, Class<?> type, BinaryResult result) throws EdgeDBException, OperationNotSupportedException {
+    private static Object buildResult(GelBinaryClient client, Class<?> type, BinaryResult result) throws GelException, OperationNotSupportedException {
         switch (result.cardinality) {
             case MANY:
                 var arr = (Object[])Array.newInstance(type, result.data.size());
@@ -172,10 +172,10 @@ public class SharedTestsRunner {
     }
 
     private static Method getClientMethod;
-    private static CompletionStage<BaseEdgeDBClient> getClientHandle() throws InvocationTargetException, IllegalAccessException {
+    private static CompletionStage<BaseGelClient> getClientHandle() throws InvocationTargetException, IllegalAccessException {
         if(getClientMethod == null) {
             try {
-                getClientMethod = EdgeDBClient.class.getDeclaredMethod("getClient");
+                getClientMethod = GelClientPool.class.getDeclaredMethod("getClient");
                 getClientMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
@@ -183,7 +183,7 @@ public class SharedTestsRunner {
         }
 
         //noinspection unchecked
-        return (CompletionStage<BaseEdgeDBClient>) getClientMethod.invoke(CLIENT);
+        return (CompletionStage<BaseGelClient>) getClientMethod.invoke(CLIENT_POOL);
     }
 
     private static final class BinaryResult {
@@ -198,7 +198,7 @@ public class SharedTestsRunner {
         }
     }
 
-    private static BinaryResult executeQuery(EdgeDBBinaryClient client, QueryExecutionArguments query) throws ExecutionException, InterruptedException {
+    private static BinaryResult executeQuery(GelBinaryClient client, QueryExecutionArguments query) throws ExecutionException, InterruptedException {
         Map<String, Object> args = null;
 
         if(query.arguments != null && query.arguments.size() > 0) {

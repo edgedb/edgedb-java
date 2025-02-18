@@ -7,8 +7,8 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-public class EdgeDBClientConfig {
-    public static final @NotNull EdgeDBClientConfig DEFAULT = new EdgeDBClientConfig();
+public class GelClientConfig {
+    public static final @NotNull GelClientConfig DEFAULT = new GelClientConfig();
     public static @NotNull Builder builder() {
         return new Builder();
     }
@@ -145,7 +145,7 @@ public class EdgeDBClientConfig {
     }
 
     /**
-     * A builder class used to construct {@linkplain EdgeDBClientConfig}s.
+     * A builder class used to construct {@linkplain GelClientConfig}s.
      */
     public static final class Builder {
         private int poolSize = DEFAULT.poolSize;
@@ -304,11 +304,11 @@ public class EdgeDBClientConfig {
         }
 
         /**
-         * Constructs a {@linkplain EdgeDBClientConfig} from the current builder.
-         * @return A {@linkplain EdgeDBClientConfig} that represents the current builder.
+         * Constructs a {@linkplain GelClientConfig} from the current builder.
+         * @return A {@linkplain GelClientConfig} that represents the current builder.
          */
-        public @NotNull EdgeDBClientConfig build() {
-            EdgeDBClientConfig edgeDBClientConfig = new EdgeDBClientConfig();
+        public @NotNull GelClientConfig build() {
+            GelClientConfig edgeDBClientConfig = new GelClientConfig();
             edgeDBClientConfig.clientType = this.clientType;
             edgeDBClientConfig.implicitLimit = this.implicitLimit;
             edgeDBClientConfig.explicitObjectIds = this.explicitObjectIds;

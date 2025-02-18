@@ -7,5 +7,5 @@ import java.lang.annotation.RetentionPolicy;
  * Marks the current target ignored for the binding.
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface  EdgeDBIgnore {
+public @interface  GelIgnore {
 }

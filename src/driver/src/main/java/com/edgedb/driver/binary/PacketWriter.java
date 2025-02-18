@@ -1,6 +1,6 @@
 package com.edgedb.driver.binary;
 
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.util.BinaryProtocolUtils;
 import com.edgedb.driver.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
@@ -236,10 +236,10 @@ public class PacketWriter implements AutoCloseable {
 
     @FunctionalInterface
     public interface WriterDelegate {
-        void consume(PacketWriter writer) throws OperationNotSupportedException, EdgeDBException;
+        void consume(PacketWriter writer) throws OperationNotSupportedException, GelException;
     }
 
-    public void writeDelegateWithLength(@NotNull WriterDelegate delegate) throws OperationNotSupportedException, EdgeDBException {
+    public void writeDelegateWithLength(@NotNull WriterDelegate delegate) throws OperationNotSupportedException, GelException {
         ensureCanWrite(INT_SIZE);
 
         var currentIndex = this.getPosition();

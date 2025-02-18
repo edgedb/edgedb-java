@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies the element type of the targets fields collection.
+ * Specifies the name of the target as it's represented as in EdgeDB.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface EdgeDBLinkType {
-    Class<?> value();
+public @interface GelName {
+    String value();
 }

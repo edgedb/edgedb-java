@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 
 interface Example {
-    suspend fun runAsync(client: EdgeDBClient)
+    suspend fun runAsync(clientPool: GelClientPool)
 }

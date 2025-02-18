@@ -1,8 +1,8 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.annotations.EdgeDBLinkType;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.GelClientPool;
+import com.edgedb.driver.annotations.GelLinkType;
+import com.edgedb.driver.annotations.GelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,12 +12,12 @@ import java.util.concurrent.CompletionStage;
 public final class LinkProperties implements Example {
     private static final Logger logger = LoggerFactory.getLogger(LinkProperties.class);
 
-    @EdgeDBType
+    @GelType
     public static final class Person {
         public String name;
         public Long age;
         public Person bestFriend;
-        @EdgeDBLinkType(Person.class)
+        @GelLinkType(Person.class)
         public Collection<Person> friends;
     }
 
@@ -28,10 +28,10 @@ public final class LinkProperties implements Example {
                     "insert Person { name := 'Person D', age := 23, friends := { a, b, c }, best_friend := c } unless conflict on .name";
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        return client.execute(INSERT_QUERY)
+    public CompletionStage<Void> run(GelClientPool clientPool) {
+        return clientPool.execute(INSERT_QUERY)
                 .thenCompose(v ->
-                        client.queryRequiredSingle(
+                        clientPool.queryRequiredSingle(
                                 Person.class,
                                 "select Person { name, age, friends: { name, age, friends }, best_friend: { name, age, friends } } filter .name = 'Person D'"
                         ))

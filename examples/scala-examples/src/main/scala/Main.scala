@@ -1,7 +1,7 @@
 package com.edgedb.examples
 
 import com.edgedb.driver.namingstrategies.NamingStrategy
-import com.edgedb.driver.{EdgeDBClient, EdgeDBClientConfig, Transaction}
+import com.edgedb.driver.{GelClientPool, GelClientConfig, Transaction}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.duration.Duration
@@ -13,7 +13,7 @@ import ExecutionContext.Implicits.global
 def main(): Unit = {
   val logger = LoggerFactory.getLogger("Main")
 
-  val client = new EdgeDBClient(EdgeDBClientConfig.builder
+  val clientPool = new GelClientPool(GelClientConfig.builder
     .withNamingStrategy(NamingStrategy.snakeCase)
     .useFieldSetters(true)
     .build
@@ -29,14 +29,14 @@ def main(): Unit = {
   )
 
   for (example <- examples)
-    Await.ready(runExample(logger, client, example), Duration.Inf)
+    Await.ready(runExample(logger, clientPool, example), Duration.Inf)
 
   logger.info("Examples complete!")
 
   System.exit(0)
 }
 
-private def runExample(logger: Logger, client: EdgeDBClient, example: Example)(implicit context: ExecutionContext): Future[Unit] = {
+private def runExample(logger: Logger, clientPool: GelClientPool, example: Example)(implicit context: ExecutionContext): Future[Unit] = {
   logger.info("Running Scala example {}...", example)
   example.run(client)
     .map({ * =>

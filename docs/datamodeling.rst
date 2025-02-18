@@ -17,7 +17,7 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int Age;
@@ -46,10 +46,10 @@ by following the :ref:`scalar type map <edgedb_java_datatypes>`.
 There are a few requirements with the class representation:
 
 * All classes that represent data need to be marked with the 
-  ``@EdgeDBType`` annotation.
+  ``@GelType`` annotation.
 
 * Any multi-link property (collection) needs to be marked with the 
-  ``@EdgeDBLinkType`` annotation.
+  ``@GelLinkType`` annotation.
 
 * A field must be public *or* have a valid setter if
   ``useFieldSetters`` is ``true`` in the client configuration.
@@ -69,7 +69,7 @@ under the interface, for example:
 
 .. code-block:: java
     
-    var config = EdgeDBClientConfig.builder()
+    var config = GelClientConfig.builder()
         .withNamingStrategy(NamingStrategy.snakeCase())
         .build();
         
@@ -97,7 +97,7 @@ For example, creating a bean that represents the ``Person`` schema type:
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             private String name;
             private int age;
@@ -147,19 +147,19 @@ Multi-link properties
 
 The JVM doesn't retain generic information for collection generics. To get 
 around this, you must specify the type of the collection with the 
-``@EdgeDBLinkType`` annotation.
+``@GelLinkType`` annotation.
 
 .. tabs::
 
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int age;
 
-            @EdgeDBLinkType(Person.class)
+            @GelLinkType(Person.class)
             public List<Person> friends;
         }
 
@@ -192,7 +192,7 @@ Custom deserializers
 --------------------
 
 You can specify a constructor as a target for deserialization with the
-``@EdgeDBDeserializer`` annotation. A deserializer has 2 valid modes of 
+``@GelDeserializer`` annotation. A deserializer has 2 valid modes of 
 operation: enumeration consumers or value consumers.
 
 Enumerator consumer
@@ -206,7 +206,7 @@ the name, type, and value.
 
 .. code-block:: java
 
-    @EdgeDBType
+    @GelType
     public class Person {
         private String name;
         private int age;
@@ -227,7 +227,7 @@ the name, type, and value.
 
                     }
                 }
-            } catch(EdgeDBException err) { // deserialization error
+            } catch(GelException err) { // deserialization error
             
             } catch(OperationNotSupportedException err) { // read/IO error
 
@@ -240,9 +240,9 @@ for other data type representations, like tuples:
 
 .. code-block:: java
 
-        @EdgeDBDeserializer
+        @GelDeserializer
         public SimpleTuple(ObjectEnumerator enumerator) 
-        throws EdgeDBException, OperationNotSupportedException {
+        throws GelException, OperationNotSupportedException {
             elements = new ArrayList<>();
 
             while(enumerator.hasRemaining()) {
@@ -261,22 +261,22 @@ Value consumers
 ^^^^^^^^^^^^^^^
 
 Value consumers take in the fields' values in the constructor, mapped by a 
-``@EdgeDBName`` annotation:
+``@GelName`` annotation:
 
 .. tabs::
 
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public class Person {
             private final String name;
             private final int age;
 
-            @EdgeDBDeserializer
+            @GelDeserializer
             public Person(
-                @EdgeDBName("name") String name,
-                @EdgeDBName("age") int age
+                @GelName("name") String name,
+                @GelName("age") int age
             ) {
                 this.name = name;
                 this.age = age;
@@ -317,17 +317,17 @@ schema types in code. For example:
     .. code-tab:: java
         :caption: Java
 
-        @EdgeDBType
+        @GelType
         public abstract class Media {
             public String title;
         }
 
-        @EdgeDBType
+        @GelType
         public class Show extends Media {
             public Long seasons;
         }
 
-        @EdgeDBType
+        @GelType
         public class Movie extends Media {
             public Long release_year;
         }

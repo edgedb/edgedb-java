@@ -1,6 +1,6 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
+import com.edgedb.driver.GelClientPool
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -9,14 +9,14 @@ class Transactions : Example {
         private val logger = LoggerFactory.getLogger(Transactions::class.java)
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
+    override suspend fun runAsync(clientPool: GelClientPool) {
         // verify we can run transactions
-        if (!client.supportsTransactions()) {
-            logger.info("Skipping transactions, client type {} doesn't support it", client.clientType)
+        if (!clientPool.supportsTransactions()) {
+            logger.info("Skipping transactions, client type {} doesn't support it", clientPool.clientType)
             return
         }
 
-        val transactionResult = client.transaction { tx ->
+        val transactionResult = clientPool.transaction { tx ->
             tx.queryRequiredSingle(String::class.java, "SELECT 'Hello from transaction!'")
         }.await()
 

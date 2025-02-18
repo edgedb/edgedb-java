@@ -51,14 +51,14 @@ execute a query:
     .. code-tab:: java
         :caption: Futures
 
-        import com.edgedb.driver.EdgeDBClient;
+        import com.edgedb.driver.GelClientPool;
         import java.util.concurrent.CompletableFuture;
 
         public class Main {
             public static void main(String[] args) {
-                var client = new EdgeDBClient();
+                var clientPool = new GelClientPool();
 
-                client.querySingle(String.class, "SELECT 'Hello, Java!'")
+                clientPool.querySingle(String.class, "SELECT 'Hello, Java!'")
                     .thenAccept(System.out::println)
                     .toCompletableFuture().get();
             }
@@ -67,14 +67,14 @@ execute a query:
     .. code-tab:: java
         :caption: Reactor
 
-        import com.edgedb.driver.EdgeDBClient;
+        import com.edgedb.driver.GelClientPool;
         import reactor.core.publisher.Mono;
 
         public class Main {
             public static void main(String[] args) {
-                var client = new EdgeDBClient();
+                var clientPool = new GelClientPool();
 
-                Mono.fromFuture(client.querySingle(String.class, "SELECT 'Hello, Java!'"))
+                Mono.fromFuture(clientPool.querySingle(String.class, "SELECT 'Hello, Java!'"))
                     .doOnNext(System.out::println)
                     .block();
             }
@@ -88,7 +88,7 @@ schema type:
     .. code-tab:: java
         :caption: Code
 
-        @EdgeDBType
+        @GelType
         public class Person {
             public String name;
             public int age;
@@ -96,7 +96,7 @@ schema type:
 
         ..
 
-        client.query(Person.class, "SELECT Person { name, age }")
+        clientPool.query(Person.class, "SELECT Person { name, age }")
             .thenAccept(result -> {
                 for(var person : result) {
                     System.out.println("Person { " + person.name + ", " + person.age + "}");

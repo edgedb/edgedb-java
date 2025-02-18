@@ -3,7 +3,7 @@ package com.edgedb.driver.binary.codecs;
 import com.edgedb.driver.binary.PacketReader;
 import com.edgedb.driver.binary.PacketWriter;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     }
 
     @Override
-    public void serialize(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws OperationNotSupportedException, EdgeDBException {
+    public void serialize(@NotNull PacketWriter writer, @Nullable Map<String, ?> value, @NotNull CodecContext context) throws OperationNotSupportedException, GelException {
         if(value == null || value.isEmpty()) {
             writer.write(0);
             return;
@@ -64,11 +64,11 @@ public final class SparseObjectCodec extends CodecBase<Map<String, ?>> {
     }
 
     @Override
-    public @NotNull Map<String, ?> deserialize(@NotNull PacketReader reader, CodecContext context) throws EdgeDBException, OperationNotSupportedException {
+    public @NotNull Map<String, ?> deserialize(@NotNull PacketReader reader, CodecContext context) throws GelException, OperationNotSupportedException {
         var numElements = reader.readInt32();
 
         if(innerCodecs.length != numElements) {
-            throw new EdgeDBException(String.format("Codecs mismatch for sparse object: expected %d codecs, got %d", innerCodecs.length, numElements));
+            throw new GelException(String.format("Codecs mismatch for sparse object: expected %d codecs, got %d", innerCodecs.length, numElements));
         }
 
         var map = new HashMap<String, Object>(numElements);

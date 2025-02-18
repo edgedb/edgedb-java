@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents an exception caused by an invalid signature.
  */
-public class InvalidSignatureException extends EdgeDBException {
+public class InvalidSignatureException extends GelException {
     /**
      * Constructs a new {@linkplain InvalidSignatureException}.
      */

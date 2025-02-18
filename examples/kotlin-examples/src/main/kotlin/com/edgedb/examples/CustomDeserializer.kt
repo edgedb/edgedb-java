@@ -1,9 +1,9 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
-import com.edgedb.driver.annotations.EdgeDBDeserializer
-import com.edgedb.driver.annotations.EdgeDBName
-import com.edgedb.driver.annotations.EdgeDBType
+import com.edgedb.driver.GelClientPool
+import com.edgedb.driver.annotations.GelDeserializer
+import com.edgedb.driver.annotations.GelName
+import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -12,13 +12,13 @@ class CustomDeserializer : Example {
         private val logger = LoggerFactory.getLogger(CustomDeserializer::class.java)!!
     }
 
-    @EdgeDBType
+    @GelType
     data class Person
-    @EdgeDBDeserializer
+    @GelDeserializer
     constructor (
-            @EdgeDBName("name")
+            @GelName("name")
             val name: String,
-            @EdgeDBName("age")
+            @GelName("age")
             val age: Long
     ) {
         init {
@@ -26,8 +26,8 @@ class CustomDeserializer : Example {
         }
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
-        val person = client.queryRequiredSingle(
+    override suspend fun runAsync(clientPool: GelClientPool) {
+        val person = clientPool.queryRequiredSingle(
                 Person::class.java,
                 """
                     insert Person { name := 'Example', age := 123 } unless conflict on .name;

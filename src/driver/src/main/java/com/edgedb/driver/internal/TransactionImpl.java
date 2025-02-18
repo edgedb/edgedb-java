@@ -7,7 +7,7 @@ import com.edgedb.driver.TransactionState;
 import com.edgedb.driver.abstractions.QueryDelegate;
 import com.edgedb.driver.clients.TransactableClient;
 import com.edgedb.driver.datatypes.Json;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.TransactionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,8 +81,8 @@ public final class TransactionImpl implements Transaction {
                         delegate.run(cls, query, args, capabilities)
                                 .thenApply(t -> (CompletionStage<U>)CompletableFuture.completedFuture(t))
                                 .exceptionally(e -> {
-                                    if(e instanceof EdgeDBException) {
-                                        if(((EdgeDBException) e).shouldRetry) {
+                                    if(e instanceof GelException) {
+                                        if(((GelException) e).shouldRetry) {
 
                                             if(attempts.getAndIncrement() <= settings.getRetryAttempts()) {
                                                 return executeTransactionStep(cls, query, args, capabilities, attempts, delegate);

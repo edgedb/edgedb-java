@@ -1,6 +1,6 @@
-import com.edgedb.driver.EdgeDBClient;
-import com.edgedb.driver.annotations.EdgeDBLinkType;
-import com.edgedb.driver.annotations.EdgeDBType;
+import com.edgedb.driver.GelClientPool;
+import com.edgedb.driver.annotations.GelLinkType;
+import com.edgedb.driver.annotations.GelType;
 import com.edgedb.driver.datatypes.MultiRange;
 import com.edgedb.driver.datatypes.Range;
 import org.junit.jupiter.api.Test;
@@ -12,25 +12,25 @@ import java.util.HashMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueryTests {
-    @EdgeDBType
+    @GelType
     public static final class Links {
         public String a;
         public Links b;
-        @EdgeDBLinkType(Links.class)
+        @GelLinkType(Links.class)
         public Collection<Links> c;
     }
 
     @Test
     public void testLinkProperties() throws Exception {
-        try(var client = new EdgeDBClient().withModule("tests")) {
-            var result = client
+        try(var clientPool = new GelClientPool().withModule("tests")) {
+            var result = clientPool
                     .execute(
                             "with a := (insert Links { a := 'A' } unless conflict on .a)," +
                             "b := (insert Links { a := 'B'} unless conflict on .a)," +
                             "c := (insert Links { a := 'C', c := b } unless conflict on .a)" +
                             "insert Links { a := 'D', c := { a, b, c }, b := c } unless conflict on .a")
                     .thenCompose(v ->
-                            client.queryRequiredSingle(
+                            clientPool.queryRequiredSingle(
                                     Links.class,
                                     "select Links { a, c: { a, b, c }, b: { a, b, c } } filter .a = 'D'"
                             )
@@ -47,7 +47,7 @@ public class QueryTests {
 
     @Test
     public void testMultiRanges() {
-        try(var client = new EdgeDBClient()) {
+        try(var clientPool = new GelClientPool()) {
             var multiRange = new MultiRange<Long>(new ArrayList<Range<Long>>() {{
                 add(Range.create(Long.class, -40L, -20L));
                 add(Range.create(Long.class, 5L, 10L));
@@ -55,7 +55,7 @@ public class QueryTests {
                 add(Range.create(Long.class, 5000L, 5001L));
             }});
 
-            var result = client.queryRequiredSingle(
+            var result = clientPool.queryRequiredSingle(
                     MultiRange.ofType(Long.class),
                     "SELECT <multirange<int64>>$arg",
                     new HashMap<>(){{
@@ -73,7 +73,7 @@ public class QueryTests {
         }
     }
 
-    @EdgeDBType
+    @GelType
     public static class TestDataContainer {
         public long a;
         public Long b;
@@ -85,8 +85,8 @@ public class QueryTests {
     public void testPrimitives() {
         // primitives (long, int, etc.) differ from the class form (Long, Integer, etc.),
         // we test that we can deserialize both in a data structure.
-        try(var client = new EdgeDBClient()) {
-            var result = client.queryRequiredSingle(TestDataContainer.class, "select { a := 1, b := 2, c := <int32>3, d := <int32>4}")
+        try(var clientPool = new GelClientPool()) {
+            var result = clientPool.queryRequiredSingle(TestDataContainer.class, "select { a := 1, b := 2, c := <int32>3, d := <int32>4}")
                     .toCompletableFuture().get();
 
             assertThat(result.a).isEqualTo(1);

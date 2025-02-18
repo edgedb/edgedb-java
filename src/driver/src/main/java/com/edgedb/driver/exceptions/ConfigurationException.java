@@ -3,7 +3,7 @@ package com.edgedb.driver.exceptions;
 /**
  * Represents a generic configuration error.
  */
-public class ConfigurationException extends EdgeDBException {
+public class ConfigurationException extends GelException {
     /**
      * Constructs a new {@linkplain ConfigurationException}.
      * @param message The configuration error message.

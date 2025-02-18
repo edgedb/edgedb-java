@@ -6,9 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the current method or constructor as a valid deserializer for the containing class.
+ * Specifies the element type of the targets fields collection.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD})
-public @interface EdgeDBDeserializer {
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+public @interface GelLinkType {
+    Class<?> value();
 }

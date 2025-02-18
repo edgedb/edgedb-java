@@ -12,9 +12,9 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * Represents a generic EdgeDB queryable interface, providing methods to execute queries with cardinality control.
- * @see EdgeDBClient
+ * @see GelClientPool
  */
-public interface EdgeDBQueryable {
+public interface GelQueryable {
 
     /**
      * Executes a query, ignoring the result.

@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,14 +11,14 @@ public final class Transactions implements Example {
     private static final Logger logger = LoggerFactory.getLogger(Transactions.class);
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
+    public CompletionStage<Void> run(GelClientPool clientPool) {
         // verify we can run transactions
-        if(!client.supportsTransactions()) {
-            logger.info("Skipping transactions, client type {} doesn't support it", client.getClientType());
+        if(!clientPool.supportsTransactions()) {
+            logger.info("Skipping transactions, client type {} doesn't support it", clientPool.getClientType());
             return CompletableFuture.completedFuture(null);
         }
 
-        return client.transaction(tx -> {
+        return clientPool.transaction(tx -> {
             logger.info("In transaction");
             return tx.queryRequiredSingle(String.class, "select 'Result from Transaction'");
         }).thenAccept(result -> {

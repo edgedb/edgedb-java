@@ -1,8 +1,8 @@
 package com.edgedb.examples
 
-import com.edgedb.driver.EdgeDBClient
-import com.edgedb.driver.annotations.EdgeDBLinkType
-import com.edgedb.driver.annotations.EdgeDBType
+import com.edgedb.driver.GelClientPool
+import com.edgedb.driver.annotations.GelLinkType
+import com.edgedb.driver.annotations.GelType
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 
@@ -27,20 +27,20 @@ class LinkProperties : Example {
         """
     }
 
-    @EdgeDBType
+    @GelType
     class Person {
         var name: String? = null
         var age: Long? = null
         var bestFriend: Person? = null
 
-        @EdgeDBLinkType(Person::class)
+        @GelLinkType(Person::class)
         var friends: Collection<Person>? = null
     }
 
-    override suspend fun runAsync(client: EdgeDBClient) {
-        client.execute(INSERT_QUERY).await()
+    override suspend fun runAsync(clientPool: GelClientPool) {
+        clientPool.execute(INSERT_QUERY).await()
 
-        val result = client.queryRequiredSingle(
+        val result = clientPool.queryRequiredSingle(
                 Person::class.java,
                 """
                     select Person { 

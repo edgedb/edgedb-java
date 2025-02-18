@@ -1,6 +1,6 @@
 package com.edgedb.examples;
 
-import com.edgedb.driver.EdgeDBClient;
+import com.edgedb.driver.GelClientPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +13,8 @@ public final class GlobalsAndConfig implements Example {
     private static final Logger logger = LoggerFactory.getLogger(GlobalsAndConfig.class);
 
     @Override
-    public CompletionStage<Void> run(EdgeDBClient client) {
-        var configuredClient = client
+    public CompletionStage<Void> run(GelClientPool clientPool) {
+        var configuredClient = clientPool
                 .withConfig(config -> config
                         .withIdleTransactionTimeout(Duration.ZERO)
                         .applyAccessPolicies(true))

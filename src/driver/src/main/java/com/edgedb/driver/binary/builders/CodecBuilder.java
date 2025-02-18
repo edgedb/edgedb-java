@@ -12,8 +12,8 @@ import com.edgedb.driver.binary.protocol.TypeDescriptorInfo;
 import com.edgedb.driver.binary.protocol.common.Cardinality;
 import com.edgedb.driver.binary.protocol.common.IOFormat;
 import com.edgedb.driver.binary.protocol.common.descriptors.CodecMetadata;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.clients.GelBinaryClient;
+import com.edgedb.driver.exceptions.GelException;
 import com.edgedb.driver.exceptions.MissingCodecException;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public final class CodecBuilder {
         return codec != null ? codec : getCachedOrScalarCodec(provider, id);
     }
 
-    public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer) throws EdgeDBException {
+    public static @NotNull Codec<?> buildCodec(GelBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer) throws GelException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
             return getOrCreateCodec(client.getProtocolProvider(), NULL_CODEC_ID, NullCodec::new);
         }
@@ -81,7 +81,7 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull Codec<T> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws EdgeDBException, OperationNotSupportedException {
+    public static <T> @NotNull Codec<T> buildCodec(GelBinaryClient client, @NotNull UUID id, @Nullable ByteBuf buffer, Class<T> cls) throws GelException, OperationNotSupportedException {
         if(id.equals(NULL_CODEC_ID) || buffer == null) {
             return (Codec<T>)getOrCreateCodec(client.getProtocolProvider(), NULL_CODEC_ID, NullCodec::new);
         }
@@ -91,11 +91,11 @@ public final class CodecBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull Codec<T> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader, Class<T> ignoredCodecResult) throws EdgeDBException {
+    public static <T> @NotNull Codec<T> buildCodec(GelBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader, Class<T> ignoredCodecResult) throws GelException {
         return (Codec<T>) buildCodec(client, id, reader);
     }
 
-    public static @NotNull Codec<?> buildCodec(EdgeDBBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader) throws EdgeDBException {
+    public static @NotNull Codec<?> buildCodec(GelBinaryClient client, @NotNull UUID id, @NotNull PacketReader reader) throws GelException {
         try {
             if(id.equals(NULL_CODEC_ID)) {
                 logger.debug("Returning null codec");

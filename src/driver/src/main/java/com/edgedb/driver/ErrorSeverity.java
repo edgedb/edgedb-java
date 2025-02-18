@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the error severity for an error returned by EdgeDB
- * @see com.edgedb.driver.exceptions.EdgeDBErrorException
+ * @see com.edgedb.driver.exceptions.GelErrorException
  */
 public enum ErrorSeverity implements BinaryEnum<Byte> {
     ERROR (0x78),

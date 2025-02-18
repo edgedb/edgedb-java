@@ -12,7 +12,7 @@ import com.edgedb.driver.binary.protocol.common.*;
 import com.edgedb.driver.binary.protocol.v1.descriptors.*;
 import com.edgedb.driver.binary.protocol.v1.receivables.*;
 import com.edgedb.driver.binary.protocol.v1.sendables.*;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.datatypes.Range;
 import com.edgedb.driver.exceptions.*;
 import com.edgedb.driver.util.BinaryProtocolUtils;
@@ -82,10 +82,10 @@ public class V1ProtocolProvider implements ProtocolProvider {
     }
 
     private ProtocolPhase phase;
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
     private @Nullable Map<String, @Nullable Object> rawServerConfig;
 
-    public V1ProtocolProvider(EdgeDBBinaryClient client) {
+    public V1ProtocolProvider(GelBinaryClient client) {
         this.client = client;
 
         this.phase = ProtocolPhase.CONNECTION;
@@ -297,7 +297,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
         try {
             stateBuffer = client.serializeState();
-        } catch (OperationNotSupportedException | EdgeDBException e) {
+        } catch (OperationNotSupportedException | GelException e) {
             return CompletableFuture.failedFuture(e);
         }
 
@@ -351,7 +351,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
         if(state.attempts > MAX_PARSE_ATTEMPTS) {
             logger.debug("Parse attempts exceeded {}", MAX_PARSE_ATTEMPTS);
             return CompletableFuture.failedFuture(
-                    new EdgeDBException("Failed to parse query after " + state.attempts + " attempts")
+                    new GelException("Failed to parse query after " + state.attempts + " attempts")
             );
         }
 
@@ -467,7 +467,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
     private CompletionStage<Void> execute0(QueryParameters queryParameters, ParseResult parseResult, ProtocolState state) {
         if(state.attempts > 2) {
             return CompletableFuture.failedFuture(
-                    new EdgeDBException("Failed to parse query after " + state.attempts + " attempts")
+                    new GelException("Failed to parse query after " + state.attempts + " attempts")
             );
         }
 
@@ -525,7 +525,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
 
                 return CompletableFuture.completedFuture(null);
             });
-        } catch (OperationNotSupportedException | EdgeDBException e) {
+        } catch (OperationNotSupportedException | GelException e) {
             return CompletableFuture.failedFuture(e);
         }
     }
@@ -557,7 +557,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
             if(!args.stateUpdated) {
                 result.finishExceptionally(
                         "Failed to properly encode state data, this is a bug",
-                        EdgeDBException::new
+                        GelException::new
                 );
             }
         }
@@ -578,8 +578,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
                         stateDescriptor.typeDescriptorBuffer,
                         Map.class
                 );
-            } catch (EdgeDBException | OperationNotSupportedException e) {
-                result.finishExceptionally("Failed to parse state codec", e, EdgeDBException::new);
+            } catch (GelException | OperationNotSupportedException e) {
+                result.finishExceptionally("Failed to parse state codec", e, GelException::new);
             }
         }
 
@@ -594,8 +594,8 @@ public class V1ProtocolProvider implements ProtocolProvider {
             }
 
             state.stateBuffer = client.serializeState();
-        } catch (OperationNotSupportedException | EdgeDBException e) {
-            result.finishExceptionally("Failed to serialize state", e, EdgeDBException::new);
+        } catch (OperationNotSupportedException | GelException e) {
+            result.finishExceptionally("Failed to serialize state", e, GelException::new);
         }
     }
 
@@ -632,7 +632,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
                return sendSyncMessage0(true);
            }
 
-           return CompletableFuture.failedFuture(new EdgeDBException("Failed to send sync message after 2 attempts"));
+           return CompletableFuture.failedFuture(new GelException("Failed to send sync message after 2 attempts"));
         });
     }
 
@@ -777,7 +777,7 @@ public class V1ProtocolProvider implements ProtocolProvider {
         return CompletableFuture.completedFuture(null);
     }
 
-    private void parseServerSettings(@NotNull ParameterStatus status) throws EdgeDBException, OperationNotSupportedException {
+    private void parseServerSettings(@NotNull ParameterStatus status) throws GelException, OperationNotSupportedException {
         switch (status.name) {
             case "suggested_pool_concurrency":
                 assert status.value != null;

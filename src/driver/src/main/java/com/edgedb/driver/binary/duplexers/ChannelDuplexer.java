@@ -6,10 +6,10 @@ import com.edgedb.driver.binary.protocol.ProtocolProvider;
 import com.edgedb.driver.binary.protocol.Receivable;
 import com.edgedb.driver.binary.protocol.Sendable;
 import com.edgedb.driver.binary.protocol.common.ProtocolError;
-import com.edgedb.driver.clients.EdgeDBBinaryClient;
+import com.edgedb.driver.clients.GelBinaryClient;
 import com.edgedb.driver.exceptions.ConnectionFailedException;
 import com.edgedb.driver.exceptions.ConnectionFailedTemporarilyException;
-import com.edgedb.driver.exceptions.EdgeDBException;
+import com.edgedb.driver.exceptions.GelException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -41,7 +41,7 @@ public class ChannelDuplexer extends Duplexer {
 
     private final ReentrantLock messageEnqueueLock = new ReentrantLock();
 
-    private final EdgeDBBinaryClient client;
+    private final GelBinaryClient client;
 
     private boolean isConnected;
 
@@ -167,7 +167,7 @@ public class ChannelDuplexer extends Duplexer {
         }
     }
 
-    public ChannelDuplexer(EdgeDBBinaryClient client) {
+    public ChannelDuplexer(GelBinaryClient client) {
         this.client = client;
         this.messageQueue = new ArrayDeque<>();
         this.readPromises = new ArrayDeque<>();
@@ -270,7 +270,7 @@ public class ChannelDuplexer extends Duplexer {
         }), e -> {
             logger.debug("Caught failed send attempt");
 
-            if(e instanceof EdgeDBException && ((EdgeDBException)e).shouldRetry && !((EdgeDBException)e).shouldReconnect) {
+            if(e instanceof GelException && ((GelException)e).shouldRetry && !((GelException)e).shouldReconnect) {
                 logger.debug(
                         "Retrying send attempt based off of exception {}. attempt: {}/{}",
                         e.getClass().getSimpleName(), attempts.get() + 1, client.getConfig().getMaxConnectionRetries()
@@ -317,7 +317,7 @@ public class ChannelDuplexer extends Duplexer {
             logger.debug("Invoking duplex consumer, ID: {}, Message: {}", id, packet.getMessageType());
             try {
                 return func.process(new DuplexResult(packet, promise));
-            } catch (EdgeDBException | OperationNotSupportedException e) {
+            } catch (GelException | OperationNotSupportedException e) {
                 return CompletableFuture.failedFuture(e);
             }
         }).thenCompose(v -> {
