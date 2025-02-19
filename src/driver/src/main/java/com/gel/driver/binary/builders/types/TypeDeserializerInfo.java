@@ -29,7 +29,7 @@ public class TypeDeserializerInfo<T> {
     public final TypeDeserializerFactory<T> factory;
 
     private final Class<T> type;
-    private final @Nullable GelType edgeDBTypeAnno;
+    private final @Nullable GelType gelTypeAnno;
 
     // lazy fields, use getter methods
     private List<FieldInfo> fields;
@@ -45,7 +45,7 @@ public class TypeDeserializerInfo<T> {
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.type = type;
-        this.edgeDBTypeAnno = type.getAnnotation(GelType.class);
+        this.gelTypeAnno = type.getAnnotation(GelType.class);
         this.children = new HashMap<>();
 
         try {
@@ -59,7 +59,7 @@ public class TypeDeserializerInfo<T> {
     public TypeDeserializerInfo(Class<T> cls, TypeDeserializerFactory<T> factory) {
         this.type = cls;
         this.factory = factory;
-        this.edgeDBTypeAnno = type.getAnnotation(GelType.class);
+        this.gelTypeAnno = type.getAnnotation(GelType.class);
         this.constructorNamingMap = new HashMap<>();
         this.fieldNamingMap = new HashMap<>();
         this.children = new HashMap<>();
@@ -161,11 +161,11 @@ public class TypeDeserializerInfo<T> {
     }
 
     public @Nullable String getModuleName() {
-        if(this.edgeDBTypeAnno == null) {
+        if(this.gelTypeAnno == null) {
             return null;
         }
 
-        var module = this.edgeDBTypeAnno.module();
+        var module = this.gelTypeAnno.module();
 
         if(StringsUtil.isNullOrEmpty(module) || module.equals("[UNASSIGNED]")) {
             return null;
@@ -329,7 +329,7 @@ public class TypeDeserializerInfo<T> {
     }
 
     public static class FieldInfo {
-        public final GelName edgedbNameAnno;
+        public final GelName gelNameAnno;
         public final @NotNull Class<?> fieldType;
         public final @NotNull Field field;
         private final @Nullable Method setMethod;
@@ -340,7 +340,7 @@ public class TypeDeserializerInfo<T> {
             this.field = field;
             this.fieldType = field.getType();
 
-            this.edgedbNameAnno = field.getAnnotation(GelName.class);
+            this.gelNameAnno = field.getAnnotation(GelName.class);
 
             // if there's a set method that isn't ignored, with the same type, use it.
             var setMethod = setters.get(field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1));

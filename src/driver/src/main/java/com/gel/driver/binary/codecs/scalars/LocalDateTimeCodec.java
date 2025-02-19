@@ -23,12 +23,12 @@ public final class LocalDateTimeCodec extends ScalarCodecBase<LocalDateTime> {
     @Override
     public void serialize(@NotNull PacketWriter writer, @Nullable LocalDateTime value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
-            writer.write(ChronoUnit.MICROS.between(TemporalUtils.EDGEDB_EPOC_LOCAL, value));
+            writer.write(ChronoUnit.MICROS.between(TemporalUtils.GEL_EPOC_LOCAL, value));
         }
     }
 
     @Override
     public @NotNull LocalDateTime deserialize(@NotNull PacketReader reader, CodecContext context) {
-        return TemporalUtils.EDGEDB_EPOC_LOCAL.plus(reader.readInt64(), ChronoUnit.MICROS);
+        return TemporalUtils.GEL_EPOC_LOCAL.plus(reader.readInt64(), ChronoUnit.MICROS);
     }
 }

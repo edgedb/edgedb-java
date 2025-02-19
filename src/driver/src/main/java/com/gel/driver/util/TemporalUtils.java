@@ -10,7 +10,7 @@ import java.time.temporal.Temporal;
 import java.util.function.Function;
 
 public final class TemporalUtils {
-    public static final ZonedDateTime EDGEDB_EPOC = ZonedDateTime.of(
+    public static final ZonedDateTime GEL_EPOC = ZonedDateTime.of(
             2000,
             1,
             1,
@@ -20,7 +20,7 @@ public final class TemporalUtils {
             0,
             ZoneId.of("UTC"));
 
-    public static final LocalDateTime EDGEDB_EPOC_LOCAL = LocalDateTime.of(
+    public static final LocalDateTime GEL_EPOC_LOCAL = LocalDateTime.of(
             2000,
             1,
             1,
@@ -39,10 +39,10 @@ public final class TemporalUtils {
     // relative_duration -> Duration|Period
 
     public static long toMicrosecondsSinceEpoc(Temporal temporal) {
-        return ChronoUnit.MICROS.between(EDGEDB_EPOC, temporal);
+        return ChronoUnit.MICROS.between(GEL_EPOC, temporal);
     }
 
     public static <T extends Temporal> T fromMicrosecondsSinceEpoc(long micros, @NotNull Function<ZonedDateTime, T> mapper) {
-        return mapper.apply(EDGEDB_EPOC.plus(micros, ChronoUnit.MICROS));
+        return mapper.apply(GEL_EPOC.plus(micros, ChronoUnit.MICROS));
     }
 }

@@ -1742,7 +1742,7 @@ public class GelConnection implements Cloneable {
      */
     @Override
     public @NotNull String toString() {
-        var sb = new StringBuilder("edgedb://");
+        var sb = new StringBuilder("gel://");
 
         this.getUsername();
         sb.append(this.getUsername());

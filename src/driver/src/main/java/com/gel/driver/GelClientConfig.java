@@ -308,21 +308,21 @@ public class GelClientConfig {
          * @return A {@linkplain GelClientConfig} that represents the current builder.
          */
         public @NotNull GelClientConfig build() {
-            GelClientConfig edgeDBClientConfig = new GelClientConfig();
-            edgeDBClientConfig.clientType = this.clientType;
-            edgeDBClientConfig.implicitLimit = this.implicitLimit;
-            edgeDBClientConfig.explicitObjectIds = this.explicitObjectIds;
-            edgeDBClientConfig.messageTimeoutUnit = this.messageTimeoutUnit;
-            edgeDBClientConfig.maxConnectionRetries = this.maxConnectionRetries;
-            edgeDBClientConfig.clientMaxAge = this.clientMaxAge;
-            edgeDBClientConfig.poolSize = this.poolSize;
-            edgeDBClientConfig.useFieldSetters = this.useFieldSetters;
-            edgeDBClientConfig.namingStrategy = this.namingStrategy;
-            edgeDBClientConfig.clientAvailability = this.clientAvailability;
-            edgeDBClientConfig.implicitTypeIds = this.implicitTypeIds;
-            edgeDBClientConfig.retryMode = this.retryMode;
-            edgeDBClientConfig.messageTimeout = this.messageTimeout;
-            return edgeDBClientConfig;
+            GelClientConfig gelClientConfig = new GelClientConfig();
+            gelClientConfig.clientType = this.clientType;
+            gelClientConfig.implicitLimit = this.implicitLimit;
+            gelClientConfig.explicitObjectIds = this.explicitObjectIds;
+            gelClientConfig.messageTimeoutUnit = this.messageTimeoutUnit;
+            gelClientConfig.maxConnectionRetries = this.maxConnectionRetries;
+            gelClientConfig.clientMaxAge = this.clientMaxAge;
+            gelClientConfig.poolSize = this.poolSize;
+            gelClientConfig.useFieldSetters = this.useFieldSetters;
+            gelClientConfig.namingStrategy = this.namingStrategy;
+            gelClientConfig.clientAvailability = this.clientAvailability;
+            gelClientConfig.implicitTypeIds = this.implicitTypeIds;
+            gelClientConfig.retryMode = this.retryMode;
+            gelClientConfig.messageTimeout = this.messageTimeout;
+            return gelClientConfig;
         }
     }
 }
