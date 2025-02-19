@@ -1,6 +1,6 @@
 package shared.json;
 
-import com.edgedb.driver.datatypes.Range;
+import com.gel.driver.datatypes.Range;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;

@@ -3,10 +3,10 @@
 <div align="center">
   <h1>☕ The official Java/JVM client library for EdgeDB ☕</h1>
 
-  <a href="https://github.com/edgedb/edgedb-java/actions" rel="nofollow">
-    <img src="https://github.com/edgedb/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
+  <a href="https://github.com.gel/edgedb-java/actions" rel="nofollow">
+    <img src="https://github.com.gel/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
   </a>
-  <a href="https://github.com/edgedb/edgedb/blob/master/LICENSE">
+  <a href="https://github.com.gel/edgedb/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-Apache%202.0-blue" />
   </a>
   <a href="https://discord.gg/edgedb">
@@ -20,13 +20,13 @@ The Java binding is distrubuted via maven central:
 
 #### Gradle
 ```groovy
-implementation 'com.edgedb:driver:0.3.0'
+implementation 'com.gel:driver:0.3.0'
 ```
 
 #### Maven
 ```xml
 <dependency>
-  <groupId>com.edgedb</groupId>
+  <groupId>com.gel</groupId>
   <artifactId>driver</artifactId>
   <version>0.3.0</version>
 </dependency>
@@ -36,7 +36,7 @@ implementation 'com.edgedb:driver:0.3.0'
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.edgedb" % "driver" % "0.3.0"
+  "com.gel" % "driver" % "0.3.0"
 )
 ```
 
@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
 The `GelClientPool` class contains all the methods necessary to interact with the EdgeDB database.
 
 ```java
-import com.edgedb.driver.GelClientPool;
+import com.gel.driver.GelClientPool;
 
 void main() {
     var clientPool = new GelClientPool();
@@ -59,7 +59,7 @@ The `GelClientPool` uses `CompletionStage` for asynchronous operations, allowing
 to integrate it with your favorite asynchronous frameworks
 
 ```java
-import com.edgedb.driver.GelClientPool;
+import com.gel.driver.GelClientPool;
 import reactor.core.publisher.Mono;
 
 void main() {
@@ -75,7 +75,7 @@ This also means it plays nicely with other JVM language that support asynchronou
 
 ```kotlin
 
-import com.edgedb.driver.GelClientPool
+import com.gel.driver.GelClientPool
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 
@@ -92,7 +92,7 @@ fun main() {
 
 ```scala
 
-import com.edgedb.driver.GelClientPool
+import com.gel.driver.GelClientPool
 import scala.jdk.FutureConverters.*
 
 object Main extends App {

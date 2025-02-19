@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group 'com.edgedb.testgen'
+group 'com.gel.testgen'
 version '1.0-SNAPSHOT'
 
 repositories {

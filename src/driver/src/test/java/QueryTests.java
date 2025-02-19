@@ -1,8 +1,8 @@
-import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.GelLinkType;
-import com.edgedb.driver.annotations.GelType;
-import com.edgedb.driver.datatypes.MultiRange;
-import com.edgedb.driver.datatypes.Range;
+import com.gel.driver.GelClientPool;
+import com.gel.driver.annotations.GelLinkType;
+import com.gel.driver.annotations.GelType;
+import com.gel.driver.datatypes.MultiRange;
+import com.gel.driver.datatypes.Range;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

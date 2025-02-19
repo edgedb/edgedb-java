@@ -8,7 +8,7 @@ ext {
     project_version = '0.3.1-SNAPSHOT'
     github_org = 'edgedb'
     project_name = 'edgedb-java'
-    artifact_group = 'com.edgedb'
+    artifact_group = 'com.gel'
     project_description = 'Java binding for the EdgeDB database'
     project_url = "https://edgedb.com"
     project_jdk = '11'
@@ -103,7 +103,7 @@ allprojects {
 }
 
 subprojects {
-    archivesBaseName = "com.edgedb.$project.name"
+    archivesBaseName = "com.gel.$project.name"
 
     tasks.withType(Javadoc).configureEach {
         title = "$archivesBaseName ${version} API"

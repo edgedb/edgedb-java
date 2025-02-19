@@ -1,5 +1,5 @@
-import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.exceptions.GelException;
+import com.gel.driver.GelClientPool;
+import com.gel.driver.exceptions.GelException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

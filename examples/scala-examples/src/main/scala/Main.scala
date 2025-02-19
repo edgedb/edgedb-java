@@ -1,7 +1,7 @@
-package com.edgedb.examples
+package com.gel.examples
 
-import com.edgedb.driver.namingstrategies.NamingStrategy
-import com.edgedb.driver.{GelClientPool, GelClientConfig, Transaction}
+import com.gel.driver.namingstrategies.NamingStrategy
+import com.gel.driver.{GelClientPool, GelClientConfig, Transaction}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.duration.Duration

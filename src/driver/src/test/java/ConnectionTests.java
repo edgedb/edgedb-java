@@ -1,11 +1,11 @@
-import com.edgedb.driver.GelConnection;
-import com.edgedb.driver.TLSSecurityMode;
-import com.edgedb.driver.GelConnection.WaitTime;
-import com.edgedb.driver.abstractions.SystemProvider;
-import com.edgedb.driver.internal.BaseDefaultSystemProvider;
-import com.edgedb.driver.util.ConfigUtils;
-import com.edgedb.driver.util.ConfigUtils.ResolvedField;
-import com.edgedb.driver.exceptions.ConfigurationException;
+import com.gel.driver.GelConnection;
+import com.gel.driver.TLSSecurityMode;
+import com.gel.driver.GelConnection.WaitTime;
+import com.gel.driver.abstractions.SystemProvider;
+import com.gel.driver.internal.BaseDefaultSystemProvider;
+import com.gel.driver.util.ConfigUtils;
+import com.gel.driver.util.ConfigUtils.ResolvedField;
+import com.gel.driver.exceptions.ConfigurationException;
 
 import org.assertj.core.api.Assert;
 import org.jetbrains.annotations.NotNull;

@@ -1,7 +1,7 @@
 package shared.json;
 
-import com.edgedb.driver.state.Config;
-import com.edgedb.driver.state.Session;
+import com.gel.driver.state.Config;
+import com.gel.driver.state.Session;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;

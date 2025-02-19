@@ -1,9 +1,9 @@
 package shared;
 
-import com.edgedb.driver.datatypes.Json;
-import com.edgedb.driver.datatypes.Range;
-import com.edgedb.driver.datatypes.RelativeDuration;
-import com.edgedb.driver.datatypes.Tuple;
+import com.gel.driver.datatypes.Json;
+import com.gel.driver.datatypes.Range;
+import com.gel.driver.datatypes.RelativeDuration;
+import com.gel.driver.datatypes.Tuple;
 import org.assertj.core.util.Lists;
 import org.opentest4j.AssertionFailedError;
 import shared.models.ResultNode;
@@ -276,7 +276,7 @@ public class ResultAsserter {
 
         var type = value.getClass();
 
-        if(type.getPackage().getName().equals("com.edgedb.runtime")) {
+        if(type.getPackage().getName().equals("com.gel.runtime")) {
             return Arrays.stream(type.getFields())
                     .map(v -> {
                         try {

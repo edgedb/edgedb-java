@@ -1,6 +1,6 @@
 package shared.json;
 
-import com.edgedb.driver.datatypes.RelativeDuration;
+import com.gel.driver.datatypes.RelativeDuration;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -1,8 +1,8 @@
-package com.edgedb.examples
+package com.gel.examples
 
-import com.edgedb.driver.GelClientPool
+import com.gel.driver.GelClientPool
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer
-import com.edgedb.driver.state.Config
+import com.gel.driver.state.Config
 import org.slf4j.LoggerFactory
 
 import java.time.Duration

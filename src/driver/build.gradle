@@ -29,13 +29,13 @@ jar {
     manifest {
         attributes 'Implementation-Title': archivesBaseName,
                 'Implementation-Version': archiveVersion,
-                'Automatic-Module-Name': 'com.edgedb.driver'
+                'Automatic-Module-Name': 'com.gel.driver'
     }
 }
 
 def deleteOldJar = tasks.register('deleteOldJarInBin') {
     var path = Paths.get(project.rootDir.toString(), 'examples', 'scala-examples', 'lib')
-    var paths = path.toFile().listFiles((FileFilter) { File f -> f.name.startsWith('com.edgedb.driver') })
+    var paths = path.toFile().listFiles((FileFilter) { File f -> f.name.startsWith('com.gel.driver') })
     delete files(paths)
 }
 
@@ -69,14 +69,14 @@ publishing {
             pom {
                 name = 'EdgeDB Java'
                 description = 'A JVM-based binding for the EdgeDB database'
-                url = 'https://github.com/edgedb/edgedb-java'
+                url = 'https://github.com.gel/edgedb-java'
                 organization {
                     name = 'EdgeDB'
                     url = 'https://edgedb.com'
                 }
                 issueManagement {
                     system = 'GitHub'
-                    url = 'https://github.com/edgedb/edgedb-java/issues'
+                    url = 'https://github.com.gel/edgedb-java/issues'
                 }
                 licenses {
                     license {
@@ -86,9 +86,9 @@ publishing {
                     }
                 }
                 scm {
-                    url = 'https://github.com/edgedb/edgedb-java'
-                    connection = 'scm:git:git://github.com/edgedb/edgedb-java.git'
-                    developerConnection = 'scm:git:ssh://git@github.com:edgedb/edgedb-java.git'
+                    url = 'https://github.com.gel/edgedb-java'
+                    connection = 'scm:git:git://github.com.gel/edgedb-java.git'
+                    developerConnection = 'scm:git:ssh://git@github.com.gel/edgedb-java.git'
                 }
                 developers {
                     developer {

@@ -1,10 +1,10 @@
-module com.edgedb.driver {
-    exports com.edgedb.driver;
-    exports com.edgedb.driver.datatypes;
-    exports com.edgedb.driver.exceptions;
-    exports com.edgedb.driver.namingstrategies;
-    exports com.edgedb.driver.annotations;
-    exports com.edgedb.driver.state;
+module com.gel.driver {
+    exports com.gel.driver;
+    exports com.gel.driver.datatypes;
+    exports com.gel.driver.exceptions;
+    exports com.gel.driver.namingstrategies;
+    exports com.gel.driver.annotations;
+    exports com.gel.driver.state;
 
     requires org.jetbrains.annotations;
     requires com.fasterxml.jackson.core;
@@ -20,5 +20,5 @@ module com.edgedb.driver {
     requires org.reflections;
     requires java.net.http;
 
-    opens com.edgedb.driver;
+    opens com.gel.driver;
 }

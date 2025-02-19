@@ -1,5 +1,5 @@
-import com.edgedb.driver.exceptions.ScramException;
-import com.edgedb.driver.util.Scram;
+import com.gel.driver.exceptions.ScramException;
+import com.gel.driver.util.Scram;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;

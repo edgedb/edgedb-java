@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.0-Beta'
 }
 
-group 'com.edgedb'
+group 'com.gel'
 version '0.0.1-SNAPSHOT'
 
 repositories {

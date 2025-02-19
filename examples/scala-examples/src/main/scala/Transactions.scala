@@ -1,5 +1,5 @@
-package com.edgedb.examples
-import com.edgedb.driver.{GelClientPool, Transaction}
+package com.gel.examples
+import com.gel.driver.{GelClientPool, Transaction}
 import org.slf4j.LoggerFactory
 import scala.jdk.FutureConverters.*
 
