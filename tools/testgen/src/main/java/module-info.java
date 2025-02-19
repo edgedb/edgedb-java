@@ -1,7 +1,7 @@
-module com.edgedb.testgen {
+module com.gel.testgen {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
-    requires com.edgedb.driver;
+    requires com.gel.driver;
 
-    exports com.edgedb.testgen to com.fasterxml.jackson.databind;
+    exports com.gel.testgen to com.fasterxml.jackson.databind;
 }

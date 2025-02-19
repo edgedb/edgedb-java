@@ -1,6 +1,6 @@
-package com.edgedb.examples
-import com.edgedb.driver.GelClientPool
-import com.edgedb.driver.annotations.{GelLinkType, GelType}
+package com.gel.examples
+import com.gel.driver.GelClientPool
+import com.gel.driver.annotations.{GelLinkType, GelType}
 import org.slf4j.LoggerFactory
 
 import java.util

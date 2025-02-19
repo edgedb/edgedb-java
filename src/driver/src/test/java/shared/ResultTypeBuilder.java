@@ -1,12 +1,12 @@
 package shared;
 
-import com.edgedb.driver.annotations.GelLinkType;
-import com.edgedb.driver.annotations.GelType;
-import com.edgedb.driver.datatypes.Json;
-import com.edgedb.driver.datatypes.Range;
-import com.edgedb.driver.datatypes.RelativeDuration;
-import com.edgedb.driver.datatypes.Tuple;
-import com.edgedb.driver.util.StringsUtil;
+import com.gel.driver.annotations.GelLinkType;
+import com.gel.driver.annotations.GelType;
+import com.gel.driver.datatypes.Json;
+import com.gel.driver.datatypes.Range;
+import com.gel.driver.datatypes.RelativeDuration;
+import com.gel.driver.datatypes.Tuple;
+import com.gel.driver.util.StringsUtil;
 import org.burningwave.core.assembler.ComponentContainer;
 import org.burningwave.core.classes.*;
 import org.jetbrains.annotations.Nullable;
@@ -335,14 +335,14 @@ public class ResultTypeBuilder {
                 classDef.addField(field);
             }
 
-            var sg = UnitSourceGenerator.create("com.edgedb.runtime").addClass(classDef);
+            var sg = UnitSourceGenerator.create("com.gel.runtime").addClass(classDef);
 
             var componentSupplier = ComponentContainer.getInstance();
             var classFactory = componentSupplier.getClassFactory();
 
 
             //noinspection resource
-            results.add(new TypeInfo(classFactory.loadOrBuildAndDefine(sg).get("com.edgedb.runtime." + typename)));
+            results.add(new TypeInfo(classFactory.loadOrBuildAndDefine(sg).get("com.gel.runtime." + typename)));
 
             if(count.decrementAndGet() <= 0) {
                 return results;

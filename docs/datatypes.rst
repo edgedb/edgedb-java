@@ -13,7 +13,7 @@ The Java binding maps the following EdgeDB types to corresponding JVM types:
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`array`                  | ``T[]``                                                 |
 +------------------------------------+---------------------------------------------------------+
-| :eql:type:`anytuple`               | ``com.edgedb.driver.datatypes.Tuple``                   |
+| :eql:type:`anytuple`               | ``com.gel.driver.datatypes.Tuple``                      |
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`anyenum`                | ``enum``                                                |
 +------------------------------------+---------------------------------------------------------+
@@ -31,7 +31,7 @@ The Java binding maps the following EdgeDB types to corresponding JVM types:
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`cal::local_datetime`    | ``java.time.LocalDateTime``                             |
 +------------------------------------+---------------------------------------------------------+
-| :eql:type:`cal::relative_duration` | ``com.edgedb.driver.datatypes.RelativeDuration`` [#f1]_ |
+| :eql:type:`cal::relative_duration` | ``com.gel.driver.datatypes.RelativeDuration`` [#f1]_    |
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`datetime`               | ``java.time.OffsetDateTime`` [#f2]_                     |
 +------------------------------------+---------------------------------------------------------+
@@ -51,11 +51,11 @@ The Java binding maps the following EdgeDB types to corresponding JVM types:
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`decimal`                | ``java.math.BigDecimal``                                |
 +------------------------------------+---------------------------------------------------------+
-| :eql:type:`json`                   | ``com.edgedb.driver.datatypes.Json``                    |
+| :eql:type:`json`                   | ``com.gel.driver.datatypes.Json``                       |
 +------------------------------------+---------------------------------------------------------+
 | :eql:type:`uuid`                   | ``UUID``                                                |
 +------------------------------------+---------------------------------------------------------+
-| :eql:func:`range`                  | ``com.edgedb.driver.datatypes.Range``                   |
+| :eql:func:`range`                  | ``com.gel.driver.datatypes.Range``                      |
 +------------------------------------+---------------------------------------------------------+
 
 .. [#f1] ``Period`` and ``Duration`` are implicitly 

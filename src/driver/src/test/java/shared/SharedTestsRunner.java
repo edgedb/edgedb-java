@@ -1,16 +1,16 @@
 package shared;
 
-import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.GelClientConfig;
-import com.edgedb.driver.binary.builders.ObjectBuilder;
-import com.edgedb.driver.binary.codecs.Codec;
-import com.edgedb.driver.binary.protocol.QueryParameters;
-import com.edgedb.driver.binary.protocol.common.Cardinality;
-import com.edgedb.driver.binary.protocol.common.IOFormat;
-import com.edgedb.driver.clients.BaseGelClient;
-import com.edgedb.driver.clients.GelBinaryClient;
-import com.edgedb.driver.datatypes.RelativeDuration;
-import com.edgedb.driver.exceptions.GelException;
+import com.gel.driver.GelClientPool;
+import com.gel.driver.GelClientConfig;
+import com.gel.driver.binary.builders.ObjectBuilder;
+import com.gel.driver.binary.codecs.Codec;
+import com.gel.driver.binary.protocol.QueryParameters;
+import com.gel.driver.binary.protocol.common.Cardinality;
+import com.gel.driver.binary.protocol.common.IOFormat;
+import com.gel.driver.clients.BaseGelClient;
+import com.gel.driver.clients.GelBinaryClient;
+import com.gel.driver.datatypes.RelativeDuration;
+import com.gel.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

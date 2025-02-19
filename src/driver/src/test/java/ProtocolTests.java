@@ -1,6 +1,6 @@
-import com.edgedb.driver.GelClientPool;
-import com.edgedb.driver.annotations.GelType;
-import com.edgedb.driver.exceptions.GelException;
+import com.gel.driver.GelClientPool;
+import com.gel.driver.annotations.GelType;
+import com.gel.driver.exceptions.GelException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class ProtocolTests {
     }
 
     /**
-     * The goal is to test the contract logic in {@linkplain com.edgedb.driver.binary.PacketSerializer}, specifically
+     * The goal is to test the contract logic in {@linkplain com.gel.driver.binary.PacketSerializer}, specifically
      * the decoder returned from the <b>createDecoder</b> function. To achieve this, we can query something that
      * returns either multiple data packets amounting up to >16k bytes, or a single data packet that is >16k bytes.
      */
