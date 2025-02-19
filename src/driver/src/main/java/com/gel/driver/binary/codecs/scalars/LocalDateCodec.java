@@ -22,7 +22,7 @@ public final class LocalDateCodec extends ScalarCodecBase<LocalDate> {
     @Override
     public void serialize(@NotNull PacketWriter writer, @Nullable LocalDate value, CodecContext context) throws OperationNotSupportedException {
         if(value != null) {
-            var days = ChronoUnit.DAYS.between(TemporalUtils.EDGEDB_EPOC_LOCAL.toLocalDate(), value);
+            var days = ChronoUnit.DAYS.between(TemporalUtils.GEL_EPOC_LOCAL.toLocalDate(), value);
 
             if(days > Integer.MAX_VALUE || days < Integer.MIN_VALUE) {
                 throw new IllegalArgumentException(String.format("value exceeds the day range of %d..%d", Integer.MIN_VALUE, Integer.MAX_VALUE));
@@ -34,6 +34,6 @@ public final class LocalDateCodec extends ScalarCodecBase<LocalDate> {
 
     @Override
     public LocalDate deserialize(@NotNull PacketReader reader, CodecContext context) {
-        return TemporalUtils.EDGEDB_EPOC_LOCAL.plusDays(reader.readInt32()).toLocalDate();
+        return TemporalUtils.GEL_EPOC_LOCAL.plusDays(reader.readInt32()).toLocalDate();
     }
 }
