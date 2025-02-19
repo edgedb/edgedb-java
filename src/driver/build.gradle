@@ -67,11 +67,11 @@ publishing {
             }
 
             pom {
-                name = 'EdgeDB Java'
-                description = 'A JVM-based binding for the EdgeDB database'
+                name = 'Gel Java'
+                description = 'A JVM-based binding for Gel'
                 url = 'https://github.com.gel/edgedb-java'
                 organization {
-                    name = 'EdgeDB'
+                    name = 'Gel'
                     url = 'https://edgedb.com'
                 }
                 issueManagement {
@@ -92,7 +92,7 @@ publishing {
                 }
                 developers {
                     developer {
-                        name = 'MagicStack Inc. and the EdgeDB authors'
+                        name = 'MagicStack Inc. and the Gel authors'
                     }
                 }
             }

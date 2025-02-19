@@ -1,4 +1,4 @@
-.. _edgedb-java-configuration:
+.. _gel-java-configuration:
 
 =============
 Configuration
@@ -30,7 +30,7 @@ These are the following methods exposed on the configuration builder:
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withConnectionTimeout``    | ``long``, ``TimeUnit``  | The amount of time to wait for a connection to be established.                              |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
-| ``withMessageTimeout``       | ``long, TimeUnit``      | The amount of time to wait for an expected response from EdgeDB.                            |
+| ``withMessageTimeout``       | ``long, TimeUnit``      | The amount of time to wait for an expected response from Gel.                               |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+
 | ``withExplicitObjectIds``    | ``boolean``             | Whether or not the ``id`` property of objects need to be explicitly included in shapes.     |
 +------------------------------+-------------------------+---------------------------------------------------------------------------------------------+

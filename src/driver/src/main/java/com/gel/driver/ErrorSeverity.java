@@ -4,7 +4,7 @@ import com.gel.driver.binary.BinaryEnum;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents the error severity for an error returned by EdgeDB
+ * Represents the error severity for an error returned by Gel
  * @see com.gel.driver.exceptions.GelErrorException
  */
 public enum ErrorSeverity implements BinaryEnum<Byte> {

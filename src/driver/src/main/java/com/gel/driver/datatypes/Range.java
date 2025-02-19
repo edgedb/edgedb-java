@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * A class representing the {@code std::range} type.
  * @param <T> The inner type of the range.
- * @see <a href="https://www.edgedb.com/docs/stdlib/range">EdgeDB range docs</a>
+ * @see <a href="https://www.edgedb.com/docs/stdlib/range">Gel range docs</a>
  */
 public final class Range<T> {
     /**

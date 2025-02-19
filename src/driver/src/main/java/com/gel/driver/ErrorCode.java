@@ -4,7 +4,7 @@ import com.gel.driver.binary.BinaryEnum;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents different possible error codes returned by EdgeDB.
+ * Represents different possible error codes returned by Gel.
  * @see com.gel.driver.exceptions.GelErrorException
  */
 public enum ErrorCode implements BinaryEnum<Integer> {

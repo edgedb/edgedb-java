@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A class containing information on how to connect to a EdgeDB instance.
+ * A class containing information on how to connect to a Gel instance.
  */
 @SuppressWarnings("CloneableClassWithoutClone")
 public class GelConnection implements Cloneable {

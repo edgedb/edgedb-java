@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 /**
- * Represents a generic EdgeDB queryable interface, providing methods to execute queries with cardinality control.
+ * Represents a generic Gel queryable interface, providing methods to execute queries with cardinality control.
  * @see GelClientPool
  */
 public interface GelQueryable {

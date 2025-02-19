@@ -1,8 +1,8 @@
-.. _edgedb-java-intro:
+.. _gel-java-intro:
 
-==============================
-Java client library for EdgeDB
-==============================
+===========================
+Java client library for Gel
+===========================
 
 .. toctree:: 
     :maxdepth: 3
@@ -15,12 +15,12 @@ Java client library for EdgeDB
     transactions
 
 
-This is the official EdgeDB Java client, available to other JVM languages as well.
+This is the official Gel Java client, available to other JVM languages as well.
 
 Quickstart
 ----------
 
-To get started, you will need to setup an EdgeDB project and have an instance
+To get started, you will need to setup an Gel project and have an instance
 created. For more information regarding how to do this, we recommend going
 through the `Quickstart guide <https://www.edgedb.com/docs/intro/quickstart>`_.
 
@@ -43,7 +43,7 @@ project.
         implementation 'com.gel:driver'
 
 Once you have the dependency added, you can start using the client. The
-following is a simple example of how to connect to an EdgeDB instance and
+following is a simple example of how to connect to an Gel instance and
 execute a query:
 
 .. tabs::
@@ -123,7 +123,7 @@ schema type:
             }
         }
         
-Learn more about :ref:`data modeling <edgedb_java_datamodeling>`.
+Learn more about :ref:`data modeling <gel_java_datamodeling>`.
 
 Logging
 -------

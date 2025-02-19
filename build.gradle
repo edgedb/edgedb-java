@@ -9,7 +9,7 @@ ext {
     github_org = 'edgedb'
     project_name = 'edgedb-java'
     artifact_group = 'com.gel'
-    project_description = 'Java binding for the EdgeDB database'
+    project_description = 'Java binding for Gel'
     project_url = "https://edgedb.com"
     project_jdk = '11'
     jdk = JavaVersion.current().majorVersion

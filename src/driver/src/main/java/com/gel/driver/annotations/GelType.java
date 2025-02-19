@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the target type as a type that is represented in EdgeDB.
+ * Marks the target type as a type that is represented in Gel.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})

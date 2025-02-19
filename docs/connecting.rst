@@ -1,4 +1,4 @@
-.. _edgedb_java_connecting:
+.. _gel_java_connecting:
 
 =====================
 Connection Parameters
@@ -56,18 +56,18 @@ This method parses a :ref:`DSN <ref_dsn>` string into an ``GelConnection``.
 .. code-block:: java
 
     var connection = GelConnection
-        .fromDSN("edgedb://user:pass@host:port/db");
+        .fromDSN("gel://user:pass@host:port/db");
 
 fromProjectFile
 ^^^^^^^^^^^^^^^
 
-This method resolves connection arguments from an ``edgedb.toml`` 
+This method resolves connection arguments from a ``gel.toml`` 
 :ref:`project file <ref_intro_projects>`.
 
 .. code-block:: java
 
     var connection = GelConnection
-        .fromProjectFile("~/myproject/edgedb.toml");
+        .fromProjectFile("~/myproject/gel.toml");
 
 fromInstanceName
 ^^^^^^^^^^^^^^^^
@@ -83,7 +83,7 @@ resolveEdgeDBTOML
 ^^^^^^^^^^^^^^^^^
 
 This method is the default behaviour, it scans the current directory for
-a ``edgedb.toml`` project file, if none is found, the parent directory is 
+a ``gel.toml`` project file, if none is found, the parent directory is 
 scanned recursivly until a project file is found; if none is found, a 
 ``FileNotFoundException`` is raised.
 

@@ -1,4 +1,4 @@
-.. _edgedb_java_datamodeling:
+.. _gel_java_datamodeling:
 
 =============
 Data modeling
@@ -10,7 +10,7 @@ Basic representation
 --------------------
 
 You can simply create a class that matches the schema types' properties
-by following the :ref:`scalar type map <edgedb_java_datatypes>`.
+by following the :ref:`scalar type map <gel_java_datatypes>`.
 
 .. tabs::
 
