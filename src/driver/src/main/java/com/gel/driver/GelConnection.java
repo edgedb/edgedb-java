@@ -70,34 +70,9 @@ public class GelConnection implements Cloneable {
             .build();
 
     /**
-     * Constructs a new {@linkplain GelConnection}.
-     *
-     * @param user        The connections' user.
-     * @param password    The connections' password.
-     * @param database    The connections' database name.
-     * @param hostname    The connections' hostname.
-     * @param port        The connections' port.
-     * @param tlsca       The connections' tls certificate authority.
-     * @param tlsSecurity The connections' tls security policy.
-     */
-    public GelConnection(
-            String user, String password, String database,
-            String hostname, Integer port, String tlsca,
-            @Nullable TLSSecurityMode tlsSecurity
-    ) {
-        this.user = user;
-        this.password = password;
-        this.database = database;
-        this.hostname = hostname;
-        this.port = port;
-        this.tlsCertificateAuthority = tlsca;
-        this.tlsSecurity = tlsSecurity;
-    }
-
-    /**
      * Constructs an empty {@linkplain GelConnection}
      */
-    public GelConnection() {
+    private GelConnection() {
     }
 
     //#region Main connection args
@@ -111,24 +86,6 @@ public class GelConnection implements Cloneable {
         return hostname == null ? _defaultHostname : hostname;
     }
 
-    /**
-     * Sets the current connections hostname field.
-     *
-     * @param value The new hostname
-     * @throws ConfigurationException The hostname is invalid
-     */
-    protected void setHostname(@NotNull String value) throws ConfigurationException {
-        if (value.contains("/")) {
-            throw new ConfigurationException("Cannot use UNIX socket for 'Hostname'");
-        }
-
-        if (value.contains(",")) {
-            throw new ConfigurationException("DSN cannot contain more than one host");
-        }
-
-        hostname = value;
-    }
-
     @JsonIgnore
     private @Nullable String hostname;
     private static final String _defaultHostname = "localhost";
@@ -140,15 +97,6 @@ public class GelConnection implements Cloneable {
      */
     public int getPort() {
         return port == null ? _defaultPort : port;
-    }
-
-    /**
-     * Sets the current connections port field.
-     *
-     * @param value The new port.
-     */
-    protected void setPort(int value) {
-        port = value;
     }
 
     @JsonProperty("port")
@@ -170,15 +118,6 @@ public class GelConnection implements Cloneable {
         return _defaultDatabase;
     }
 
-    /**
-     * Sets the current connections database field.
-     *
-     * @param value The new database.
-     */
-    protected void setDatabase(String value) {
-        database = value;
-    }
-
     @JsonProperty("database")
     private @Nullable String database;
     private static final String _defaultDatabase = "edgedb";
@@ -198,15 +137,6 @@ public class GelConnection implements Cloneable {
         return _defaultBranch;
     }
 
-    /**
-     * Sets the current connections branch field.
-     *
-     * @param value The new branch.
-     */
-    protected void setBranch(String value) {
-        branch = value;
-    }
-
     @JsonProperty("branch")
     private @Nullable String branch;
     private static final String _defaultBranch = "__default__";
@@ -218,15 +148,6 @@ public class GelConnection implements Cloneable {
      */
     public @NotNull String getUsername() {
         return user == null ? _defaultUser : user;
-    }
-
-    /**
-     * Sets the current connections username field
-     *
-     * @param value The new username.
-     */
-    protected void setUsername(String value) {
-        user = value;
     }
 
     @JsonProperty("user")
@@ -242,15 +163,6 @@ public class GelConnection implements Cloneable {
         return password == null ? _defaultPassword : password;
     }
 
-    /**
-     * Sets the current connections password field.
-     *
-     * @param value The new password.
-     */
-    protected void setPassword(String value) {
-        password = value;
-    }
-
     @JsonProperty("password")
     private @Nullable String password;
     private static final String _defaultPassword = "";
@@ -264,15 +176,6 @@ public class GelConnection implements Cloneable {
         return this.secretKey;
     }
 
-    /**
-     * Sets the secret key used to authenticate with cloud instances.
-     *
-     * @param secretKey The secret key for cloud authentication.
-     */
-    protected void setSecretKey(@Nullable String secretKey) {
-        this.secretKey = secretKey;
-    }
-
     @JsonIgnore
     private @Nullable String secretKey;
 
@@ -283,15 +186,6 @@ public class GelConnection implements Cloneable {
      */
     public @Nullable String getTLSCertificateAuthority() {
         return tlsCertificateAuthority;
-    }
-
-    /**
-     * Sets the current connections TLS certificate authority.
-     *
-     * @param value The new TLS certificate authority.
-     */
-    protected void setTLSCertificateAuthority(String value) {
-        tlsCertificateAuthority = value;
     }
 
     @JsonProperty("tls_ca")
@@ -309,16 +203,6 @@ public class GelConnection implements Cloneable {
             : tlsSecurity == TLSSecurityMode.DEFAULT
             ? _defaultTlsSecurity
             : this.tlsSecurity;
-    }
-
-    /**
-     * Sets the current connections TLS security mode.
-     *
-     * @param value The new TLS security mode.
-     * @see TLSSecurityMode
-     */
-    protected void setTLSSecurity(TLSSecurityMode value) {
-        tlsSecurity = value;
     }
 
     @JsonProperty("tls_security")
@@ -347,15 +231,6 @@ public class GelConnection implements Cloneable {
         return waitUntilAvailable == null ? _defaultWaitUntilAvailable : waitUntilAvailable;
     }
 
-    /**
-     * Sets the time a client will wait for a connection to be established with the server.
-     *
-     * @param value The time to wait.
-     */
-    protected void setWaitUntilAvailable(WaitTime waitUntilAvailable) {
-        this.waitUntilAvailable = waitUntilAvailable;
-    }
-
     private @Nullable WaitTime waitUntilAvailable;
     private static final @NotNull WaitTime _defaultWaitUntilAvailable = new WaitTime(30l, TimeUnit.SECONDS);
 
@@ -366,15 +241,6 @@ public class GelConnection implements Cloneable {
      */
     public @Nullable String getCloudProfile() {
         return this.cloudProfile == null ? "default" : this.cloudProfile;
-    }
-
-    /**
-     * Sets the name of the cloud profile to use to resolve the secret key.
-     *
-     * @param cloudProfile The name of the cloud profile.
-     */
-    protected void setCloudProfile(@Nullable String cloudProfile) {
-        this.cloudProfile = cloudProfile;
     }
 
     @JsonIgnore
@@ -508,7 +374,7 @@ public class GelConnection implements Cloneable {
          * @param port The new port.
          * @return The current builder.
          */
-        public @NotNull Builder withPort(@NotNull Integer port) {
+        public @NotNull Builder withPort(@NotNull int port) {
             this.port = port;
             return this;
         }
@@ -516,9 +382,12 @@ public class GelConnection implements Cloneable {
         /**
          * Sets the connections' database.
          *
+         * @deprecated in Gel.Net >=2.0 in favor of branch.
+         *
          * @param database The new database.
          * @return The current builder.
          */
+        @Deprecated
         public @NotNull Builder withDatabase(@NotNull String database) {
             this.database = database;
             return this;

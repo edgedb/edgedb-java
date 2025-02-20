@@ -69,7 +69,10 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool(GelConnection connection, @NotNull GelClientConfig config) throws ConfigurationException {
+    public GelClientPool(
+        @NotNull GelConnection connection,
+        @NotNull GelClientConfig config
+    ) throws ConfigurationException {
         this.clients = new ConcurrentLinkedQueue<>();
         this.config = config;
         this.connection = connection;
@@ -84,7 +87,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
      * @param connection The connection parameters used to connect this client to Gel.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
-    public GelClientPool(GelConnection connection) throws GelException {
+    public GelClientPool(@NotNull GelConnection connection) throws GelException {
         this(connection, GelClientConfig.DEFAULT);
     }
 
