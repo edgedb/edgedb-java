@@ -69,14 +69,14 @@ publishing {
             pom {
                 name = 'Gel Java'
                 description = 'A JVM-based binding for Gel'
-                url = 'https://github.com.gel/edgedb-java'
+                url = 'https://github.com/gel/edgedb-java'
                 organization {
                     name = 'Gel'
                     url = 'https://edgedb.com'
                 }
                 issueManagement {
                     system = 'GitHub'
-                    url = 'https://github.com.gel/edgedb-java/issues'
+                    url = 'https://github.com/gel/edgedb-java/issues'
                 }
                 licenses {
                     license {
@@ -86,9 +86,9 @@ publishing {
                     }
                 }
                 scm {
-                    url = 'https://github.com.gel/edgedb-java'
-                    connection = 'scm:git:git://github.com.gel/edgedb-java.git'
-                    developerConnection = 'scm:git:ssh://git@github.com.gel/edgedb-java.git'
+                    url = 'https://github.com/gel/edgedb-java'
+                    connection = 'scm:git:git://github.com/gel/edgedb-java.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/gel/edgedb-java.git'
                 }
                 developers {
                     developer {

@@ -3,10 +3,10 @@
 <div align="center">
   <h1>☕ The official Java/JVM client library for Gel ☕</h1>
 
-  <a href="https://github.com.gel/edgedb-java/actions" rel="nofollow">
-    <img src="https://github.com.gel/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
+  <a href="https://github.com/gel/edgedb-java/actions" rel="nofollow">
+    <img src="https://github.com/gel/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
   </a>
-  <a href="https://github.com.gel/edgedb/blob/master/LICENSE">
+  <a href="https://github.com/gel/edgedb/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-Apache%202.0-blue" />
   </a>
   <a href="https://discord.gg/edgedb">
