@@ -11,7 +11,7 @@ public class GelException extends Exception {
      * Constructs a new {@linkplain GelException}.
      * @param shouldRetry Whether the binding should retry the current operation, following the configuration rules
      *                    of retryable errors.
-     * @param shouldReconnect Whether the binding should clear its state and reconnect to EdgeDB.
+     * @param shouldReconnect Whether the binding should clear its state and reconnect to Gel.
      */
     public GelException(boolean shouldRetry, boolean shouldReconnect) {
         this.shouldRetry = shouldRetry;
@@ -23,7 +23,7 @@ public class GelException extends Exception {
      * @param message The error message describing why this exception was thrown.
      * @param shouldRetry Whether the binding should retry the current operation, following the configuration rules
      *                    of retryable errors.
-     * @param shouldReconnect Whether the binding should clear its state and reconnect to EdgeDB.
+     * @param shouldReconnect Whether the binding should clear its state and reconnect to Gel.
      */
     public GelException(String message, boolean shouldRetry, boolean shouldReconnect) {
         super(message);
@@ -38,7 +38,7 @@ public class GelException extends Exception {
      * @param inner The inner cause of this exception.
      * @param shouldRetry Whether the binding should retry the current operation, following the configuration rules
      *                    of retryable errors.
-     * @param shouldReconnect Whether the binding should clear its state and reconnect to EdgeDB.
+     * @param shouldReconnect Whether the binding should clear its state and reconnect to Gel.
      */
     public GelException(String message, Throwable inner, boolean shouldRetry, boolean shouldReconnect) {
         super(message, inner);

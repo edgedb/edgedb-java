@@ -1,7 +1,7 @@
 package com.gel.driver;
 
 /**
- * An enum that specifies retry behavior for retryable errors when connecting to EdgeDB.
+ * An enum that specifies retry behavior for retryable errors when connecting to Gel.
  */
 public enum ConnectionRetryMode {
     /**

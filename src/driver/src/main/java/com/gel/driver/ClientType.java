@@ -5,12 +5,12 @@ package com.gel.driver;
  */
 public enum ClientType {
     /**
-     * A TCP client using the EdgeDB Binary protocol.
+     * A TCP client using the Gel Binary protocol.
      */
     TCP,
 
     /**
-     * An HTTP client using the EdgeDB Binary protocol.
+     * An HTTP client using the Gel Binary protocol.
      */
     HTTP
 }

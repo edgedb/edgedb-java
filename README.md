@@ -1,7 +1,7 @@
-![EdgeDB Java](./branding/banner.png)
+![Gel Java](./branding/banner.png)
 
 <div align="center">
-  <h1>☕ The official Java/JVM client library for EdgeDB ☕</h1>
+  <h1>☕ The official Java/JVM client library for Gel ☕</h1>
 
   <a href="https://github.com.gel/edgedb-java/actions" rel="nofollow">
     <img src="https://github.com.gel/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
 
 ## Usage
 
-The `GelClientPool` class contains all the methods necessary to interact with the EdgeDB database.
+The `GelClientPool` class contains all the methods necessary to interact with the Gel database.
 
 ```java
 import com.gel.driver.GelClientPool;

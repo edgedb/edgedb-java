@@ -1,4 +1,4 @@
-rootProject.name = 'edgedb-java'
+rootProject.name = 'gel-java'
 include 'src:driver'
 include 'tools'
 include 'tools:testgen'

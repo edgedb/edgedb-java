@@ -1,13 +1,13 @@
-.. _edgedb_java_datatypes:
+.. _gel_java_datatypes:
 
 =========
 Datatypes
 =========
 
-The Java binding maps the following EdgeDB types to corresponding JVM types:
+The Java binding maps the following Gel types to corresponding JVM types:
 
 +------------------------------------+---------------------------------------------------------+
-| EdgeDB Type                        | JVM Type                                                |
+| Gel Type                           | JVM Type                                                |
 +====================================+=========================================================+
 | ``Set``                            | ``Collection<T>``                                       |
 +------------------------------------+---------------------------------------------------------+

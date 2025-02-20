@@ -31,7 +31,7 @@ import java.util.function.Function;
 import static com.gel.driver.util.ComposableUtil.composeWith;
 
 /**
- * Represents a client pool used to interact with EdgeDB.
+ * Represents a client pool used to interact with Gel.
  */
 public final class GelClientPool implements StatefulClient, GelQueryable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(GelClientPool.class);
@@ -65,7 +65,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
 
     /**
      * Constructs a new {@linkplain GelClientPool}.
-     * @param connection The connection parameters used to connect this client to EdgeDB.
+     * @param connection The connection parameters used to connect this client to Gel.
      * @param config The configuration for this client.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
@@ -81,7 +81,7 @@ public final class GelClientPool implements StatefulClient, GelQueryable, AutoCl
 
     /**
      * Constructs a new {@linkplain GelClientPool}.
-     * @param connection The connection parameters used to connect this client to EdgeDB.
+     * @param connection The connection parameters used to connect this client to Gel.
      * @throws ConfigurationException A configuration parameter is invalid.
      */
     public GelClientPool(GelConnection connection) throws GelException {

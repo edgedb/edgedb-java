@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
- * Represents the {@code multirange} type in EdgeDB
+ * Represents the {@code multirange} type in Gel
  * @param <T> The inner type of the multirange.
  */
 @SuppressWarnings("unchecked")

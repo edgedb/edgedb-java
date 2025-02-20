@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Represents an exception that was caused by an error from EdgeDB.
+ * Represents an exception that was caused by an error from Gel.
  */
 public class GelErrorException extends GelException {
     private static final short DETAILS_ATTRIBUTE = 0x0002;
@@ -29,7 +29,7 @@ public class GelErrorException extends GelException {
 
     /**
      * Constructs a new {@linkplain GelErrorException}.
-     * @param attributes The attributes of the error, received by EdgeDB.
+     * @param attributes The attributes of the error, received by Gel.
      * @param message The error message.
      * @param errorCode The error code.
      * @param query The optional query that caused this error.
@@ -45,7 +45,7 @@ public class GelErrorException extends GelException {
 
     /**
      * Gets the error message of this exception.
-     * @return The error message returned from EdgeDB.
+     * @return The error message returned from Gel.
      */
     public String getErrorMessage() {
         return this.message;
@@ -53,7 +53,7 @@ public class GelErrorException extends GelException {
 
     /**
      * Gets the error code of this exception.
-     * @return The error code returned by EdgeDB.
+     * @return The error code returned by Gel.
      */
     public @NotNull ErrorCode getErrorCode() {
         return this.errorCode;
@@ -61,15 +61,15 @@ public class GelErrorException extends GelException {
 
     /**
      * Gets the details of this exception.
-     * @return The details of this error returned by EdgeDB if present; otherwise {@code null}.
+     * @return The details of this error returned by Gel if present; otherwise {@code null}.
      */
     public @Nullable String getDetails() {
         return getAttributeString(DETAILS_ATTRIBUTE);
     }
 
     /**
-     * Gets the EdgeDB traceback of this exception.
-     * @return The traceback of this error returned by EdgeDB if present; otherwise {@code null}.
+     * Gets the Gel traceback of this exception.
+     * @return The traceback of this error returned by EdgGeleDB if present; otherwise {@code null}.
      */
     public @Nullable String getTraceback() {
         return getAttributeString(TRACEBACK_ATTRIBUTE);
@@ -77,7 +77,7 @@ public class GelErrorException extends GelException {
 
     /**
      * Gets the hint of this exception.
-     * @return The hint of this error returned by EdgeDB if present; otherwise {@code null}.
+     * @return The hint of this error returned by Gel if present; otherwise {@code null}.
      */
     public @Nullable String getHint() {
         return getAttributeString(HINT_ATTRIBUTE);

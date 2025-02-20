@@ -3,7 +3,7 @@ package com.gel.driver.datatypes;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A class representing the {@code std::json} type in EdgeDB.
+ * A class representing the {@code std::json} type in Gel.
  */
 public final class Json {
     private final @NotNull String value;

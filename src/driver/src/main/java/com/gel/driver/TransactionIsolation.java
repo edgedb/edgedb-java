@@ -17,7 +17,7 @@ public enum TransactionIsolation {
     /**
      * All statements of the current transaction can only see data committed before the first query or data-modification
      * statement was executed in this transaction.
-     * @deprecated in EdgeDB >=1.3
+     * @deprecated in Gel >=1.3
      */
     @Deprecated
     REPEATABLE_READ;

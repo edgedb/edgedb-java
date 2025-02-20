@@ -1,4 +1,4 @@
-.. _edgedb_java_transactions:
+.. _gel_java_transactions:
 
 ============
 Transactions
