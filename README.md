@@ -1,12 +1,12 @@
-![EdgeDB Java](./branding/banner.png)
+![Gel Java](./branding/banner.png)
 
 <div align="center">
-  <h1>☕ The official Java/JVM client library for EdgeDB ☕</h1>
+  <h1>☕ The official Java/JVM client library for Gel ☕</h1>
 
-  <a href="https://github.com.gel/edgedb-java/actions" rel="nofollow">
-    <img src="https://github.com.gel/edgedb-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
+  <a href="https://github.com/geldata/gel-java/actions" rel="nofollow">
+    <img src="https://github.com/geldata/gel-java/actions/workflows/gradle.yml/badge.svg?event=push&branch=master" alt="Build status">
   </a>
-  <a href="https://github.com.gel/edgedb/blob/master/LICENSE">
+  <a href="https://github.com/geldata/gel/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-Apache%202.0-blue" />
   </a>
   <a href="https://discord.gg/edgedb">
@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
 
 ## Usage
 
-The `GelClientPool` class contains all the methods necessary to interact with the EdgeDB database.
+The `GelClientPool` class contains all the methods necessary to interact with the Gel database.
 
 ```java
 import com.gel.driver.GelClientPool;
