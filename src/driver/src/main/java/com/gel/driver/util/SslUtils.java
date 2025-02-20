@@ -41,12 +41,12 @@ public class SslUtils {
         context.init(null, getTrustManagerFactory(connection).getTrustManagers(), null);
     }
 
-    public static void applyTrustManager(@NotNull GelConnection connection, @NotNull SslContextBuilder builder) throws GeneralSecurityException, IOException {
+    public static SslContextBuilder applyTrustManager(@NotNull GelConnection connection, @NotNull SslContextBuilder builder) throws GeneralSecurityException, IOException {
         if(connection.getTLSSecurity() == TLSSecurityMode.INSECURE) {
-            builder.trustManager(INSECURE_TRUST_MANAGER);
+            return builder.trustManager(INSECURE_TRUST_MANAGER);
         }
         else {
-            builder.trustManager(getTrustManagerFactory(connection));
+            return builder.trustManager(getTrustManagerFactory(connection));
         }
     }
 
