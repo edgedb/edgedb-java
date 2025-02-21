@@ -1726,7 +1726,7 @@ public class EdgeDBConnection implements Cloneable {
     public static @NotNull EdgeDBConnection resolveEdgeDBTOML() throws IOException, ConfigurationException {
         ResolvedFields resolvedFields = _resolveInstanceTOML(ConfigUtils.getDefaultSystemProvider());
         if (resolvedFields == null) {
-            throw new ConfigurationException("Couldn't resolve edgedb.toml file");
+            throw new FileNotFoundException("Couldn't resolve edgedb.toml file");
         }
         return _fromResolvedFields(resolvedFields, ConfigUtils.getDefaultSystemProvider());
     }
