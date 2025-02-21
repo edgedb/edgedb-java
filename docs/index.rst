@@ -35,6 +35,7 @@ project.
         <dependency>
             <groupId>com.gel</groupId>
             <artifactId>driver</artifactId>
+            <version>0.2.1</version>
         </dependency>
 
     .. code-tab:: groovy
